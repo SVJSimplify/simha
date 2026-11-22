@@ -1,0 +1,280 @@
+package com.simha.app
+
+import com.simha.app.llm.Agent
+import com.simha.app.llm.ChatApi
+import com.simha.app.llm.ContactInfo
+import com.simha.app.llm.History
+import com.simha.app.llm.LlmException
+import com.simha.app.llm.LlmParse
+import com.simha.app.llm.Msg
+import com.simha.app.llm.ParsedReply
+import com.simha.app.llm.SentenceSplitter
+import com.simha.app.llm.SimhaTools
+import com.simha.app.llm.StreamAcc
+import com.simha.app.llm.ToolCall
+import com.simha.app.llm.ToolHost
+import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
+import org.junit.Test
+
+private class FakeHost(
+    private val contacts: List<ContactInfo> = emptyList(),
+    private val recordApproved: Boolean = false,
+) : ToolHost {
+    val calls = mutableListOf<String>()
+    val audits = mutableListOf<Triple<String, String, String>>()
+
+    override suspend fun getProfile() = JsonObject(emptyMap())
+    override suspend fun getContacts() = JsonArray(emptyList())
+    override suspend fun getStatus() = JsonObject(emptyMap())
+    override suspend fun logSymptom(text: String): String { calls += "symptom:$text"; return "saved" }
+    override suspend fun markCheckinOk(): String { calls += "checkin_ok"; return "ok" }
+    override suspend fun openEmergencyScreen(): String { calls += "emergency_screen"; return "ok" }
+    override suspend fun dialEmergency(): String { calls += "dial_emergency"; return "ok" }
+    override suspend fun contactByName(name: String) = contacts.firstOrNull { it.name.equals(name, true) }
+    override suspend fun callContact(c: ContactInfo): String { calls += "call:${c.name}"; return "calling" }
+    override suspend fun sendFamilyAlert(message: String): String { calls += "alert:$message"; return "ready" }
+    override suspend fun recordingApproved() = recordApproved
+    override suspend fun startRecording(): String { calls += "record"; return "recording" }
+    override suspend fun lookWithCamera(question: String): String { calls += "camera"; return "a cup" }
+    override suspend fun setReminder(text: String, minutes: Int): String { calls += "reminder:$minutes"; return "set" }
+    override suspend fun updateProfileField(field: String, value: String): String { calls += "profile:$field"; return "ok" }
+    override suspend fun audit(tool: String, args: String, result: String) { audits += Triple(tool, args, result) }
+}
+
+class LlmToolsTest {
+    private fun dispatch(host: FakeHost, name: String, args: String) =
+        runBlocking { SimhaTools.dispatch(name, args, host) }
+
+    @Test
+    fun parsesPlainReply() {
+        val r = LlmParse.parse("""{"choices":[{"message":{"role":"assistant","content":"Hello there"}}]}""")
+        assertEquals("Hello there", r.content)
+        assertTrue(r.toolCalls.isEmpty())
+    }
+
+    @Test
+    fun parsesToolCalls() {
+        val body = """{"choices":[{"message":{"role":"assistant","content":null,"tool_calls":[
+            {"id":"c1","type":"function","function":{"name":"call_approved_contact","arguments":"{\"name\":\"Priya\"}"}},
+            {"id":"c2","type":"function","function":{"name":"get_profile","arguments":""}}]}}]}"""
+        val r = LlmParse.parse(body)
+        assertNull(r.content)
+        assertEquals(2, r.toolCalls.size)
+        assertEquals(ToolCall("c1", "call_approved_contact", """{"name":"Priya"}"""), r.toolCalls[0])
+        assertEquals("get_profile", r.toolCalls[1].name)
+    }
+
+    @Test
+    fun parsesContentParts() {
+        val r = LlmParse.parse("""{"choices":[{"message":{"content":[{"type":"text","text":"a"},{"type":"text","text":"b"}]}}]}""")
+        assertEquals("ab", r.content)
+    }
+
+    @Test
+    fun errorBodyThrows() {
+        try {
+            LlmParse.parse("""{"error":{"message":"bad key"}}""")
+            fail()
+        } catch (e: LlmException) {
+            assertEquals("bad key", e.message)
+        }
+    }
+
+    @Test
+    fun invalidJsonThrows() {
+        try {
+            LlmParse.parse("<html>")
+            fail()
+        } catch (e: LlmException) {
+            assertTrue(e.message!!.isNotEmpty())
+        }
+    }
+
+    @Test
+    fun httpErrorUsesMessage() {
+        assertEquals("HTTP 401: Invalid key", LlmParse.httpError(401, """{"error":{"message":"Invalid key"}}"""))
+        assertEquals("HTTP 500: oops", LlmParse.httpError(500, "oops"))
+    }
+
+    @Test
+    fun streamAccumulatesTextAndToolCalls() {
+        val acc = StreamAcc()
+        val d1 = acc.feed("""data: {"choices":[{"delta":{"content":"Hel"}}]}""")
+        val d2 = acc.feed("""data: {"choices":[{"delta":{"content":"lo."}}]}""")
+        acc.feed("""data: {"choices":[{"delta":{"tool_calls":[{"index":0,"id":"t1","function":{"name":"mark_checkin_ok","arguments":"{"}}]}}]}""")
+        acc.feed("""data: {"choices":[{"delta":{"tool_calls":[{"index":0,"function":{"arguments":"}"}}]}}]}""")
+        acc.feed("data: [DONE]")
+        assertEquals("Hel", d1)
+        assertEquals("lo.", d2)
+        assertTrue(acc.done)
+        val r = acc.result()
+        assertEquals("Hello.", r.content)
+        assertEquals(listOf(ToolCall("t1", "mark_checkin_ok", "{}")), r.toolCalls)
+    }
+
+    @Test
+    fun streamIgnoresNonDataLinesAndThrowsOnError() {
+        val acc = StreamAcc()
+        assertNull(acc.feed(": keep-alive"))
+        assertNull(acc.feed(""))
+        try {
+            acc.feed("""data: {"error":{"message":"rate limited"}}""")
+            fail()
+        } catch (e: LlmException) {
+            assertEquals("rate limited", e.message)
+        }
+    }
+
+    @Test
+    fun sentenceSplitterWaitsForBoundary() {
+        val (a, rest) = SentenceSplitter.split("Hello there. How are")
+        assertEquals(listOf("Hello there."), a)
+        assertEquals(" How are", rest)
+        val (b, rest2) = SentenceSplitter.split("Hi. Fine! Ok?")
+        assertEquals(listOf("Hi.", "Fine!"), b)
+        assertEquals(" Ok?", rest2)
+        val (c, _) = SentenceSplitter.split("No boundary yet")
+        assertTrue(c.isEmpty())
+    }
+
+    @Test
+    fun historyTrimKeepsLastUserTurns() {
+        val h = mutableListOf<JsonObject>()
+        for (i in 1..30) {
+            h += Msg.user("u$i")
+            h += Msg.assistant("a$i")
+        }
+        val t = History.trim(h, 20)
+        assertEquals(40, t.size)
+        assertEquals("u11", t.first()["content"]!!.jsonPrimitive.content)
+        assertEquals(h, History.trim(h, 40))
+    }
+
+    @Test
+    fun unapprovedContactCallIsRefused() {
+        val host = FakeHost(contacts = listOf(ContactInfo("Priya", "999", "family", approved = false)))
+        val out = dispatch(host, "call_approved_contact", """{"name":"Priya"}""")
+        assertTrue(out.contains("refused"))
+        assertFalse(host.calls.any { it.startsWith("call:") })
+        assertEquals(1, host.audits.size)
+        assertEquals("call_approved_contact", host.audits[0].first)
+    }
+
+    @Test
+    fun approvedContactCallGoesThrough() {
+        val host = FakeHost(contacts = listOf(ContactInfo("Priya", "999", "family", approved = true)))
+        val out = dispatch(host, "call_approved_contact", """{"name":"priya"}""")
+        assertTrue(out.contains("result"))
+        assertEquals(listOf("call:Priya"), host.calls)
+    }
+
+    @Test
+    fun unknownContactIsAnErrorNotACall() {
+        val host = FakeHost()
+        val out = dispatch(host, "call_approved_contact", """{"name":"Nobody"}""")
+        assertTrue(out.contains("error"))
+        assertTrue(host.calls.isEmpty())
+    }
+
+    @Test
+    fun recordingRefusedWithoutApproval() {
+        val host = FakeHost(recordApproved = false)
+        val out = dispatch(host, "start_recording", "{}")
+        assertTrue(out.contains("refused"))
+        assertTrue(host.calls.isEmpty())
+    }
+
+    @Test
+    fun recordingAllowedWithApproval() {
+        val host = FakeHost(recordApproved = true)
+        dispatch(host, "start_recording", "{}")
+        assertEquals(listOf("record"), host.calls)
+    }
+
+    @Test
+    fun badArgumentsAndUnknownToolsAreErrorsAndAudited() {
+        val host = FakeHost()
+        assertTrue(dispatch(host, "log_symptom", "{not json").contains("error"))
+        assertTrue(dispatch(host, "log_symptom", "{}").contains("error"))
+        assertTrue(dispatch(host, "launch_missiles", "{}").contains("Unknown tool"))
+        assertTrue(dispatch(host, "set_reminder", """{"text":"x","minutes":0}""").contains("error"))
+        assertTrue(dispatch(host, "update_profile_field", """{"field":"password","value":"x"}""").contains("error"))
+        assertTrue(host.calls.isEmpty())
+        assertEquals(5, host.audits.size)
+    }
+
+    @Test
+    fun everyDispatchIsAudited() {
+        val host = FakeHost()
+        dispatch(host, "get_profile", "{}")
+        dispatch(host, "dial_emergency", "{}")
+        dispatch(host, "log_symptom", """{"text":"dizzy"}""")
+        assertEquals(listOf("get_profile", "dial_emergency", "log_symptom"), host.audits.map { it.first })
+        assertEquals(listOf("dial_emergency", "symptom:dizzy"), host.calls)
+    }
+
+    @Test
+    fun definitionsCoverAllTools() {
+        val names = SimhaTools.definitions.map { it.jsonObject["function"]!!.jsonObject["name"]!!.jsonPrimitive.content }.toSet()
+        val expected = setOf(
+            "get_profile", "get_contacts", "get_status", "log_symptom", "mark_checkin_ok", "open_emergency_screen",
+            "dial_emergency", "call_approved_contact", "send_family_alert", "start_recording", "look_with_camera",
+            "set_reminder", "update_profile_field",
+        )
+        assertEquals(expected, names)
+    }
+
+    @Test
+    fun agentRunsToolThenAnswers() {
+        val host = FakeHost()
+        val replies = ArrayDeque(
+            listOf(
+                ParsedReply(null, listOf(ToolCall("c1", "mark_checkin_ok", "{}"))),
+                ParsedReply("Glad you are fine.", emptyList()),
+            )
+        )
+        val api = object : ChatApi {
+            override suspend fun chat(messages: JsonArray, tools: JsonArray, onDelta: (String) -> Unit): ParsedReply {
+                val r = replies.removeFirst()
+                r.content?.let(onDelta)
+                return r
+            }
+        }
+        val history = mutableListOf(Msg.user("I am fine"))
+        val spoken = mutableListOf<String>()
+        var fillers = 0
+        val out = runBlocking { Agent.run(api, "sys", history, host, { spoken += it }, { fillers++ }) }
+        assertEquals("Glad you are fine.", out)
+        assertEquals(listOf("checkin_ok"), host.calls)
+        assertEquals(listOf("Glad you are fine."), spoken)
+        assertEquals(1, fillers)
+        assertEquals(4, history.size)
+    }
+
+    @Test
+    fun agentStopsAfterFiveToolRounds() {
+        val host = FakeHost()
+        var n = 0
+        val api = object : ChatApi {
+            override suspend fun chat(messages: JsonArray, tools: JsonArray, onDelta: (String) -> Unit): ParsedReply {
+                n++
+                return ParsedReply(null, listOf(ToolCall("c$n", "get_profile", "{}")))
+            }
+        }
+        try {
+            runBlocking { Agent.run(api, "sys", mutableListOf(Msg.user("hi")), host, {}, {}) }
+            fail()
+        } catch (e: LlmException) {
+            assertEquals(Agent.MAX_STEPS, n)
+        }
+    }
+}
