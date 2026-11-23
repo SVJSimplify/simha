@@ -27,7 +27,17 @@ Android app for seniors: inactivity watch → check-in → escalation. Specs in 
 - Secrets: `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`. Optional: `SARVAM_API_KEY`.
 
 ## Branches
-- Work on `dev`; `main` receives merges.
+- Work on `dev`; `main` receives merges. Push with the SVJSimplify account (repo git config uses `gh auth git-credential`).
+
+## Tools
+| Tool | Use for Simha |
+|---|---|
+| Supabase MCP (project `hvqqagwtkvfpsmammbtb`) | Migrations (`apply_migration`), schema checks, `get_advisors` after every DDL change |
+| GitHub CLI `gh` | CI status/logs (`gh run list/view --log-failed`), releases, secrets |
+| graphify (`~/.local/bin/graphify.exe`) | Code questions before grep/read; `graphify update .` after code changes (see below) |
+| Reticle (`reticle`, global) | Not usable here: it only verifies web/Electron/Tauri apps. Do not run `reticle init` in this repo |
+| No local Android SDK | Compile/lint/test only in GitHub Actions; the APK is tested by the user on a phone |
+- Subagents: Sonnet, told to be minimal and do exactly the brief.
 
 ## graphify
 
