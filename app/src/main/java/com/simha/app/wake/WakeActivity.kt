@@ -18,6 +18,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.core.app.NotificationManagerCompat
+import com.simha.app.SimhaApp
 import com.simha.app.ui.talk.ConversationPanel
 import com.simha.app.ui.theme.SimhaTheme
 import kotlinx.coroutines.delay
@@ -71,6 +72,7 @@ class WakeActivity : AppCompatActivity() {
             return
         }
         NotificationManagerCompat.from(applicationContext).cancel(NOTIFICATION_ID)
+        (applicationContext as SimhaApp).sl.voice.stopSpeaking()
         WakeAudio.begin(applicationContext, r.attempt)
         req = r
     }

@@ -66,6 +66,7 @@ fun permText(p: Perm): PermText = when (p) {
     Perm.FullScreen -> PermText(R.string.perm_full, R.string.perm_full_short, R.string.perm_full_why, R.string.perm_full_no)
     Perm.Battery -> PermText(R.string.perm_batt, R.string.perm_batt_short, R.string.perm_batt_why, R.string.perm_batt_no)
     Perm.CallPhone -> PermText(R.string.perm_call, R.string.perm_call_short, R.string.perm_call_short, R.string.perm_call_no)
+    Perm.Overlay -> PermText(R.string.perm_overlay, R.string.perm_overlay_short, R.string.perm_overlay_why, R.string.perm_overlay_no)
 }
 
 private fun indianPhone(raw: String): String? {
@@ -416,7 +417,7 @@ private fun StepPerms(vm: MainViewModel, h: Boolean, back: () -> Unit, next: () 
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
     val list = remember {
-        val base = listOf(Perm.Notifications, Perm.Mic, Perm.Camera, Perm.Location, Perm.Usage, Perm.FullScreen, Perm.Battery)
+        val base = listOf(Perm.Notifications, Perm.Mic, Perm.Camera, Perm.Location, Perm.Usage, Perm.FullScreen, Perm.Overlay, Perm.Battery)
             .filter { Perms.available(it) }
             .map { q -> OnbPerm(q.name, permText(q), Perms.runtime(q), { c -> Perms.granted(c, q) }, { c, r -> Perms.open(c, q, r) }) }
         val exact = if (Build.VERSION.SDK_INT >= 31) {

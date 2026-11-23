@@ -48,6 +48,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import com.simha.app.MainViewModel
 import com.simha.app.Perm
 import com.simha.app.Perms
+import com.simha.app.WakeReady
 import com.simha.app.R
 import com.simha.app.TodayItem
 import com.simha.app.data.CallResult
@@ -255,6 +256,9 @@ fun HomeScreen(
                             Body(stringResource(R.string.stopped_banner))
                             PrimaryButton(stringResource(R.string.set_start), { vm.startSimha() })
                         }
+                    }
+                    if (remember(tick) { WakeReady.missing(ctx) }) {
+                        Card(Modifier.pressClick(onSettings)) { Body(stringResource(R.string.wr_home), color = c.emergency) }
                     }
                     err?.let { Card { Body(stringResource(R.string.sync_error, it)) } }
                     Card {

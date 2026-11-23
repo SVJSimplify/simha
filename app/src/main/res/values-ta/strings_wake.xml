@@ -12,4 +12,16 @@
     <string name="wake_n_tap">சிம்ஹாவிடம் பேச தட்டவும்</string>
     <string name="wake_note_inexact">துல்லியமான அலாரங்களுக்கு அனுமதி இல்லாததால் அழைப்புகள் சற்று தாமதமாக வரலாம். கணினி அமைப்புகளில் சிம்ஹாவுக்கு அலாரங்கள் மற்றும் நினைவூட்டல்களை அனுமதிக்கவும்.</string>
     <string name="wake_sms_safearea">சிம்ஹா எச்சரிக்கை: %1$s பாதுகாப்பான பகுதிக்கு வெளியே உள்ளார். தயவுசெய்து அவரை விசாரிக்கவும்.</string>
+    <string name="wake_tap_say">எனக்குப் பதில் சொல்ல திரையைத் தொடுங்கள்.</string>
+    <string name="perm_overlay">சிம்மாவைத் திரையில் தோன்ற விடுங்கள்</string>
+    <string name="perm_overlay_short">வேறு ஆப் திறந்திருந்தாலும் சிம்மா திறந்து உங்களுடன் பேசுவதற்கு.</string>
+    <string name="perm_overlay_why">சிம்மா மற்ற ஆப்களின் மேல் தோன்ற Android க்கு உங்கள் அனுமதி தேவை.</string>
+    <string name="perm_overlay_no">இது இல்லாவிட்டால் சிம்மா அறிவிப்பை மட்டுமே காட்டலாம், பேசாமல் போகலாம்.</string>
+    <string name="wr_title">குரல் அழைப்புத் தயார்நிலை</string>
+    <string name="wr_fix">சரிசெய்</string>
+    <string name="wr_oem">தொலைபேசி தயாரிப்பாளரின் ஆட்டோஸ்டார்ட்</string>
+    <string name="wr_test">இப்போது குரல் சோதனையை முயலுங்கள்</string>
+    <string name="wr_test_note">இப்போது போனைப் பூட்டுங்கள். சிம்மா 10 விநாடிகளில் பேசும்.</string>
+    <string name="wr_version">பதிப்பு %1$s (பில்ட் %2$d)</string>
+    <string name="wr_home">சிம்மா இன்னும் உங்களுடன் பேச முடியாது — அமைப்புகளில் சரிசெய்யுங்கள்</string>
 </resources>

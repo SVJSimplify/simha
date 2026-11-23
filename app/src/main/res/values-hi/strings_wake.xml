@@ -12,4 +12,16 @@
     <string name="wake_n_tap">सिंहा से बात करने के लिए टैप करें</string>
     <string name="wake_note_inexact">सटीक अलार्म की अनुमति न होने से पुकार थोड़ी देर से आ सकती है। सिस्टम सेटिंग में सिंहा के लिए अलार्म और रिमाइंडर की अनुमति दें।</string>
     <string name="wake_sms_safearea">सिंहा अलर्ट: %1$s सुरक्षित क्षेत्र से बाहर हैं। कृपया उनका हाल पूछें।</string>
+    <string name="wake_tap_say">मुझे जवाब देने के लिए स्क्रीन पर टैप करें।</string>
+    <string name="perm_overlay">सिंहा को स्क्रीन पर आने दें</string>
+    <string name="perm_overlay_short">ताकि दूसरा ऐप खुला होने पर भी सिंहा खुलकर आपसे बात कर सके।</string>
+    <string name="perm_overlay_why">सिंहा को दूसरे ऐप के ऊपर दिखने के लिए Android को आपकी अनुमति चाहिए।</string>
+    <string name="perm_overlay_no">इसके बिना सिंहा सिर्फ़ नोटिफिकेशन दिखा सकता है और बोल नहीं पाएगा।</string>
+    <string name="wr_title">आवाज़ से पुकार की तैयारी</string>
+    <string name="wr_fix">ठीक करें</string>
+    <string name="wr_oem">फ़ोन कंपनी का ऑटोस्टार्ट</string>
+    <string name="wr_test">अभी आवाज़ वाली जाँच आज़माएँ</string>
+    <string name="wr_test_note">अभी फ़ोन लॉक कर दें। सिंहा 10 सेकंड में बोलेगा।</string>
+    <string name="wr_version">संस्करण %1$s (बिल्ड %2$d)</string>
+    <string name="wr_home">सिंहा अभी आपसे बोल नहीं सकता — सेटिंग में ठीक करें</string>
 </resources>

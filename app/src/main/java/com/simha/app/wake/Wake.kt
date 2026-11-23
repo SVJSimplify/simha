@@ -12,6 +12,7 @@ import android.media.AudioAttributes
 import android.media.AudioManager
 import android.media.RingtoneManager
 import android.os.Build
+import android.provider.Settings
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -22,6 +23,7 @@ import com.simha.app.SimhaApp
 import com.simha.app.data.Weather
 import com.simha.app.data.jo
 import com.simha.app.data.simhaStore
+import com.simha.app.llm.Guardian
 import com.simha.app.ui.home.UiSettings
 import com.simha.app.ui.home.toUi
 import com.simha.app.forLang
@@ -328,6 +330,15 @@ object Wake {
         WakeAudio.begin(app, r.attempt)
         val i = activityIntent(app, r)
         val posted = notify(lc, r, i)
+        val canOverlay = Settings.canDrawOverlays(app)
+        try {
+            val snap = sl.prefs.snap()
+            var text = Guardian.openingLine(lc, r.reason, snap.name, if (r.reason == WakeReason.Medicine) r.extra else null)
+            if (!canOverlay) text += " " + lc.getString(R.string.wake_tap_say)
+            sl.voice.speak(text, snap.lang)
+        } catch (e: Exception) {
+            Log.w("Simha", "wake speech failed", e)
+        }
         try {
             app.startActivity(Intent(i))
         } catch (e: Exception) {

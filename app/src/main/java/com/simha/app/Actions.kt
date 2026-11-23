@@ -17,7 +17,7 @@ import androidx.core.content.ContextCompat
 import com.simha.app.monitor.UsageReader
 import java.util.Locale
 
-enum class Perm { Notifications, Mic, Camera, Location, Usage, FullScreen, Battery, CallPhone }
+enum class Perm { Notifications, Mic, Camera, Location, Usage, FullScreen, Battery, CallPhone, Overlay }
 
 object Actions {
     fun has(ctx: Context, p: String): Boolean =
@@ -88,6 +88,7 @@ object Perms {
             true
         }
         Perm.Battery -> ctx.getSystemService(PowerManager::class.java).isIgnoringBatteryOptimizations(ctx.packageName)
+        Perm.Overlay -> Settings.canDrawOverlays(ctx)
     }
 
     @SuppressLint("BatteryLife")
@@ -95,6 +96,7 @@ object Perms {
         val pkg = Uri.parse("package:" + ctx.packageName)
         return when (p) {
             Perm.Usage -> Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)
+            Perm.Overlay -> Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, pkg)
             Perm.FullScreen -> Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT, pkg)
             Perm.Battery ->
                 if (forRequest) Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, pkg)
@@ -121,4 +123,38 @@ fun Context.forLang(tag: String): Context {
     val c = Configuration(resources.configuration)
     c.setLocale(Locale.forLanguageTag(tag))
     return createConfigurationContext(c)
+}
+
+enum class WakeReq(val perm: Perm?, val label: Int) {
+    Notifications(Perm.Notifications, R.string.perm_notif),
+    FullScreen(Perm.FullScreen, R.string.perm_full),
+    Overlay(Perm.Overlay, R.string.perm_overlay),
+    Exact(null, R.string.r3_exact),
+    Battery(Perm.Battery, R.string.perm_batt),
+    Mic(Perm.Mic, R.string.perm_mic),
+    Autostart(null, R.string.wr_oem),
+}
+
+object WakeReady {
+    fun applies(r: WakeReq): Boolean = when (r) {
+        WakeReq.Exact -> Build.VERSION.SDK_INT >= 31
+        WakeReq.Autostart -> com.simha.app.ui.home.Oem.applicable()
+        else -> r.perm == null || Perms.available(r.perm)
+    }
+
+    fun ok(ctx: Context, r: WakeReq): Boolean? = when (r) {
+        WakeReq.Exact -> com.simha.app.ui.home.Oem.exactAllowed(ctx)
+        WakeReq.Autostart -> null
+        else -> Perms.granted(ctx, r.perm!!)
+    }
+
+    fun fix(ctx: Context, r: WakeReq) {
+        when (r) {
+            WakeReq.Exact -> com.simha.app.ui.home.Oem.openExact(ctx)
+            WakeReq.Autostart -> com.simha.app.ui.home.Oem.open(ctx)
+            else -> Perms.open(ctx, r.perm!!, r == WakeReq.Battery)
+        }
+    }
+
+    fun missing(ctx: Context): Boolean = WakeReq.entries.any { applies(it) && ok(ctx, it) == false }
 }

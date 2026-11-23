@@ -12,4 +12,16 @@
     <string name="wake_n_tap">సింహతో మాట్లాడటానికి తాకండి</string>
     <string name="wake_note_inexact">ఖచ్చితమైన అలారాలకు అనుమతి లేనందున పిలుపులు కొంచెం ఆలస్యంగా రావచ్చు. సిస్టమ్ సెట్టింగ్‌లలో సింహకు అలారాలు మరియు రిమైండర్లను అనుమతించండి.</string>
     <string name="wake_sms_safearea">సింహ హెచ్చరిక: %1$s సురక్షిత ప్రాంతం వెలుపల ఉన్నారు. దయచేసి వారిని విచారించండి.</string>
+    <string name="wake_tap_say">నాకు సమాధానం చెప్పడానికి స్క్రీన్‌ను తాకండి.</string>
+    <string name="perm_overlay">సింహను స్క్రీన్‌పై కనిపించనివ్వండి</string>
+    <string name="perm_overlay_short">వేరే యాప్ తెరిచి ఉన్నా సింహ తెరుచుకుని మీతో మాట్లాడగలగడానికి.</string>
+    <string name="perm_overlay_why">సింహ ఇతర యాప్‌ల పైన కనిపించడానికి Android కి మీ అనుమతి కావాలి.</string>
+    <string name="perm_overlay_no">ఇది లేకపోతే సింహ నోటిఫికేషన్ మాత్రమే చూపవచ్చు, మాట్లాడకపోవచ్చు.</string>
+    <string name="wr_title">వాయిస్ పిలుపు సిద్ధత</string>
+    <string name="wr_fix">సరిచేయండి</string>
+    <string name="wr_oem">ఫోన్ తయారీదారు ఆటోస్టార్ట్</string>
+    <string name="wr_test">ఇప్పుడు వాయిస్ చెక్-ఇన్ పరీక్షించండి</string>
+    <string name="wr_test_note">ఇప్పుడు ఫోన్‌ను లాక్ చేయండి. సింహ 10 సెకన్లలో మాట్లాడుతుంది.</string>
+    <string name="wr_version">వెర్షన్ %1$s (బిల్డ్ %2$d)</string>
+    <string name="wr_home">సింహ ఇంకా మీతో మాట్లాడలేదు — సెట్టింగ్‌లలో సరిచేయండి</string>
 </resources>

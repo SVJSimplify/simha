@@ -13,6 +13,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import android.os.Handler
+import android.os.Looper
+import com.simha.app.BuildConfig
+import com.simha.app.WakeReady
+import com.simha.app.WakeReq
+import com.simha.app.wake.Wake
+import com.simha.app.wake.WakeReason
 import com.simha.app.MainViewModel
 import com.simha.app.Perm
 import com.simha.app.Perms
@@ -41,6 +48,7 @@ private fun permRes(p: Perm): Pair<Int, Int> = when (p) {
     Perm.FullScreen -> R.string.perm_full to R.string.perm_full_short
     Perm.Battery -> R.string.perm_batt to R.string.perm_batt_short
     Perm.CallPhone -> R.string.perm_call to R.string.perm_call_short
+    Perm.Overlay -> R.string.perm_overlay to R.string.perm_overlay_short
 }
 
 @Composable
@@ -71,6 +79,7 @@ fun SettingsScreen(
     var pickMorning by remember { mutableStateOf(false) }
     var pickEvening by remember { mutableStateOf(false) }
     var homeMsg by remember { mutableStateOf<Int?>(null) }
+    var testMsg by remember { mutableStateOf(false) }
 
     var cgs by remember { mutableStateOf<List<CaregiverRow>>(emptyList()) }
     var cgErr by remember { mutableStateOf<String?>(null) }
@@ -87,6 +96,21 @@ fun SettingsScreen(
     val noFamily = contacts.none { it.role in Repo.FAMILY_ROLES }
 
     ScreenFrame(title, title, onBack) {
+        SectionTitle(stringResource(R.string.wr_title))
+        Card {
+            WakeReq.entries.filter { WakeReady.applies(it) }.forEach { r ->
+                val ok = remember(tick, r) { WakeReady.ok(ctx, r) }
+                Body((if (ok == true) "✓ " else if (ok == false) "✗ " else "• ") + stringResource(r.label))
+                if (ok != true) SecondaryButton(stringResource(R.string.wr_fix), { WakeReady.fix(ctx, r) })
+            }
+            SecondaryButton(stringResource(R.string.wr_test), {
+                Handler(Looper.getMainLooper()).postDelayed({ Wake.wakeNow(ctx, WakeReason.Checkin) }, 10_000L)
+                testMsg = true
+            })
+            if (testMsg) Caption(stringResource(R.string.wr_test_note))
+            Caption(stringResource(R.string.wr_version, BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE))
+        }
+
         SectionTitle(stringResource(R.string.set_language))
         listOf("en" to R.string.lang_en, "hi" to R.string.lang_hi, "te" to R.string.lang_te, "kn" to R.string.lang_kn, "ta" to R.string.lang_ta)
             .forEach { (code, res) ->

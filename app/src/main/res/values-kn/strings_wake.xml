@@ -12,4 +12,16 @@
     <string name="wake_n_tap">ಸಿಂಹರೊಂದಿಗೆ ಮಾತನಾಡಲು ಒತ್ತಿರಿ</string>
     <string name="wake_note_inexact">ನಿಖರ ಅಲಾರಂಗಳಿಗೆ ಅನುಮತಿ ಇಲ್ಲದ ಕಾರಣ ಕರೆಗಳು ಸ್ವಲ್ಪ ತಡವಾಗಿ ಬರಬಹುದು. ಸಿಸ್ಟಮ್ ಸೆಟ್ಟಿಂಗ್‌ಗಳಲ್ಲಿ ಸಿಂಹಕ್ಕೆ ಅಲಾರಂ ಮತ್ತು ರಿಮೈಂಡರ್‌ಗಳಿಗೆ ಅನುಮತಿ ನೀಡಿ.</string>
     <string name="wake_sms_safearea">ಸಿಂಹ ಎಚ್ಚರಿಕೆ: %1$s ಸುರಕ್ಷಿತ ಪ್ರದೇಶದ ಹೊರಗೆ ಇದ್ದಾರೆ. ದಯವಿಟ್ಟು ಅವರನ್ನು ವಿಚಾರಿಸಿ.</string>
+    <string name="wake_tap_say">ನನಗೆ ಉತ್ತರಿಸಲು ಪರದೆಯನ್ನು ಟ್ಯಾಪ್ ಮಾಡಿ.</string>
+    <string name="perm_overlay">ಸಿಂಹನನ್ನು ಪರದೆಯ ಮೇಲೆ ಬರಲು ಬಿಡಿ</string>
+    <string name="perm_overlay_short">ಬೇರೆ ಆ್ಯಪ್ ತೆರೆದಿದ್ದರೂ ಸಿಂಹ ತೆರೆದು ನಿಮ್ಮೊಂದಿಗೆ ಮಾತನಾಡಲು.</string>
+    <string name="perm_overlay_why">ಸಿಂಹ ಇತರ ಆ್ಯಪ್‌ಗಳ ಮೇಲೆ ಕಾಣಿಸಲು Android ಗೆ ನಿಮ್ಮ ಅನುಮತಿ ಬೇಕು.</string>
+    <string name="perm_overlay_no">ಇದು ಇಲ್ಲದಿದ್ದರೆ ಸಿಂಹ ಅಧಿಸೂಚನೆ ಮಾತ್ರ ತೋರಿಸಬಹುದು, ಮಾತನಾಡದಿರಬಹುದು.</string>
+    <string name="wr_title">ಧ್ವನಿ ಕರೆಯ ಸಿದ್ಧತೆ</string>
+    <string name="wr_fix">ಸರಿಪಡಿಸಿ</string>
+    <string name="wr_oem">ಫೋನ್ ತಯಾರಕರ ಆಟೋಸ್ಟಾರ್ಟ್</string>
+    <string name="wr_test">ಈಗ ಧ್ವನಿ ಚೆಕ್-ಇನ್ ಪರೀಕ್ಷಿಸಿ</string>
+    <string name="wr_test_note">ಈಗ ಫೋನ್ ಲಾಕ್ ಮಾಡಿ. ಸಿಂಹ 10 ಸೆಕೆಂಡುಗಳಲ್ಲಿ ಮಾತನಾಡುತ್ತದೆ.</string>
+    <string name="wr_version">ಆವೃತ್ತಿ %1$s (ಬಿಲ್ಡ್ %2$d)</string>
+    <string name="wr_home">ಸಿಂಹ ಇನ್ನೂ ನಿಮ್ಮೊಂದಿಗೆ ಮಾತನಾಡಲಾರದು — ಸೆಟ್ಟಿಂಗ್ಸ್‌ನಲ್ಲಿ ಸರಿಪಡಿಸಿ</string>
 </resources>
