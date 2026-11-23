@@ -229,7 +229,7 @@ class LlmToolsTest {
         val expected = setOf(
             "get_profile", "get_contacts", "get_status", "log_symptom", "mark_checkin_ok", "open_emergency_screen",
             "dial_emergency", "call_approved_contact", "send_family_alert", "start_recording", "look_with_camera",
-            "set_reminder", "update_profile_field",
+            "set_reminder", "update_profile_field", "remember_health_detail",
         )
         assertEquals(expected, names)
     }
