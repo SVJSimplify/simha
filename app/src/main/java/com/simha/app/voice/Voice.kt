@@ -271,6 +271,9 @@ class Voice(private val app: Context) {
         val rate = 16000
         val frame = rate * 30 / 1000
         val minBuf = AudioRecord.getMinBufferSize(rate, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT)
+        if (androidx.core.content.ContextCompat.checkSelfPermission(app, android.Manifest.permission.RECORD_AUDIO) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            return@withContext Result.failure<String>(VoiceFail(VoiceKind.Failed))
+        }
         val rec = try {
             AudioRecord(MediaRecorder.AudioSource.VOICE_RECOGNITION, rate, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, maxOf(minBuf, frame * 8))
         } catch (e: Exception) {
