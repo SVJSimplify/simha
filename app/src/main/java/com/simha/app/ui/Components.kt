@@ -1,7 +1,14 @@
 package com.simha.app.ui
 
 import android.provider.Settings
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,55 +22,66 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.simha.app.R
 import com.simha.app.SimhaApp
 import com.simha.app.logic.Ago
-import com.simha.app.ui.theme.Coral
-import com.simha.app.ui.theme.EmergencyRed
+import com.simha.app.ui.theme.LocalSimha
+import com.simha.app.ui.theme.SimhaRadius
 import kotlinx.coroutines.launch
 
 data class Layout(val columns: Int, val pad: Dp, val target: Dp, val primaryH: Dp)
 
-val LocalLayout = staticCompositionLocalOf { Layout(1, 16.dp, 56.dp, 72.dp) }
+val LocalLayout = staticCompositionLocalOf { Layout(1, 16.dp, 56.dp, 64.dp) }
 val LocalLang = compositionLocalOf { "en" }
 
 @Composable
@@ -79,13 +97,32 @@ fun rememberLayout(wsc: WindowWidthSizeClass): Layout {
         WindowWidthSizeClass.Medium -> 24.dp
         else -> 32.dp
     }
-    return Layout(cols, pad, if (big) 64.dp else 56.dp, if (big) 88.dp else 72.dp)
+    return Layout(cols, pad, if (big) 64.dp else 56.dp, if (big) 72.dp else 64.dp)
 }
 
 @Composable
 fun animMs(): Int {
     val ctx = LocalContext.current
-    return if (Settings.Global.getFloat(ctx.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f) 0 else 200
+    return remember(ctx) {
+        if (Settings.Global.getFloat(ctx.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f) 0 else 200
+    }
+}
+
+fun Modifier.pressClick(
+    onClick: () -> Unit,
+    enabled: Boolean = true,
+    role: Role? = Role.Button,
+): Modifier = composed {
+    val src = remember { MutableInteractionSource() }
+    val pressed by src.collectIsPressedAsState()
+    val ms = animMs()
+    val sc by animateFloatAsState(if (pressed && enabled) 0.97f else 1f, tween(if (ms == 0) 0 else 120), label = "press")
+    this
+        .graphicsLayer {
+            scaleX = sc
+            scaleY = sc
+        }
+        .clickable(interactionSource = src, indication = null, enabled = enabled, role = role, onClick = onClick)
 }
 
 enum class Kind { Primary, Emergency, Secondary, Success }
@@ -95,44 +132,122 @@ fun ScreenFrame(
     title: String,
     read: String,
     onBack: (() -> Unit)?,
+    bottom: (@Composable () -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val l = LocalLayout.current
     val lang = LocalLang.current
     val voice = (LocalContext.current.applicationContext as SimhaApp).sl.voice
     val scope = rememberCoroutineScope()
-    Box(
-        Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .windowInsetsPadding(WindowInsets.safeDrawing),
-        contentAlignment = Alignment.TopCenter,
-    ) {
-        Column(
+    val c = LocalSimha.current
+    CompositionLocalProvider(LocalContentColor provides c.text) {
+        Box(
             Modifier
-                .widthIn(max = 640.dp)
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
-                .padding(l.pad),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+                .fillMaxSize()
+                .background(c.page)
+                .windowInsetsPadding(WindowInsets.safeDrawing),
+            contentAlignment = Alignment.TopCenter,
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                if (onBack != null) {
-                    IconButton(onClick = onBack, modifier = Modifier.size(l.target)) {
-                        Icon(painterResource(R.drawable.ic_back), stringResource(R.string.back))
-                    }
-                }
-                Text(title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
-                IconButton(
-                    onClick = { scope.launch { voice.say(read, lang) } },
-                    modifier = Modifier.size(l.target),
+            Column(Modifier.widthIn(max = 640.dp).fillMaxSize()) {
+                Column(
+                    Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState())
+                        .padding(l.pad),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    Icon(painterResource(R.drawable.ic_speaker), stringResource(R.string.read_aloud))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        if (onBack != null) {
+                            IconButton(onClick = onBack, modifier = Modifier.size(l.target)) {
+                                Icon(painterResource(R.drawable.ic_back), stringResource(R.string.back))
+                            }
+                        }
+                        Text(title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
+                        IconButton(
+                            onClick = { scope.launch { voice.say(read, lang) } },
+                            modifier = Modifier.size(l.target),
+                        ) {
+                            Icon(painterResource(R.drawable.ic_speaker), stringResource(R.string.read_aloud))
+                        }
+                    }
+                    content()
+                }
+                if (bottom != null) {
+                    Box(Modifier.fillMaxWidth().padding(horizontal = l.pad, vertical = 12.dp)) { bottom() }
                 }
             }
-            HorizontalDivider(color = Coral, thickness = 2.dp)
-            content()
         }
+    }
+}
+
+@Composable
+private fun ButtonCore(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier,
+    icon: Int?,
+    enabled: Boolean,
+    bg: Color,
+    fg: Color,
+    stroke: Color?,
+) {
+    val l = LocalLayout.current
+    val shape = RoundedCornerShape(SimhaRadius)
+    Row(
+        modifier
+            .fillMaxWidth()
+            .heightIn(min = l.primaryH)
+            .pressClick(onClick, enabled)
+            .alpha(if (enabled) 1f else 0.45f)
+            .clip(shape)
+            .background(bg)
+            .then(if (stroke != null) Modifier.border(1.dp, stroke, shape) else Modifier)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (icon != null) {
+            Icon(painterResource(icon), null, Modifier.size(28.dp), tint = fg)
+            Spacer(Modifier.width(10.dp))
+        }
+        Text(text, style = MaterialTheme.typography.labelLarge, color = fg, textAlign = TextAlign.Center)
+    }
+}
+
+@Composable
+fun PrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, icon: Int? = null, enabled: Boolean = true) {
+    val c = LocalSimha.current
+    ButtonCore(text, onClick, modifier, icon, enabled, c.primary, c.onPrimary, null)
+}
+
+@Composable
+fun SecondaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, icon: Int? = null, enabled: Boolean = true) {
+    val c = LocalSimha.current
+    ButtonCore(text, onClick, modifier, icon, enabled, c.surface, c.text, c.border)
+}
+
+@Composable
+fun EmergencyButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val c = LocalSimha.current
+    ButtonCore(text, onClick, modifier, null, true, c.emergency, Color.White, null)
+}
+
+@Composable
+fun TextLink(text: String, onClick: () -> Unit) {
+    val l = LocalLayout.current
+    Box(
+        Modifier
+            .heightIn(min = l.target)
+            .pressClick(onClick)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text,
+            style = MaterialTheme.typography.labelLarge.copy(fontSize = 18.sp, textDecoration = TextDecoration.Underline),
+            color = LocalSimha.current.text2,
+        )
     }
 }
 
@@ -145,33 +260,12 @@ fun BigButton(
     enabled: Boolean = true,
     icon: Int? = null,
 ) {
-    val l = LocalLayout.current
-    val base = modifier.fillMaxWidth()
-    val body: @Composable () -> Unit = {
-        if (icon != null) {
-            Icon(painterResource(icon), null, Modifier.size(28.dp))
-            Spacer(Modifier.width(8.dp))
-        }
-        Text(text, textAlign = TextAlign.Center)
-    }
+    val c = LocalSimha.current
     when (kind) {
-        Kind.Secondary -> OutlinedButton(onClick, base.heightIn(min = l.target), enabled = enabled) { body() }
-        Kind.Emergency -> Button(
-            onClick,
-            base.heightIn(min = l.primaryH),
-            enabled = enabled,
-            colors = ButtonDefaults.buttonColors(containerColor = EmergencyRed, contentColor = Color.White),
-        ) { body() }
-        Kind.Success -> Button(
-            onClick,
-            base.heightIn(min = l.primaryH),
-            enabled = enabled,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.tertiary,
-                contentColor = MaterialTheme.colorScheme.onTertiary,
-            ),
-        ) { body() }
-        Kind.Primary -> Button(onClick, base.heightIn(min = l.primaryH), enabled = enabled) { body() }
+        Kind.Primary -> PrimaryButton(text, onClick, modifier, icon, enabled)
+        Kind.Secondary -> SecondaryButton(text, onClick, modifier, icon, enabled)
+        Kind.Emergency -> ButtonCore(text, onClick, modifier, icon, enabled, c.emergency, Color.White, null)
+        Kind.Success -> ButtonCore(text, onClick, modifier, icon, enabled, c.success, Color.White, null)
     }
 }
 
@@ -182,21 +276,28 @@ fun Body(text: String, modifier: Modifier = Modifier, color: Color = Color.Unspe
 
 @Composable
 fun Caption(text: String, modifier: Modifier = Modifier) {
+    Text(text, style = MaterialTheme.typography.bodySmall, color = LocalSimha.current.text2, modifier = modifier)
+}
+
+@Composable
+fun SectionTitle(text: String) {
     Text(
         text,
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = modifier,
+        style = MaterialTheme.typography.titleMedium,
+        color = LocalSimha.current.text,
+        modifier = Modifier.padding(top = 12.dp),
     )
 }
 
 @Composable
-fun Card(content: @Composable ColumnScope.() -> Unit) {
+fun Card(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
+    val c = LocalSimha.current
     Surface(
-        color = MaterialTheme.colorScheme.surface,
-        shape = RoundedCornerShape(12.dp),
-        tonalElevation = 1.dp,
-        modifier = Modifier.fillMaxWidth(),
+        color = c.surface,
+        contentColor = c.text,
+        shape = RoundedCornerShape(SimhaRadius),
+        border = BorderStroke(1.dp, c.border),
+        modifier = modifier.fillMaxWidth(),
     ) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp), content = content)
     }
@@ -207,35 +308,61 @@ fun LabeledField(
     label: String,
     value: String,
     onChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    required: Boolean = false,
+    error: String? = null,
     keyboard: KeyboardType = KeyboardType.Text,
-    singleLine: Boolean = false,
     password: Boolean = false,
+    singleLine: Boolean = true,
 ) {
-    val l = LocalLayout.current
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Body(label)
+    val c = LocalSimha.current
+    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text(
+            if (required) "$label *" else label,
+            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+        )
         OutlinedTextField(
             value = value,
             onValueChange = onChange,
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = l.target),
+            modifier = Modifier.fillMaxWidth().heightIn(min = 64.dp),
             textStyle = MaterialTheme.typography.bodyLarge,
+            isError = error != null,
             keyboardOptions = KeyboardOptions(keyboardType = keyboard),
             singleLine = singleLine,
+            minLines = if (singleLine) 1 else 3,
+            shape = RoundedCornerShape(SimhaRadius),
             visualTransformation = if (password) PasswordVisualTransformation() else VisualTransformation.None,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = c.text,
+                unfocusedTextColor = c.text,
+                errorTextColor = c.text,
+                focusedContainerColor = c.surface,
+                unfocusedContainerColor = c.surface,
+                errorContainerColor = c.surface,
+                focusedBorderColor = c.primary,
+                unfocusedBorderColor = c.border,
+                errorBorderColor = c.emergency,
+                cursorColor = c.primary,
+                errorCursorColor = c.emergency,
+            ),
         )
+        if (error != null) {
+            Text(error, style = MaterialTheme.typography.bodySmall, color = c.emergency)
+        }
     }
 }
 
 @Composable
 fun SwitchRow(label: String, checked: Boolean, onChange: (Boolean) -> Unit, hint: String? = null) {
     val l = LocalLayout.current
+    val c = LocalSimha.current
+    val src = remember { MutableInteractionSource() }
     Row(
         Modifier
             .fillMaxWidth()
             .heightIn(min = l.target)
-            .toggleable(value = checked, role = Role.Switch, onValueChange = onChange),
+            .toggleable(value = checked, interactionSource = src, indication = null, role = Role.Switch, onValueChange = onChange)
+            .padding(vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
@@ -243,7 +370,85 @@ fun SwitchRow(label: String, checked: Boolean, onChange: (Boolean) -> Unit, hint
             Body(label)
             if (hint != null) Caption(hint)
         }
-        Switch(checked = checked, onCheckedChange = null)
+        Switch(
+            checked = checked,
+            onCheckedChange = null,
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = c.onPrimary,
+                checkedTrackColor = c.primary,
+                uncheckedThumbColor = c.text2,
+                uncheckedTrackColor = c.fill,
+                uncheckedBorderColor = c.border,
+            ),
+        )
+    }
+}
+
+@Composable
+fun Chip(text: String, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val l = LocalLayout.current
+    val c = LocalSimha.current
+    val shape = RoundedCornerShape(SimhaRadius)
+    Box(
+        modifier
+            .heightIn(min = l.target)
+            .pressClick(onClick, role = Role.RadioButton)
+            .semantics { this.selected = selected }
+            .clip(shape)
+            .background(if (selected) c.primary else c.surface)
+            .border(1.dp, if (selected) c.primary else c.border, shape)
+            .padding(horizontal = 12.dp, vertical = 12.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text,
+            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+            color = if (selected) c.onPrimary else c.text,
+            textAlign = TextAlign.Center,
+        )
+    }
+}
+
+@Composable
+fun ChipGroup(items: List<String>, selected: Int, onSelect: (Int) -> Unit, perRow: Int = 3) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        items.indices.chunked(perRow).forEach { row ->
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                row.forEach { i -> Chip(items[i], i == selected, { onSelect(i) }, Modifier.weight(1f)) }
+                repeat(perRow - row.size) { Spacer(Modifier.weight(1f)) }
+            }
+        }
+    }
+}
+
+@Composable
+fun OptionRow(text: String, selected: Boolean, onClick: () -> Unit, hint: String? = null) {
+    val l = LocalLayout.current
+    val c = LocalSimha.current
+    val shape = RoundedCornerShape(SimhaRadius)
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .heightIn(min = l.primaryH)
+            .pressClick(onClick, role = Role.RadioButton)
+            .semantics { this.selected = selected }
+            .clip(shape)
+            .background(c.surface)
+            .border(if (selected) 2.dp else 1.dp, if (selected) c.primary else c.border, shape)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Column(Modifier.weight(1f)) {
+            Body(text)
+            if (hint != null) Caption(hint)
+        }
+        Box(
+            Modifier.size(24.dp).border(2.dp, if (selected) c.primary else c.border, CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            if (selected) Box(Modifier.size(12.dp).background(c.primary, CircleShape))
+        }
     }
 }
 
@@ -275,6 +480,17 @@ fun roleLabel(role: String): String = stringResource(
         else -> R.string.role_hospital
     }
 )
+
+fun normalizeContactPhone(raw: String): String? {
+    if (raw.any { !(it.isDigit() || it in "+ -()") }) return null
+    val d = raw.filter { it.isDigit() }
+    val n = when {
+        d.length == 12 && d.startsWith("91") -> d.substring(2)
+        d.length == 11 && d.startsWith("0") -> d.substring(1)
+        else -> d
+    }
+    return if (n.length == 10) n else null
+}
 
 @Composable
 fun ProvideLayout(wsc: WindowWidthSizeClass, lang: String, content: @Composable () -> Unit) {

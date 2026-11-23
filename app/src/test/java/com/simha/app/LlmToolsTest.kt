@@ -47,6 +47,7 @@ private class FakeHost(
     override suspend fun lookWithCamera(question: String): String { calls += "camera"; return "a cup" }
     override suspend fun setReminder(text: String, minutes: Int): String { calls += "reminder:$minutes"; return "set" }
     override suspend fun updateProfileField(field: String, value: String): String { calls += "profile:$field"; return "ok" }
+    override suspend fun rememberHealthDetail(kind: String, text: String): String { calls += "health:$kind:$text"; return "saved" }
     override suspend fun audit(tool: String, args: String, result: String) { audits += Triple(tool, args, result) }
 }
 

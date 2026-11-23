@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="m_greet">नमस्ते, %1$s</string>
+    <string name="m_greet_plain">नमस्ते</string>
+    <string name="m_talk_sub">कुछ भी पूछिए या बताइए कि आप कैसा महसूस कर रहे हैं</string>
+    <string name="m_call_family">परिवार को फ़ोन करें</string>
+    <string name="m_call_doctor">डॉक्टर को फ़ोन करें</string>
+    <string name="m_link_profile">प्रोफ़ाइल</string>
+    <string name="m_link_settings">सेटिंग्स</string>
+    <string name="m_get_help">अभी मदद पाएँ</string>
+    <string name="m_ask_if">अगर मैंने इतनी देर फ़ोन इस्तेमाल नहीं किया, तो मेरा हाल पूछें</string>
+    <string name="m_wait_before">परिवार को फ़ोन करने से पहले इंतज़ार करें</string>
+    <string name="m_timing_note">अगर आपने %1$s तक फ़ोन इस्तेमाल नहीं किया, तो सिम्हा आपका हाल पूछेगा। जवाब न मिलने पर सिम्हा %2$s इंतज़ार करेगा, फिर आपके परिवार को फ़ोन करेगा।</string>
+    <plurals name="m_hours">
+        <item quantity="one">%d घंटा</item>
+        <item quantity="other">%d घंटे</item>
+    </plurals>
+    <plurals name="m_minutes">
+        <item quantity="one">%d मिनट</item>
+        <item quantity="other">%d मिनट</item>
+    </plurals>
+    <string name="m_set_contacts">संपर्क</string>
+    <string name="m_contacts_missing">कृपया कम से कम एक पारिवारिक संपर्क जोड़ें।</string>
+    <string name="m_set_medical">स्वास्थ्य</string>
+    <string name="m_med_note">बातचीत में आप जो स्वास्थ्य संबंधी बातें बताते हैं, सिम्हा उन्हें याद रखता है। उन्हें यहाँ देख और बदल सकते हैं।</string>
+    <string name="m_set_ai">AI और आवाज़</string>
+    <string name="m_add_family">परिवार जोड़ें</string>
+    <string name="m_add_neighbour">पड़ोसी जोड़ें</string>
+    <string name="m_add_doctor">डॉक्टर जोड़ें</string>
+    <string name="m_label">नाम या रिश्ता</string>
+    <string name="m_phone">फ़ोन नंबर</string>
+    <string name="m_pick_contacts">संपर्कों में से चुनें</string>
+    <string name="m_err_label">कृपया नाम या रिश्ता लिखें, जैसे पिताजी।</string>
+    <string name="m_err_phone">10 अंकों का फ़ोन नंबर लिखें। +91 भी चलेगा।</string>
+    <string name="m_cancel">रद्द करें</string>
+    <string name="m_hospital_name">अस्पताल का नाम (ज़रूरी नहीं)</string>
+    <string name="m_hospital_hint">Maps खोलें, अस्पताल चुनें, फिर उसका नाम नीचे लिखें।</string>
+    <string name="m_find_hospitals">मेरे पास के अस्पताल खोजें</string>
+    <string name="m_maps_failed">इस फ़ोन पर Maps नहीं खुल सका।</string>
+</resources>

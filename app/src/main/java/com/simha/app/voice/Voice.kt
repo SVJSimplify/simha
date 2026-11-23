@@ -2,6 +2,9 @@ package com.simha.app.voice
 
 import android.content.Context
 import android.content.Intent
+import android.media.AudioFormat
+import android.media.AudioRecord
+import android.media.MediaPlayer
 import android.media.MediaRecorder
 import android.os.Build
 import android.os.Bundle
@@ -13,12 +16,25 @@ import android.speech.SpeechRecognizer
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import com.simha.app.data.Repo
+import com.simha.app.llm.LlmStore
+import com.simha.app.llm.SarvamConfig
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.util.Locale
 import java.util.UUID
@@ -39,7 +55,17 @@ object Langs {
         "ta" -> "ta-IN"
         else -> "en-IN"
     }
+
+    fun name(code: String): String = when (code) {
+        "hi" -> "Hindi"
+        "te" -> "Telugu"
+        "kn" -> "Kannada"
+        "ta" -> "Tamil"
+        else -> "English"
+    }
 }
+
+private class SpeakItem(val id: String, val text: String, val lang: String, val audio: Deferred<Result<ByteArray>>)
 
 class Voice(private val app: Context) {
     private val main = Handler(Looper.getMainLooper())
@@ -51,9 +77,83 @@ class Voice(private val app: Context) {
     private var langCode = ""
     @Volatile private var rec: SpeechRecognizer? = null
     val issue = MutableStateFlow(VoiceIssue.None)
+    val sarvamError = MutableStateFlow<String?>(null)
+    private val store = LlmStore(app)
+    private val client = SarvamClient()
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private val speakCh = Channel<SpeakItem>(Channel.UNLIMITED)
+    private val fetches = ConcurrentHashMap<String, Deferred<Result<ByteArray>>>()
+    @Volatile private var sarvam = SarvamConfig()
+    @Volatile private var sarvamAt = 0L
+    @Volatile private var current: Job? = null
 
     init {
         tts = TextToSpeech(app) { s -> main.post { onInit(s) } }
+        refreshSarvam()
+        scope.launch {
+            for (item in speakCh) playItem(item)
+        }
+    }
+
+    fun refreshSarvam() {
+        sarvamAt = System.currentTimeMillis()
+        scope.launch(Dispatchers.IO) { sarvam = store.sarvam() }
+    }
+
+    private suspend fun playItem(item: SpeakItem) {
+        fetches.remove(item.id)
+        if (item.id !in active) {
+            item.audio.cancel()
+            return
+        }
+        val r = try {
+            item.audio.await()
+        } catch (e: CancellationException) {
+            if (!currentCoroutineContext().isActive) throw e
+            return
+        }
+        val bytes = r.getOrNull()
+        if (bytes == null) {
+            sarvamError.value = r.exceptionOrNull()?.message
+            speakAndroid(item.id, item.text, item.lang)
+            return
+        }
+        sarvamError.value = null
+        val j = scope.launch { play(bytes) }
+        current = j
+        j.join()
+        finish(item.id)
+    }
+
+    private suspend fun play(bytes: ByteArray) = suspendCancellableCoroutine<Unit> { cont ->
+        val f = File.createTempFile("tts", ".wav", app.cacheDir)
+        val mp = MediaPlayer()
+        var closed = false
+        fun end() {
+            if (closed) return
+            closed = true
+            try { mp.release() } catch (e: Exception) { }
+            f.delete()
+            if (cont.isActive) cont.resume(Unit)
+        }
+        try {
+            f.writeBytes(bytes)
+            mp.setDataSource(f.absolutePath)
+            mp.setOnCompletionListener { end() }
+            mp.setOnErrorListener { _, _, _ -> end(); true }
+            mp.setOnPreparedListener { it.start() }
+            mp.prepareAsync()
+        } catch (e: Exception) {
+            end()
+        }
+        cont.invokeOnCancellation {
+            if (!closed) {
+                closed = true
+                try { mp.stop() } catch (e: Exception) { }
+                try { mp.release() } catch (e: Exception) { }
+                f.delete()
+            }
+        }
     }
 
     private fun onInit(s: Int) {
@@ -88,6 +188,18 @@ class Voice(private val app: Context) {
         val id = UUID.randomUUID().toString()
         active.add(id)
         pending.value = active.size
+        if (System.currentTimeMillis() - sarvamAt > 3000) refreshSarvam()
+        val key = sarvam.apiKey
+        if (key.isNotBlank()) {
+            val d = scope.async(Dispatchers.IO) { client.tts(key, text, Langs.tag(lang)) }
+            fetches[id] = d
+            speakCh.trySend(SpeakItem(id, text, lang, d))
+        } else {
+            speakAndroid(id, text, lang)
+        }
+    }
+
+    private fun speakAndroid(id: String, text: String, lang: String) {
         main.post {
             val run = {
                 val t = tts
@@ -126,7 +238,12 @@ class Voice(private val app: Context) {
     fun stopSpeaking() {
         active.clear()
         pending.value = 0
-        main.post { tts?.stop() }
+        fetches.values.forEach { it.cancel() }
+        fetches.clear()
+        main.post {
+            current?.cancel()
+            tts?.stop()
+        }
     }
 
     fun cancelListening() {
@@ -136,7 +253,72 @@ class Voice(private val app: Context) {
         }
     }
 
-    suspend fun listen(lang: String, onPartial: (String) -> Unit): Result<String> = withContext(Dispatchers.Main.immediate) {
+    suspend fun listen(lang: String, onPartial: (String) -> Unit): Result<String> {
+        sarvam = withContext(Dispatchers.IO) { store.sarvam() }
+        sarvamAt = System.currentTimeMillis()
+        if (sarvam.apiKey.isNotBlank()) {
+            val r = listenSarvam(lang, sarvam.apiKey)
+            val kind = (r.exceptionOrNull() as? VoiceFail)?.kind
+            if (r.isSuccess || kind == VoiceKind.NoSpeech) {
+                if (r.isSuccess) sarvamError.value = null
+                return r
+            }
+        }
+        return listenAndroid(lang, onPartial)
+    }
+
+    private suspend fun listenSarvam(lang: String, key: String): Result<String> = withContext(Dispatchers.IO) {
+        val rate = 16000
+        val frame = rate * 30 / 1000
+        val minBuf = AudioRecord.getMinBufferSize(rate, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT)
+        val rec = try {
+            AudioRecord(MediaRecorder.AudioSource.VOICE_RECOGNITION, rate, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, maxOf(minBuf, frame * 8))
+        } catch (e: Exception) {
+            return@withContext Result.failure<String>(VoiceFail(VoiceKind.Failed))
+        }
+        if (rec.state != AudioRecord.STATE_INITIALIZED) {
+            rec.release()
+            return@withContext Result.failure<String>(VoiceFail(VoiceKind.Failed))
+        }
+        val pcm = ByteArrayOutputStream()
+        val ep = Endpointer()
+        val buf = ShortArray(frame)
+        var end = EpState.Waiting
+        try {
+            rec.startRecording()
+            while (end == EpState.Waiting) {
+                ensureActive()
+                var n = 0
+                while (n < frame) {
+                    val r = rec.read(buf, n, frame - n)
+                    if (r <= 0) return@withContext Result.failure<String>(VoiceFail(VoiceKind.Failed))
+                    n += r
+                }
+                for (i in 0 until frame) {
+                    pcm.write(buf[i].toInt() and 0xff)
+                    pcm.write((buf[i].toInt() shr 8) and 0xff)
+                }
+                end = ep.feed(Wav.rms(buf, frame))
+            }
+        } catch (e: IllegalStateException) {
+            return@withContext Result.failure<String>(VoiceFail(VoiceKind.Failed))
+        } finally {
+            try { rec.stop() } catch (e: Exception) { }
+            rec.release()
+        }
+        if (end == EpState.Timeout) return@withContext Result.failure<String>(VoiceFail(VoiceKind.NoSpeech))
+        client.stt(key, Wav.encode(pcm.toByteArray(), rate), Langs.tag(lang)).fold(
+            onSuccess = { text ->
+                if (text.isBlank()) Result.failure<String>(VoiceFail(VoiceKind.NoSpeech)) else Result.success(text)
+            },
+            onFailure = {
+                sarvamError.value = it.message
+                Result.failure<String>(VoiceFail(VoiceKind.Failed))
+            },
+        )
+    }
+
+    private suspend fun listenAndroid(lang: String, onPartial: (String) -> Unit): Result<String> = withContext(Dispatchers.Main.immediate) {
         suspendCancellableCoroutine { cont ->
             if (!SpeechRecognizer.isRecognitionAvailable(app)) {
                 cont.resume(Result.failure(VoiceFail(VoiceKind.Unavailable)))

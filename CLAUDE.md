@@ -12,6 +12,9 @@ Android app for seniors: inactivity watch → check-in → escalation. Specs in 
 - REQUIREMENT: every feature works once the user only configures an LLM provider (Settings → AI assistant: base URL, key, model; OpenAI-compatible, stored encrypted on device). Abilities (profile, contacts, status, symptoms, emergency, approved calls, alerts, recording, camera vision) are exposed as tools in `llm/SimhaTools`; every tool call is audited and respects approvals.
 - Talk to Simha is a hands-free, human-like voice conversation (auto-listen after speaking, streaming replies, history kept, user's language); it acts via tools and confirms in plain words.
 - Onboarding requests every permission with the real system dialog, one per screen.
+- Once a language is chosen, every screen (incl. Settings, notifications, TTS, LLM replies) is in that language. No hardcoded strings.
+- Simha learns health details (conditions, medicines, allergies) from conversation and saves them to the profile via a tool; the user can review/edit them in Profile. Works only after an LLM provider is configured.
+- Contacts: "Add family/neighbour/doctor" = label + phone number typed in; "Choose from contacts" = pick, then label.
 - Escalation is decided by `RulesEngine` (pure Kotlin, unit-tested). Never by an LLM.
 - Emergency (112) always via `ACTION_DIAL`. `ACTION_CALL` only for contacts the user approved.
 - Every alert/call/permission/recording → `audit_log`.

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="aiset_llm">AI assistant (LLM)</string>
+    <string name="aiset_base">Base URL</string>
+    <string name="aiset_key">API key</string>
+    <string name="aiset_model">Model</string>
+    <string name="aiset_test">Test connection</string>
+    <string name="aiset_testing">Testing...</string>
+    <string name="aiset_missing">Fill in Base URL, API key and Model first.</string>
+    <string name="aiset_ok">Connected. The model replied: %1$s</string>
+    <string name="aiset_fail">Connection failed: %1$s</string>
+    <string name="aiset_sarvam">Sarvam voice</string>
+    <string name="aiset_sarvam_hint">Optional. With a Sarvam key, Talk to Simha listens and speaks with Sarvam voices in your language. Without it, the phone\'s own voice is used.</string>
+    <string name="aiset_sarvam_key">Sarvam API key</string>
+    <string name="aiset_test_sarvam">Test Sarvam</string>
+    <string name="aiset_sarvam_missing">Enter the Sarvam API key first.</string>
+    <string name="aiset_sarvam_ok">Sarvam works. Received %1$d KB of speech.</string>
+    <string name="aiset_agent">Sarvam voice-agent calls</string>
+    <string name="aiset_agent_hint">One-time setup: in the Sarvam dashboard create a voice agent, commit it, and connect a phone number, then copy the workspace API key and the IDs here. If left empty, Simha places an approved call and speaks the message aloud instead.</string>
+    <string name="aiset_agent_key">Voice agent API key</string>
+    <string name="aiset_org">Organisation ID</string>
+    <string name="aiset_ws">Workspace ID</string>
+    <string name="aiset_app">Agent (app) ID</string>
+    <string name="aiset_ver">Agent version number</string>
+    <string name="aiset_conn">Telephony connection ID</string>
+    <string name="aiset_phone">Agent phone number</string>
+    <string name="aiset_save">Save</string>
+    <string name="aiset_saved">Saved on this phone, encrypted.</string>
+    <string name="aiset_store_error">Could not use secure storage: %1$s</string>
+    <string name="sarvam_fallback">Sarvam voice could not be used, using the phone voice instead: %1$s</string>
+    <string name="esc_line">Hello. This is an automated assistant calling on behalf of %1$s. %1$s has not answered a safety check for %2$d minutes. Please call or visit %1$s now.</string>
+</resources>

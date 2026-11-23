@@ -20,6 +20,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
+import com.simha.app.Actions
 import com.simha.app.MainViewModel
 import com.simha.app.Perm
 import com.simha.app.Perms
@@ -27,7 +28,11 @@ import com.simha.app.R
 import com.simha.app.data.CallResult
 import com.simha.app.data.ContactEntity
 import com.simha.app.data.ProfileEntity
+import com.simha.app.data.OBK
 import com.simha.app.data.Repo
+import com.simha.app.data.simhaStore
+import com.simha.app.ui.theme.LocalSimha
+import kotlinx.coroutines.flow.map
 import com.simha.app.data.Snap
 import com.simha.app.data.jo
 import com.simha.app.logic.EmergencyPlan
@@ -72,63 +77,152 @@ fun ContactCard(c: ContactEntity, onRemove: () -> Unit) {
 @Composable
 fun ContactsScreen(vm: MainViewModel, s: Snap, group: String, onBack: () -> Unit) {
     val roles = if (group == "doctor") Repo.CLINIC_ROLES else Repo.FAMILY_ROLES
+    val addable = if (group == "doctor") listOf("doctor") else listOf("family", "neighbor")
     val all by vm.contacts.collectAsState()
     val prof by vm.profile.collectAsState()
     val list = all.filter { it.role in roles }
     val scope = rememberCoroutineScope()
     var failed by remember { mutableStateOf(false) }
+    var adding by rememberSaveable { mutableStateOf<String?>(null) }
+    var label by rememberSaveable { mutableStateOf("") }
+    var phone by rememberSaveable { mutableStateOf("") }
+    var tried by rememberSaveable { mutableStateOf(false) }
+    val pick = rememberPicker { n, p ->
+        label = n
+        phone = p
+    }
     val title = stringResource(if (group == "doctor") R.string.doc_title else R.string.fam_title)
     ScreenFrame(title, title, onBack) {
         if (list.isEmpty() && !(group == "doctor" && prof.doctorPhone.isNotBlank())) Body(stringResource(R.string.no_contacts))
         list.forEach { c ->
             Card {
-                Body(c.name + " (" + roleLabel(c.role) + ")")
-                Caption(c.phone)
-                BigButton(stringResource(R.string.call_btn, c.name), {
+                Body(c.name)
+                Caption(roleLabel(c.role))
+                Body(c.phone)
+                PrimaryButton(stringResource(R.string.call_btn, c.name), {
                     scope.launch { failed = vm.sl.repo.placeCall(c.phone, c.approved, "user_button") == CallResult.Failed }
                 })
-                BigButton(stringResource(R.string.remove), { vm.removeContact(c.id) }, kind = Kind.Secondary)
+                SecondaryButton(stringResource(R.string.remove), { vm.removeContact(c.id) })
             }
         }
         if (group == "doctor" && prof.doctorPhone.isNotBlank()) {
             Card {
                 Body(prof.doctorName.ifBlank { stringResource(R.string.role_doctor) })
-                Caption(prof.doctorPhone)
-                BigButton(stringResource(R.string.call_btn, prof.doctorName.ifBlank { prof.doctorPhone }), {
+                Caption(roleLabel("doctor"))
+                Body(prof.doctorPhone)
+                PrimaryButton(stringResource(R.string.call_btn, prof.doctorName.ifBlank { prof.doctorPhone }), {
                     scope.launch { failed = vm.sl.repo.placeCall(prof.doctorPhone, false, "user_button") == CallResult.Failed }
                 })
             }
         }
-        if (failed) Body(stringResource(R.string.call_failed))
+        if (failed) Body(stringResource(R.string.call_failed), color = LocalSimha.current.emergency)
         Caption(stringResource(R.string.call_dialer_note))
-        roles.forEach { r ->
-            val pick = rememberPicker { n, p -> vm.addContact(n, p, r) }
-            BigButton(stringResource(R.string.add_contact, roleLabel(r)), pick, kind = Kind.Secondary)
+        val role = adding
+        if (role == null) {
+            addable.forEach { r ->
+                SecondaryButton(
+                    stringResource(
+                        when (r) {
+                            "family" -> R.string.m_add_family
+                            "neighbor" -> R.string.m_add_neighbour
+                            else -> R.string.m_add_doctor
+                        }
+                    ),
+                    {
+                        label = ""
+                        phone = ""
+                        tried = false
+                        adding = r
+                    },
+                )
+            }
+        } else {
+            val norm = normalizeContactPhone(phone)
+            Card {
+                LabeledField(
+                    stringResource(R.string.m_label), label, { label = it },
+                    required = true,
+                    error = if (tried && label.isBlank()) stringResource(R.string.m_err_label) else null,
+                )
+                LabeledField(
+                    stringResource(R.string.m_phone), phone, { phone = it },
+                    required = true,
+                    error = if (tried && norm == null) stringResource(R.string.m_err_phone) else null,
+                    keyboard = KeyboardType.Phone,
+                )
+                PrimaryButton(stringResource(R.string.save), {
+                    tried = true
+                    if (label.isNotBlank() && norm != null) {
+                        vm.addContact(label.trim(), "+91$norm", role)
+                        adding = null
+                    }
+                })
+                SecondaryButton(stringResource(R.string.m_pick_contacts), pick)
+                TextLink(stringResource(R.string.m_cancel), { adding = null })
+            }
         }
+    }
+}
+
+private fun openMaps(ctx: Context): Boolean {
+    val loc = Actions.lastLocation(ctx)
+    val uri = if (loc != null) {
+        Uri.parse("https://www.google.com/maps/search/hospital/@" + loc.latitude + "," + loc.longitude + ",14z")
+    } else {
+        Uri.parse("geo:0,0?q=hospital")
+    }
+    return try {
+        ctx.startActivity(Intent(Intent.ACTION_VIEW, uri))
+        true
+    } catch (e: Exception) {
+        false
     }
 }
 
 @Composable
 fun ProfileScreen(vm: MainViewModel, onBack: () -> Unit) {
+    val ctx = LocalContext.current
+    val scope = rememberCoroutineScope()
     val p by vm.profile.collectAsState()
+    val hosp by remember { ctx.simhaStore.data.map { it[OBK.HOSPITAL] ?: "" } }.collectAsState("")
     var cond by remember(p) { mutableStateOf(p.conditions) }
     var med by remember(p) { mutableStateOf(p.medicines) }
     var all by remember(p) { mutableStateOf(p.allergies) }
     var dn by remember(p) { mutableStateOf(p.doctorName) }
     var dp by remember(p) { mutableStateOf(p.doctorPhone) }
+    var hn by remember(hosp) { mutableStateOf(hosp) }
     var saved by remember { mutableStateOf(false) }
+    var tried by remember { mutableStateOf(false) }
+    var mapsFailed by remember { mutableStateOf(false) }
+    val dpNorm = normalizeContactPhone(dp)
+    val dpBad = dp.isNotBlank() && dpNorm == null
     val title = stringResource(R.string.profile_title)
     ScreenFrame(title, title, onBack) {
-        LabeledField(stringResource(R.string.f_conditions), cond, { cond = it; saved = false })
-        LabeledField(stringResource(R.string.f_medicines), med, { med = it; saved = false })
-        LabeledField(stringResource(R.string.f_allergies), all, { all = it; saved = false })
-        LabeledField(stringResource(R.string.f_doctor_name), dn, { dn = it; saved = false }, singleLine = true)
-        LabeledField(stringResource(R.string.f_doctor_phone), dp, { dp = it; saved = false }, KeyboardType.Phone, true)
-        BigButton(stringResource(R.string.save), {
-            vm.saveProfile(ProfileEntity(1, cond.trim(), med.trim(), all.trim(), dn.trim(), dp.trim()))
-            saved = true
+        LabeledField(stringResource(R.string.f_conditions), cond, { cond = it; saved = false }, singleLine = false)
+        LabeledField(stringResource(R.string.f_medicines), med, { med = it; saved = false }, singleLine = false)
+        LabeledField(stringResource(R.string.f_allergies), all, { all = it; saved = false }, singleLine = false)
+        LabeledField(stringResource(R.string.f_doctor_name), dn, { dn = it; saved = false })
+        LabeledField(
+            stringResource(R.string.f_doctor_phone), dp, { dp = it; saved = false },
+            error = if (tried && dpBad) stringResource(R.string.m_err_phone) else null,
+            keyboard = KeyboardType.Phone,
+        )
+        Caption(stringResource(R.string.m_hospital_hint))
+        SecondaryButton(stringResource(R.string.m_find_hospitals), { mapsFailed = !openMaps(ctx) })
+        if (mapsFailed) Body(stringResource(R.string.m_maps_failed), color = LocalSimha.current.emergency)
+        LabeledField(stringResource(R.string.m_hospital_name), hn, { hn = it; saved = false })
+        PrimaryButton(stringResource(R.string.save), {
+            tried = true
+            if (!dpBad) {
+                vm.saveProfile(ProfileEntity(1, cond.trim(), med.trim(), all.trim(), dn.trim(), if (dpNorm != null) "+91$dpNorm" else ""))
+                scope.launch {
+                    vm.sl.prefs.edit { this[OBK.HOSPITAL] = hn.trim() }
+                    vm.sl.repo.audit("profile_updated")
+                }
+                saved = true
+            }
         })
-        if (saved) Body(stringResource(R.string.saved), color = androidx.compose.material3.MaterialTheme.colorScheme.tertiary)
+        if (saved) Body(stringResource(R.string.saved), color = LocalSimha.current.success)
     }
 }
 

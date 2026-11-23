@@ -32,6 +32,7 @@ interface ToolHost {
     suspend fun lookWithCamera(question: String): String
     suspend fun setReminder(text: String, minutes: Int): String
     suspend fun updateProfileField(field: String, value: String): String
+    suspend fun rememberHealthDetail(kind: String, text: String): String
     suspend fun audit(tool: String, args: String, result: String)
 }
 
@@ -72,6 +73,11 @@ object SimhaTools {
             tool("start_recording", "Record a voice message. Only works if the person approved recording."),
             tool("look_with_camera", "Take a photo with the camera and describe it.", mapOf("question" to ("string" to "What to look for"))),
             tool("set_reminder", "Remind the person later.", mapOf("text" to ("string" to "Reminder text"), "minutes" to ("integer" to "Minutes from now, 1 to 1440"))),
+            tool(
+                "remember_health_detail",
+                "Save a health detail the person mentions: a condition, a medicine or an allergy. Duplicates are ignored.",
+                mapOf("kind" to ("string" to "One of condition, medicine, allergy"), "text" to ("string" to "The detail, in a few words")),
+            ),
             tool(
                 "update_profile_field",
                 "Add a note to a profile field. Existing text is kept.",
@@ -137,6 +143,12 @@ object SimhaTools {
                 val m = a["minutes"]?.jsonPrimitive?.intOrNull ?: return err("minutes is required")
                 if (m !in 1..1440) return err("minutes must be 1 to 1440")
                 return ok(host.setReminder(t, m))
+            }
+            "remember_health_detail" -> {
+                val k = a.str("kind")?.lowercase() ?: return err("kind is required")
+                if (k !in HealthMemory.kinds) return err("kind must be condition, medicine or allergy")
+                val t = a.str("text") ?: return err("text is required")
+                return ok(host.rememberHealthDetail(k, t.take(200)))
             }
             "update_profile_field" -> {
                 val f = a.str("field") ?: return err("field is required")

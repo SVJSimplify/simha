@@ -12,6 +12,7 @@ import com.simha.app.logic.Approvals
 import com.simha.app.logic.Decision
 import com.simha.app.logic.Rules
 import com.simha.app.logic.RulesEngine
+import com.simha.app.voice.Escalation
 import com.simha.app.Actions
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -66,8 +67,10 @@ object Monitor {
         repo.logEvent("checkin_missed", jo("minutes" to minutes))
         val target = if (d == Decision.EscalateCallFamily) fam.firstOrNull { it.approved } else null
         if (target != null) {
-            val ok = Notifier.escalate(lc, target.name, target.phone)
-            repo.audit("escalation_call_prompted", jo("notified" to ok))
+            if (!Escalation.callFamily(ctx, lc, p, target, minutes)) {
+                val ok = Notifier.escalate(lc, target.name, target.phone)
+                repo.audit("escalation_call_prompted", jo("notified" to ok))
+            }
         }
         val loc = Actions.lastLocation(ctx)
         val link = loc?.let { " " + lc.getString(R.string.sms_loc, "https://maps.google.com/?q=" + it.latitude + "," + it.longitude) } ?: ""

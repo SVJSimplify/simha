@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="m_greet">నమస్తే, %1$s</string>
+    <string name="m_greet_plain">నమస్తే</string>
+    <string name="m_talk_sub">ఏదైనా అడగండి లేదా మీకు ఎలా ఉందో చెప్పండి</string>
+    <string name="m_call_family">కుటుంబానికి ఫోన్ చేయండి</string>
+    <string name="m_call_doctor">డాక్టర్‌కు ఫోన్ చేయండి</string>
+    <string name="m_link_profile">ప్రొఫైల్</string>
+    <string name="m_link_settings">సెట్టింగ్స్</string>
+    <string name="m_get_help">ఇప్పుడే సహాయం పొందండి</string>
+    <string name="m_ask_if">నేను ఇంతసేపు ఫోన్ వాడకపోతే, నా క్షేమం అడగండి</string>
+    <string name="m_wait_before">కుటుంబానికి ఫోన్ చేయడానికి ముందు ఎదురుచూడండి</string>
+    <string name="m_timing_note">మీరు %1$s ఫోన్ వాడకపోతే, సింహ మీ క్షేమం అడుగుతుంది. మీరు జవాబివ్వకపోతే, సింహ %2$s ఎదురుచూసి, తర్వాత మీ కుటుంబానికి ఫోన్ చేస్తుంది.</string>
+    <plurals name="m_hours">
+        <item quantity="one">%d గంట</item>
+        <item quantity="other">%d గంటలు</item>
+    </plurals>
+    <plurals name="m_minutes">
+        <item quantity="one">%d నిమిషం</item>
+        <item quantity="other">%d నిమిషాలు</item>
+    </plurals>
+    <string name="m_set_contacts">కాంటాక్ట్స్</string>
+    <string name="m_contacts_missing">దయచేసి కనీసం ఒక కుటుంబ సభ్యుని కాంటాక్ట్ చేర్చండి.</string>
+    <string name="m_set_medical">ఆరోగ్యం</string>
+    <string name="m_med_note">మాట్లాడేటప్పుడు మీరు చెప్పే ఆరోగ్య వివరాలను సింహ గుర్తుంచుకుంటుంది. వాటిని ఇక్కడ చూసి మార్చవచ్చు.</string>
+    <string name="m_set_ai">AI మరియు వాయిస్</string>
+    <string name="m_add_family">కుటుంబ సభ్యుని చేర్చండి</string>
+    <string name="m_add_neighbour">పొరుగువారిని చేర్చండి</string>
+    <string name="m_add_doctor">డాక్టర్‌ను చేర్చండి</string>
+    <string name="m_label">పేరు లేదా బంధం</string>
+    <string name="m_phone">ఫోన్ నంబర్</string>
+    <string name="m_pick_contacts">కాంటాక్ట్స్ నుండి ఎంచుకోండి</string>
+    <string name="m_err_label">దయచేసి పేరు లేదా బంధం రాయండి, ఉదాహరణకు నాన్న.</string>
+    <string name="m_err_phone">10 అంకెల ఫోన్ నంబర్ రాయండి. +91 ఉన్నా సరే.</string>
+    <string name="m_cancel">రద్దు చేయండి</string>
+    <string name="m_hospital_name">ఆసుపత్రి పేరు (ఐచ్ఛికం)</string>
+    <string name="m_hospital_hint">Maps తెరిచి, ఆసుపత్రిని ఎంచుకుని, దాని పేరును కింద రాయండి.</string>
+    <string name="m_find_hospitals">నా దగ్గరి ఆసుపత్రులను వెతకండి</string>
+    <string name="m_maps_failed">ఈ ఫోన్‌లో Maps తెరవలేకపోయింది.</string>
+</resources>

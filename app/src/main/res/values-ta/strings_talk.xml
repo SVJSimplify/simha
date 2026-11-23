@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="aiset_llm">AI உதவியாளர் (LLM)</string>
+    <string name="aiset_base">அடிப்படை URL</string>
+    <string name="aiset_key">API விசை</string>
+    <string name="aiset_model">மாடல்</string>
+    <string name="aiset_test">இணைப்பைச் சோதி</string>
+    <string name="aiset_testing">சோதிக்கிறது...</string>
+    <string name="aiset_missing">முதலில் அடிப்படை URL, API விசை, மாடலை நிரப்புங்கள்.</string>
+    <string name="aiset_ok">இணைந்தது. மாடலின் பதில்: %1$s</string>
+    <string name="aiset_fail">இணைப்பு தோல்வி: %1$s</string>
+    <string name="aiset_sarvam">சர்வம் குரல்</string>
+    <string name="aiset_sarvam_hint">விருப்பம். சர்வம் விசை இருந்தால் சிம்ஹா உங்கள் மொழியில் சர்வம் குரல்களால் கேட்கும், பேசும். இல்லையென்றால் போனின் சொந்தக் குரல் பயன்படும்.</string>
+    <string name="aiset_sarvam_key">சர்வம் API விசை</string>
+    <string name="aiset_test_sarvam">சர்வத்தைச் சோதி</string>
+    <string name="aiset_sarvam_missing">முதலில் சர்வம் API விசையை உள்ளிடுங்கள்.</string>
+    <string name="aiset_sarvam_ok">சர்வம் வேலை செய்கிறது. %1$d KB குரல் கிடைத்தது.</string>
+    <string name="aiset_agent">சர்வம் வாய்ஸ்-ஏஜென்ட் அழைப்புகள்</string>
+    <string name="aiset_agent_hint">ஒருமுறை அமைப்பு: சர்வம் டாஷ்போர்டில் வாய்ஸ் ஏஜென்டை உருவாக்கி, கமிட் செய்து, போன் எண்ணை இணைத்து, பிறகு வொர்க்ஸ்பேஸ் API விசையையும் ஐடிகளையும் இங்கே உள்ளிடுங்கள். காலியாக இருந்தால் சிம்ஹா அனுமதிக்கப்பட்ட அழைப்பைச் செய்து செய்தியை உரக்கச் சொல்லும்.</string>
+    <string name="aiset_agent_key">வாய்ஸ் ஏஜென்ட் API விசை</string>
+    <string name="aiset_org">நிறுவன ஐடி</string>
+    <string name="aiset_ws">வொர்க்ஸ்பேஸ் ஐடி</string>
+    <string name="aiset_app">ஏஜென்ட் (ஆப்) ஐடி</string>
+    <string name="aiset_ver">ஏஜென்ட் பதிப்பு எண்</string>
+    <string name="aiset_conn">டெலிபோனி இணைப்பு ஐடி</string>
+    <string name="aiset_phone">ஏஜென்ட் போன் எண்</string>
+    <string name="aiset_save">சேமி</string>
+    <string name="aiset_saved">இந்த போனில் பாதுகாப்பாகச் சேமிக்கப்பட்டது.</string>
+    <string name="aiset_store_error">பாதுகாப்பான சேமிப்பைப் பயன்படுத்த முடியவில்லை: %1$s</string>
+    <string name="sarvam_fallback">சர்வம் குரலைப் பயன்படுத்த முடியவில்லை, போனின் குரல் பயன்படுகிறது: %1$s</string>
+    <string name="esc_line">வணக்கம். நான் ஒரு தானியங்கி உதவியாளர், %1$s சார்பாக அழைக்கிறேன். %1$s %2$d நிமிடங்களாக பாதுகாப்பு சோதனைக்குப் பதிலளிக்கவில்லை. தயவுசெய்து இப்போதே %1$s ஐ அழைக்கவும் அல்லது போய்ப் பாருங்கள்.</string>
+</resources>

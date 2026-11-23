@@ -40,6 +40,7 @@ fun TalkScreen(
     val sl = (ctx.applicationContext as SimhaApp).sl
     val view = LocalView.current
     val issue by sl.voice.issue.collectAsState()
+    val sarvamErr by sl.voice.sarvamError.collectAsState()
     val title = stringResource(if (checkin) R.string.ci_q else R.string.talk_title)
     var typed by remember { mutableStateOf("") }
 
@@ -72,6 +73,7 @@ fun TalkScreen(
             }
         }
         if (issue == VoiceIssue.Unavailable) Body(stringResource(R.string.voice_unavailable))
+        sarvamErr?.let { Body(stringResource(R.string.sarvam_fallback, it), color = MaterialTheme.colorScheme.error) }
         if (issue == VoiceIssue.LangMissing) Body(stringResource(R.string.voice_lang_missing))
         vm.error?.let { e ->
             Body(

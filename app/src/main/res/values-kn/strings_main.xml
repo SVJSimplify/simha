@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="m_greet">ನಮಸ್ತೆ, %1$s</string>
+    <string name="m_greet_plain">ನಮಸ್ತೆ</string>
+    <string name="m_talk_sub">ಏನಾದರೂ ಕೇಳಿ ಅಥವಾ ನಿಮಗೆ ಹೇಗಿದೆ ಎಂದು ಹೇಳಿ</string>
+    <string name="m_call_family">ಕುಟುಂಬಕ್ಕೆ ಕರೆ ಮಾಡಿ</string>
+    <string name="m_call_doctor">ಡಾಕ್ಟರ್‌ಗೆ ಕರೆ ಮಾಡಿ</string>
+    <string name="m_link_profile">ಪ್ರೊಫೈಲ್</string>
+    <string name="m_link_settings">ಸೆಟ್ಟಿಂಗ್ಸ್</string>
+    <string name="m_get_help">ಈಗಲೇ ಸಹಾಯ ಪಡೆಯಿರಿ</string>
+    <string name="m_ask_if">ನಾನು ಇಷ್ಟು ಹೊತ್ತು ಫೋನ್ ಬಳಸದಿದ್ದರೆ, ನನ್ನ ಕ್ಷೇಮ ಕೇಳಿ</string>
+    <string name="m_wait_before">ಕುಟುಂಬಕ್ಕೆ ಕರೆ ಮಾಡುವ ಮೊದಲು ಕಾಯಿರಿ</string>
+    <string name="m_timing_note">ನೀವು %1$s ಫೋನ್ ಬಳಸದಿದ್ದರೆ, ಸಿಂಹ ನಿಮ್ಮ ಕ್ಷೇಮ ಕೇಳುತ್ತದೆ. ನೀವು ಉತ್ತರಿಸದಿದ್ದರೆ, ಸಿಂಹ %2$s ಕಾದು, ನಂತರ ನಿಮ್ಮ ಕುಟುಂಬಕ್ಕೆ ಕರೆ ಮಾಡುತ್ತದೆ.</string>
+    <plurals name="m_hours">
+        <item quantity="one">%d ಗಂಟೆ</item>
+        <item quantity="other">%d ಗಂಟೆಗಳು</item>
+    </plurals>
+    <plurals name="m_minutes">
+        <item quantity="one">%d ನಿಮಿಷ</item>
+        <item quantity="other">%d ನಿಮಿಷಗಳು</item>
+    </plurals>
+    <string name="m_set_contacts">ಸಂಪರ್ಕಗಳು</string>
+    <string name="m_contacts_missing">ದಯವಿಟ್ಟು ಕನಿಷ್ಠ ಒಬ್ಬ ಕುಟುಂಬ ಸದಸ್ಯರ ಸಂಪರ್ಕ ಸೇರಿಸಿ.</string>
+    <string name="m_set_medical">ಆರೋಗ್ಯ</string>
+    <string name="m_med_note">ಮಾತನಾಡುವಾಗ ನೀವು ಹೇಳುವ ಆರೋಗ್ಯ ವಿವರಗಳನ್ನು ಸಿಂಹ ನೆನಪಿಟ್ಟುಕೊಳ್ಳುತ್ತದೆ. ಅವುಗಳನ್ನು ಇಲ್ಲಿ ನೋಡಿ ಬದಲಾಯಿಸಬಹುದು.</string>
+    <string name="m_set_ai">AI ಮತ್ತು ಧ್ವನಿ</string>
+    <string name="m_add_family">ಕುಟುಂಬ ಸದಸ್ಯರನ್ನು ಸೇರಿಸಿ</string>
+    <string name="m_add_neighbour">ನೆರೆಯವರನ್ನು ಸೇರಿಸಿ</string>
+    <string name="m_add_doctor">ಡಾಕ್ಟರ್ ಅನ್ನು ಸೇರಿಸಿ</string>
+    <string name="m_label">ಹೆಸರು ಅಥವಾ ಸಂಬಂಧ</string>
+    <string name="m_phone">ಫೋನ್ ಸಂಖ್ಯೆ</string>
+    <string name="m_pick_contacts">ಸಂಪರ್ಕಗಳಿಂದ ಆರಿಸಿ</string>
+    <string name="m_err_label">ದಯವಿಟ್ಟು ಹೆಸರು ಅಥವಾ ಸಂಬಂಧ ಬರೆಯಿರಿ, ಉದಾಹರಣೆಗೆ ಅಪ್ಪ.</string>
+    <string name="m_err_phone">10 ಅಂಕಿಯ ಫೋನ್ ಸಂಖ್ಯೆ ಬರೆಯಿರಿ. +91 ಇದ್ದರೂ ಸರಿ.</string>
+    <string name="m_cancel">ರದ್ದುಮಾಡಿ</string>
+    <string name="m_hospital_name">ಆಸ್ಪತ್ರೆಯ ಹೆಸರು (ಐಚ್ಛಿಕ)</string>
+    <string name="m_hospital_hint">Maps ತೆರೆಯಿರಿ, ಆಸ್ಪತ್ರೆ ಆರಿಸಿ, ನಂತರ ಅದರ ಹೆಸರನ್ನು ಕೆಳಗೆ ಬರೆಯಿರಿ.</string>
+    <string name="m_find_hospitals">ನನ್ನ ಹತ್ತಿರದ ಆಸ್ಪತ್ರೆಗಳನ್ನು ಹುಡುಕಿ</string>
+    <string name="m_maps_failed">ಈ ಫೋನ್‌ನಲ್ಲಿ Maps ತೆರೆಯಲಾಗಲಿಲ್ಲ.</string>
+</resources>

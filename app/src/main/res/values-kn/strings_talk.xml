@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="aiset_llm">AI ಸಹಾಯಕ (LLM)</string>
+    <string name="aiset_base">ಬೇಸ್ URL</string>
+    <string name="aiset_key">API ಕೀ</string>
+    <string name="aiset_model">ಮಾಡೆಲ್</string>
+    <string name="aiset_test">ಸಂಪರ್ಕ ಪರೀಕ್ಷಿಸಿ</string>
+    <string name="aiset_testing">ಪರೀಕ್ಷಿಸಲಾಗುತ್ತಿದೆ...</string>
+    <string name="aiset_missing">ಮೊದಲು ಬೇಸ್ URL, API ಕೀ ಮತ್ತು ಮಾಡೆಲ್ ತುಂಬಿ.</string>
+    <string name="aiset_ok">ಸಂಪರ್ಕವಾಯಿತು. ಮಾಡೆಲ್ ಉತ್ತರ: %1$s</string>
+    <string name="aiset_fail">ಸಂಪರ್ಕ ವಿಫಲವಾಯಿತು: %1$s</string>
+    <string name="aiset_sarvam">ಸರ್ವಂ ಧ್ವನಿ</string>
+    <string name="aiset_sarvam_hint">ಐಚ್ಛಿಕ. ಸರ್ವಂ ಕೀ ಇದ್ದರೆ ಸಿಂಹ ನಿಮ್ಮ ಭಾಷೆಯಲ್ಲಿ ಸರ್ವಂ ಧ್ವನಿಗಳಿಂದ ಕೇಳುತ್ತದೆ ಮತ್ತು ಮಾತನಾಡುತ್ತದೆ. ಇಲ್ಲದಿದ್ದರೆ ಫೋನಿನ ಸ್ವಂತ ಧ್ವನಿ ಬಳಸಲಾಗುತ್ತದೆ.</string>
+    <string name="aiset_sarvam_key">ಸರ್ವಂ API ಕೀ</string>
+    <string name="aiset_test_sarvam">ಸರ್ವಂ ಪರೀಕ್ಷಿಸಿ</string>
+    <string name="aiset_sarvam_missing">ಮೊದಲು ಸರ್ವಂ API ಕೀ ನಮೂದಿಸಿ.</string>
+    <string name="aiset_sarvam_ok">ಸರ್ವಂ ಕೆಲಸ ಮಾಡುತ್ತಿದೆ. %1$d KB ಧ್ವನಿ ಬಂದಿದೆ.</string>
+    <string name="aiset_agent">ಸರ್ವಂ ವಾಯ್ಸ್-ಏಜೆಂಟ್ ಕರೆಗಳು</string>
+    <string name="aiset_agent_hint">ಒಮ್ಮೆ ಮಾಡಬೇಕಾದ ಸೆಟಪ್: ಸರ್ವಂ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ನಲ್ಲಿ ವಾಯ್ಸ್ ಏಜೆಂಟ್ ರಚಿಸಿ, ಕಮಿಟ್ ಮಾಡಿ, ಫೋನ್ ನಂಬರ್ ಸೇರಿಸಿ, ನಂತರ ವರ್ಕ್‌ಸ್ಪೇಸ್ API ಕೀ ಮತ್ತು ಐಡಿಗಳನ್ನು ಇಲ್ಲಿ ತುಂಬಿ. ಖಾಲಿ ಇದ್ದರೆ ಸಿಂಹ ಅನುಮತಿಸಿದ ಕರೆ ಮಾಡಿ ಸಂದೇಶವನ್ನು ಜೋರಾಗಿ ಹೇಳುತ್ತದೆ.</string>
+    <string name="aiset_agent_key">ವಾಯ್ಸ್ ಏಜೆಂಟ್ API ಕೀ</string>
+    <string name="aiset_org">ಸಂಸ್ಥೆ ಐಡಿ</string>
+    <string name="aiset_ws">ವರ್ಕ್‌ಸ್ಪೇಸ್ ಐಡಿ</string>
+    <string name="aiset_app">ಏಜೆಂಟ್ (ಆ್ಯಪ್) ಐಡಿ</string>
+    <string name="aiset_ver">ಏಜೆಂಟ್ ಆವೃತ್ತಿ ಸಂಖ್ಯೆ</string>
+    <string name="aiset_conn">ಟೆಲಿಫೋನಿ ಸಂಪರ್ಕ ಐಡಿ</string>
+    <string name="aiset_phone">ಏಜೆಂಟ್ ಫೋನ್ ಸಂಖ್ಯೆ</string>
+    <string name="aiset_save">ಉಳಿಸಿ</string>
+    <string name="aiset_saved">ಈ ಫೋನಿನಲ್ಲಿ ಸುರಕ್ಷಿತವಾಗಿ ಉಳಿಸಲಾಗಿದೆ.</string>
+    <string name="aiset_store_error">ಸುರಕ್ಷಿತ ಸಂಗ್ರಹಣೆ ಬಳಸಲಾಗಲಿಲ್ಲ: %1$s</string>
+    <string name="sarvam_fallback">ಸರ್ವಂ ಧ್ವನಿ ಬಳಸಲಾಗಲಿಲ್ಲ, ಫೋನಿನ ಧ್ವನಿ ಬಳಸಲಾಗುತ್ತಿದೆ: %1$s</string>
+    <string name="esc_line">ನಮಸ್ಕಾರ. ನಾನು ಸ್ವಯಂಚಾಲಿತ ಸಹಾಯಕ, %1$s ಅವರ ಪರವಾಗಿ ಕರೆ ಮಾಡುತ್ತಿದ್ದೇನೆ. %1$s ಅವರು %2$d ನಿಮಿಷಗಳಿಂದ ಸುರಕ್ಷತಾ ಪರಿಶೀಲನೆಗೆ ಉತ್ತರಿಸಿಲ್ಲ. ದಯವಿಟ್ಟು ಈಗಲೇ %1$s ಅವರಿಗೆ ಕರೆ ಮಾಡಿ ಅಥವಾ ಹೋಗಿ ನೋಡಿ.</string>
+</resources>

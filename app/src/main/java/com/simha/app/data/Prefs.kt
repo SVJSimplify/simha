@@ -91,3 +91,10 @@ class Prefs(private val c: Context) {
         c.simhaStore.edit { it.block() }
     }
 }
+
+object OBK {
+    val STEP = intPreferencesKey("ob_step")
+    val HELPER = booleanPreferencesKey("ob_helper")
+    val ANSWERED = stringPreferencesKey("ob_answered")
+    val HOSPITAL = stringPreferencesKey("hospital_name")
+}

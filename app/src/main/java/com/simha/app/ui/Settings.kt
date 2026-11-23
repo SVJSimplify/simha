@@ -3,8 +3,6 @@ package com.simha.app.ui
 import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -15,38 +13,53 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.KeyboardType
 import com.simha.app.MainViewModel
 import com.simha.app.Perm
 import com.simha.app.Perms
 import com.simha.app.R
 import com.simha.app.data.CaregiverRow
+import com.simha.app.data.Repo
 import com.simha.app.data.Snap
-import com.simha.app.llm.LlmConfig
-import com.simha.app.llm.LlmException
-import com.simha.app.llm.LlmPresets
-import com.simha.app.llm.Msg
-import com.simha.app.voice.SarvamVoiceAgent
-import com.simha.app.voice.VoiceAgent
+import com.simha.app.ui.talk.AiSettingsSection
+import com.simha.app.ui.theme.LocalSimha
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.JsonArray
 
-@Composable
-private fun Section(text: String) {
-    Text(text, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
+private val INACTIVITY_HOURS = listOf(1, 2, 3, 4, 6, 8)
+private val WAIT_MINUTES = listOf(5, 10, 15)
+
+private fun permRes(p: Perm): Pair<Int, Int> = when (p) {
+    Perm.Notifications -> R.string.perm_notif to R.string.perm_notif_short
+    Perm.Mic -> R.string.perm_mic to R.string.perm_mic_short
+    Perm.Camera -> R.string.perm_cam to R.string.perm_cam_short
+    Perm.Location -> R.string.perm_loc to R.string.perm_loc_short
+    Perm.Usage -> R.string.perm_usage to R.string.perm_usage_short
+    Perm.FullScreen -> R.string.perm_full to R.string.perm_full_short
+    Perm.Battery -> R.string.perm_batt to R.string.perm_batt_short
+    Perm.CallPhone -> R.string.perm_call to R.string.perm_call_short
 }
 
 @Composable
-fun SettingsScreen(vm: MainViewModel, s: Snap, onBack: () -> Unit, onAudit: () -> Unit) {
+private fun hoursText(h: Int): String = LocalContext.current.resources.getQuantityString(R.plurals.m_hours, h, h)
+
+@Composable
+private fun minutesText(m: Int): String = LocalContext.current.resources.getQuantityString(R.plurals.m_minutes, m, m)
+
+@Composable
+fun SettingsScreen(
+    vm: MainViewModel,
+    s: Snap,
+    onBack: () -> Unit,
+    onAudit: () -> Unit,
+    onContacts: (String) -> Unit,
+    onProfile: () -> Unit,
+) {
     val ctx = LocalContext.current
     val sl = vm.sl
     val scope = rememberCoroutineScope()
     val tick by vm.resume.collectAsState()
+    val contacts by vm.contacts.collectAsState()
     val callLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { vm.resume.value += 1 }
     val title = stringResource(R.string.set_title)
-
-    var inact by remember(s.inactivity) { mutableStateOf(s.inactivity.toString()) }
-    var wait by remember(s.wait) { mutableStateOf(s.wait.toString()) }
 
     var cgs by remember { mutableStateOf<List<CaregiverRow>>(emptyList()) }
     var cgErr by remember { mutableStateOf<String?>(null) }
@@ -57,27 +70,34 @@ fun SettingsScreen(vm: MainViewModel, s: Snap, onBack: () -> Unit, onAudit: () -
     }
     LaunchedEffect(Unit) { reload() }
 
-    val stored = remember { sl.llmStore.load() }
-    var base by remember { mutableStateOf(stored.getOrNull()?.baseUrl ?: "") }
-    var key by remember { mutableStateOf(stored.getOrNull()?.apiKey ?: "") }
-    var model by remember { mutableStateOf(stored.getOrNull()?.model ?: "") }
-    var aiMsg by remember { mutableStateOf<String?>(null) }
-    var testing by remember { mutableStateOf(false) }
-    var agentMsg by remember { mutableStateOf<String?>(null) }
-    val agent: VoiceAgent = remember { SarvamVoiceAgent() }
+    val inactivityLabels = INACTIVITY_HOURS.map { hoursText(it) }
+    val waitLabels = WAIT_MINUTES.map { minutesText(it) }
+    val inactivityText = if (s.inactivity % 60 == 0) hoursText(s.inactivity / 60) else minutesText(s.inactivity)
+    val noFamily = contacts.none { it.role in Repo.FAMILY_ROLES }
 
     ScreenFrame(title, title, onBack) {
-        Section(stringResource(R.string.set_perms))
-        Caption(stringResource(R.string.set_perm_hint))
-        Perm.entries.filter { Perms.available(it) }.forEach { p ->
-            val on = remember(tick, p) { Perms.granted(ctx, p) }
-            SwitchRow(stringResource(permText(p).name), on, { Perms.open(ctx, p, false) })
-        }
-        if (!remember(tick) { Perms.granted(ctx, Perm.Usage) }) {
-            Card { Body(stringResource(R.string.set_usage_denied, s.inactivity)) }
-        }
+        SectionTitle(stringResource(R.string.set_language))
+        listOf("en" to R.string.lang_en, "hi" to R.string.lang_hi, "te" to R.string.lang_te, "kn" to R.string.lang_kn, "ta" to R.string.lang_ta)
+            .forEach { (code, res) ->
+                OptionRow(stringResource(res), s.lang == code, { if (s.lang != code) vm.setLanguage(code) })
+            }
 
-        Section(stringResource(R.string.set_approvals))
+        SectionTitle(stringResource(R.string.set_rules))
+        Body(stringResource(R.string.m_ask_if))
+        ChipGroup(
+            inactivityLabels,
+            INACTIVITY_HOURS.indexOfFirst { it * 60 == s.inactivity },
+            { vm.saveRules(INACTIVITY_HOURS[it] * 60, s.wait) },
+        )
+        Body(stringResource(R.string.m_wait_before))
+        ChipGroup(
+            waitLabels,
+            WAIT_MINUTES.indexOf(s.wait),
+            { vm.saveRules(s.inactivity, WAIT_MINUTES[it]) },
+        )
+        Caption(stringResource(R.string.m_timing_note, inactivityText, minutesText(s.wait)))
+
+        SectionTitle(stringResource(R.string.set_approvals))
         SwitchRow(stringResource(R.string.ap_family_label), s.callFamily, {
             vm.setApproval("call_family", it)
             if (it && !Perms.granted(ctx, Perm.CallPhone)) callLauncher.launch(arrayOf(Manifest.permission.CALL_PHONE))
@@ -88,70 +108,31 @@ fun SettingsScreen(vm: MainViewModel, s: Snap, onBack: () -> Unit, onAudit: () -
         })
         SwitchRow(stringResource(R.string.ap_record_label), s.record, { vm.setApproval("record", it) })
 
-        Section(stringResource(R.string.set_rules))
-        LabeledField(stringResource(R.string.set_inactivity), inact, { inact = it.filter(Char::isDigit) }, KeyboardType.Number, true)
-        LabeledField(stringResource(R.string.set_wait), wait, { wait = it.filter(Char::isDigit) }, KeyboardType.Number, true)
-        Caption(stringResource(R.string.set_rules_range))
-        BigButton(stringResource(R.string.save), { vm.saveRules(inact.toIntOrNull() ?: s.inactivity, wait.toIntOrNull() ?: s.wait) })
-
-        Section(stringResource(R.string.set_language))
-        listOf("en" to R.string.lang_en, "hi" to R.string.lang_hi, "te" to R.string.lang_te, "kn" to R.string.lang_kn, "ta" to R.string.lang_ta)
-            .forEach { (code, res) ->
-                BigButton(stringResource(res), { vm.setLanguage(code) }, kind = if (s.lang == code) Kind.Primary else Kind.Secondary)
-            }
-
-        Section(stringResource(R.string.set_ai))
-        stored.exceptionOrNull()?.let { Body(stringResource(R.string.ai_store_error, it.message ?: ""), color = MaterialTheme.colorScheme.error) }
-        Body(stringResource(R.string.ai_preset))
-        LlmPresets.all.forEach { (name, url) ->
-            BigButton(name, {
-                base = url
-                aiMsg = null
-            }, kind = if (base == url) Kind.Primary else Kind.Secondary)
+        SectionTitle(stringResource(R.string.set_perms))
+        Caption(stringResource(R.string.set_perm_hint))
+        Perm.entries.filter { Perms.available(it) }.forEach { p ->
+            val on = remember(tick, p) { Perms.granted(ctx, p) }
+            val (name, short) = permRes(p)
+            SwitchRow(stringResource(name), on, { Perms.open(ctx, p, false) }, stringResource(short))
         }
-        BigButton(stringResource(R.string.preset_custom), { aiMsg = null }, kind = if (LlmPresets.all.none { it.second == base }) Kind.Primary else Kind.Secondary)
-        LabeledField(stringResource(R.string.ai_base), base, { base = it }, KeyboardType.Uri, true)
-        LabeledField(stringResource(R.string.ai_key), key, { key = it }, KeyboardType.Password, true, password = true)
-        LabeledField(stringResource(R.string.ai_model), model, { model = it }, KeyboardType.Text, true)
-        BigButton(stringResource(R.string.ai_save), {
-            sl.llmStore.save(LlmConfig(base, key, model)).fold(
-                { aiMsg = ctx.getString(R.string.ai_saved) },
-                { aiMsg = ctx.getString(R.string.ai_store_error, it.message ?: "") },
-            )
-        })
-        BigButton(stringResource(if (testing) R.string.ai_testing else R.string.ai_test), {
-            val cfg = LlmConfig(base, key, model)
-            if (!cfg.configured) {
-                aiMsg = ctx.getString(R.string.ai_missing)
-            } else {
-                scope.launch {
-                    testing = true
-                    aiMsg = try {
-                        val r = sl.llm.complete(cfg, JsonArray(listOf(Msg.user("Reply with the single word OK."))), null)
-                        ctx.getString(R.string.ai_ok, (r.content ?: "").take(80))
-                    } catch (e: LlmException) {
-                        ctx.getString(R.string.ai_fail, e.message ?: "")
-                    }
-                    testing = false
-                }
-            }
-        }, kind = Kind.Secondary, enabled = !testing)
-        aiMsg?.let { Body(it) }
+        if (!remember(tick) { Perms.granted(ctx, Perm.Usage) }) {
+            Card { Body(stringResource(R.string.set_usage_denied, s.inactivity)) }
+        }
 
-        Section(stringResource(R.string.set_agent))
-        Caption(stringResource(R.string.agent_note))
-        BigButton(stringResource(R.string.agent_try), {
-            scope.launch {
-                agent.call("checkin", "").fold(
-                    { agentMsg = it },
-                    { agentMsg = ctx.getString(R.string.agent_not_configured) },
-                )
-            }
-        }, kind = Kind.Secondary)
-        agentMsg?.let { Body(it) }
+        SectionTitle(stringResource(R.string.m_set_contacts))
+        if (noFamily) Body(stringResource(R.string.m_contacts_missing), color = LocalSimha.current.emergency)
+        SecondaryButton(stringResource(R.string.fam_title), { onContacts("family") })
+        SecondaryButton(stringResource(R.string.doc_title), { onContacts("doctor") })
 
-        Section(stringResource(R.string.set_caregivers))
-        cgErr?.let { Body(stringResource(R.string.sync_error, it), color = MaterialTheme.colorScheme.error) }
+        SectionTitle(stringResource(R.string.m_set_medical))
+        Caption(stringResource(R.string.m_med_note))
+        SecondaryButton(stringResource(R.string.profile_title), onProfile)
+
+        SectionTitle(stringResource(R.string.m_set_ai))
+        AiSettingsSection()
+
+        SectionTitle(stringResource(R.string.set_caregivers))
+        cgErr?.let { Body(stringResource(R.string.sync_error, it), color = LocalSimha.current.emergency) }
         if (cgs.isEmpty()) Body(stringResource(R.string.cg_none))
         cgs.forEach { c ->
             Card {
@@ -168,26 +149,27 @@ fun SettingsScreen(vm: MainViewModel, s: Snap, onBack: () -> Unit, onAudit: () -
                         reload()
                     }
                 })
-                BigButton(stringResource(R.string.cg_remove), {
+                SecondaryButton(stringResource(R.string.cg_remove), {
                     scope.launch {
                         sl.repo.removeCaregiver(c.id).onFailure { cgErr = it.message ?: it.javaClass.simpleName }
                         reload()
                     }
-                }, kind = Kind.Secondary)
+                })
             }
         }
-        BigButton(stringResource(R.string.cg_invite), {
+        SecondaryButton(stringResource(R.string.cg_invite), {
             scope.launch {
                 sl.repo.createInvite().fold({ reload() }, { cgErr = it.message ?: it.javaClass.simpleName })
             }
-        }, kind = Kind.Secondary)
+        })
 
-        BigButton(stringResource(R.string.set_audit), onAudit, kind = Kind.Secondary)
+        SecondaryButton(stringResource(R.string.set_audit), onAudit)
+        SwitchRow(stringResource(R.string.night), s.night, { vm.setNight(it) })
         if (s.running) {
-            BigButton(stringResource(R.string.set_stop), { vm.stopSimha() })
+            PrimaryButton(stringResource(R.string.set_stop), { vm.stopSimha() })
         } else {
             Body(stringResource(R.string.stopped_banner))
-            BigButton(stringResource(R.string.set_start), { vm.startSimha() })
+            PrimaryButton(stringResource(R.string.set_start), { vm.startSimha() })
         }
     }
 }

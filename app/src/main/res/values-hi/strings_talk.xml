@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="aiset_llm">AI सहायक (LLM)</string>
+    <string name="aiset_base">बेस URL</string>
+    <string name="aiset_key">API कुंजी</string>
+    <string name="aiset_model">मॉडल</string>
+    <string name="aiset_test">कनेक्शन जाँचें</string>
+    <string name="aiset_testing">जाँच हो रही है...</string>
+    <string name="aiset_missing">पहले बेस URL, API कुंजी और मॉडल भरें।</string>
+    <string name="aiset_ok">कनेक्ट हो गया। मॉडल का जवाब: %1$s</string>
+    <string name="aiset_fail">कनेक्शन विफल: %1$s</string>
+    <string name="aiset_sarvam">सर्वम आवाज़</string>
+    <string name="aiset_sarvam_hint">वैकल्पिक। सर्वम कुंजी होने पर सिम्हा आपकी भाषा में सर्वम आवाज़ों से सुनता और बोलता है। न होने पर फ़ोन की अपनी आवाज़ इस्तेमाल होती है।</string>
+    <string name="aiset_sarvam_key">सर्वम API कुंजी</string>
+    <string name="aiset_test_sarvam">सर्वम जाँचें</string>
+    <string name="aiset_sarvam_missing">पहले सर्वम API कुंजी भरें।</string>
+    <string name="aiset_sarvam_ok">सर्वम काम कर रहा है। %1$d KB आवाज़ मिली।</string>
+    <string name="aiset_agent">सर्वम वॉइस-एजेंट कॉल</string>
+    <string name="aiset_agent_hint">एक बार की तैयारी: सर्वम डैशबोर्ड में वॉइस एजेंट बनाएँ, उसे कमिट करें और फ़ोन नंबर जोड़ें, फिर वर्कस्पेस API कुंजी और आईडी यहाँ भरें। खाली रहने पर सिम्हा अनुमति वाला कॉल करके संदेश ज़ोर से बोलेगा।</string>
+    <string name="aiset_agent_key">वॉइस एजेंट API कुंजी</string>
+    <string name="aiset_org">संगठन आईडी</string>
+    <string name="aiset_ws">वर्कस्पेस आईडी</string>
+    <string name="aiset_app">एजेंट (ऐप) आईडी</string>
+    <string name="aiset_ver">एजेंट वर्शन नंबर</string>
+    <string name="aiset_conn">टेलीफ़ोनी कनेक्शन आईडी</string>
+    <string name="aiset_phone">एजेंट का फ़ोन नंबर</string>
+    <string name="aiset_save">सहेजें</string>
+    <string name="aiset_saved">इस फ़ोन पर सुरक्षित रूप से सहेजा गया।</string>
+    <string name="aiset_store_error">सुरक्षित स्टोरेज इस्तेमाल नहीं हो सका: %1$s</string>
+    <string name="sarvam_fallback">सर्वम आवाज़ इस्तेमाल नहीं हो सकी, फ़ोन की आवाज़ चल रही है: %1$s</string>
+    <string name="esc_line">नमस्ते। मैं एक स्वचालित सहायक हूँ और %1$s की ओर से फ़ोन कर रहा हूँ। %1$s ने %2$d मिनट से सुरक्षा जाँच का जवाब नहीं दिया है। कृपया अभी %1$s को फ़ोन करें या मिलने जाएँ।</string>
+</resources>

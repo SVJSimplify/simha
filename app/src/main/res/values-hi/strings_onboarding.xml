@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="o_who_title">सिम्हा किसके लिए है?</string>
+    <string name="o_who_self">मेरे लिए</string>
+    <string name="o_who_self_d">मैं सिम्हा को अपने फ़ोन पर इस्तेमाल करूँगा।</string>
+    <string name="o_who_other">जिनकी मैं देखभाल करता हूँ उनके लिए</string>
+    <string name="o_who_other_d">मैं उनके लिए सिम्हा सेट कर रहा हूँ।</string>
+    <string name="o_who_invite">मेरे पास आमंत्रण कोड है</string>
+    <string name="o_name_title_self">आपका नाम क्या है?</string>
+    <string name="o_name_title_other">सिम्हा किसे बुलाए?</string>
+    <string name="o_name_label_self">आपका नाम</string>
+    <string name="o_name_label_other">उनका नाम</string>
+    <string name="o_err_name">कृपया नाम लिखें।</string>
+    <string name="o_err_phone">10 अंकों का सही फ़ोन नंबर लिखें।</string>
+    <string name="o_err_label">कृपया बताएँ कि यह कौन हैं।</string>
+    <string name="o_err_contact">आगे बढ़ने के लिए कम से कम एक व्यक्ति जोड़ें।</string>
+    <string name="o_contacts_body_self">कम से कम एक ऐसा व्यक्ति जोड़ें जिसे सिम्हा आपको मदद चाहिए होने पर फ़ोन कर सके।</string>
+    <string name="o_contacts_body_other">कम से कम एक ऐसा व्यक्ति जोड़ें जिसे सिम्हा उन्हें मदद चाहिए होने पर फ़ोन कर सके।</string>
+    <string name="o_add_family">परिवार जोड़ें</string>
+    <string name="o_add_neighbour">पड़ोसी जोड़ें</string>
+    <string name="o_add_doctor">डॉक्टर जोड़ें</string>
+    <string name="o_label">नाम या रिश्ता, जैसे बेटी</string>
+    <string name="o_phone">फ़ोन नंबर</string>
+    <string name="o_add">जोड़ें</string>
+    <string name="o_cancel">रद्द करें</string>
+    <string name="o_clinic_body_self">ज़रूरी नहीं है। अपना डॉक्टर और भरोसे का अस्पताल जोड़ें।</string>
+    <string name="o_clinic_body_other">ज़रूरी नहीं है। उनका डॉक्टर और उनके भरोसे का अस्पताल जोड़ें।</string>
+    <string name="o_find_hospital">मेरे पास के अस्पताल खोजें</string>
+    <string name="o_hospital_name">अस्पताल का नाम</string>
+    <string name="o_hospital_hint">मैप्स में अस्पताल चुनें, फिर उसका नाम यहाँ लिखें।</string>
+    <string name="o_cond_why_self">इससे आपात स्थिति में डॉक्टर आपका जल्दी इलाज कर पाते हैं।</string>
+    <string name="o_cond_why_other">इससे आपात स्थिति में डॉक्टर उनका जल्दी इलाज कर पाते हैं।</string>
+    <string name="o_med_why_self">सिम्हा डॉक्टरों को बता सकता है कि आप कौन सी दवाइयाँ लेते हैं।</string>
+    <string name="o_med_why_other">सिम्हा डॉक्टरों को बता सकता है कि वे कौन सी दवाइयाँ लेते हैं।</string>
+    <string name="o_all_why_self">जिन चीज़ों से आपको नुकसान होता है, सिम्हा उनके बारे में डॉक्टरों को सावधान कर सकता है।</string>
+    <string name="o_all_why_other">जिन चीज़ों से उन्हें नुकसान होता है, सिम्हा उनके बारे में डॉक्टरों को सावधान कर सकता है।</string>
+    <string name="o_remember_self">आप जो कुछ बताएँगे, सिम्हा उसे भी याद रखेगा।</string>
+    <string name="o_remember_other">वे जो कुछ बताएँगे, सिम्हा उसे भी याद रखेगा।</string>
+    <string name="o_notif_short_self">सिम्हा रोज़ आपका हाल पूछेगा।</string>
+    <string name="o_notif_short_other">सिम्हा रोज़ उनका हाल पूछेगा।</string>
+    <string name="o_ap_family_q_other">क्या सिम्हा उनके परिवार को उनके लिए फ़ोन कर सकता है?</string>
+    <string name="o_ap_hospital_q_other">क्या सिम्हा उनके लिए किसी अस्पताल को फ़ोन कर सकता है?</string>
+    <string name="o_ap_record_q_other">क्या सिम्हा उनके संदेश रिकॉर्ड कर सकता है?</string>
+</resources>

@@ -17,6 +17,7 @@ import com.simha.app.forLang
 import com.simha.app.llm.Agent
 import com.simha.app.llm.ChatApi
 import com.simha.app.llm.ContactInfo
+import com.simha.app.llm.HealthMemory
 import com.simha.app.llm.LlmException
 import com.simha.app.llm.Msg
 import com.simha.app.llm.ParsedReply
@@ -68,10 +69,11 @@ object Prompt {
         val sb = StringBuilder()
         sb.append("You are Simha, a warm companion for ").append(name).append(", who may be elderly and living alone. ")
         sb.append("Talk like a caring friend, never like a machine.\n")
-        sb.append("- Reply in ").append(langName(lang)).append(", the person's own language, in short natural spoken sentences. No lists, no markdown, no emojis.\n")
+        sb.append("- The person's language is ").append(langName(lang)).append(". Every reply must be written only in ").append(langName(lang)).append(" (in its own script), even if the person types or speaks another language, unless they ask you to switch. Use short natural spoken sentences. No lists, no markdown, no emojis.\n")
         sb.append("- Use ").append(name).append("'s name now and then. Ask only one thing at a time. Remember what they told you earlier in this conversation.\n")
         sb.append("- When they ask you to do something (call someone, tell family, remember something, look at something with the camera, record a message), do it straight away with your tools. Do not make them open screens or press things, unless a tool result says they must press something, such as send or call.\n")
         sb.append("- After acting, say in plain words what you did, for example: I have told your daughter Priya. Only say you did something if the tool result confirms it. If a tool says refused or error, say so simply and kindly.\n")
+        sb.append("- When the person mentions a health condition, a medicine they take, or an allergy in passing, save it straight away with remember_health_detail (kind: condition, medicine or allergy), then confirm briefly in one short sentence, for example: I have noted that.\n")
         sb.append("- Never mention tools, functions, JSON or anything technical.\n")
         sb.append("- You are not a doctor. Do not diagnose and do not advise treatment. If there are danger signs, stay calm, open the emergency screen and help them call 112. Emergency decisions are not yours: a fixed rules engine handles escalation.\n")
         sb.append("- Keep every reply brief.\n")
@@ -509,6 +511,24 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
             }
             repo.saveProfile(n)
             return "Profile updated."
+        }
+
+        override suspend fun rememberHealthDetail(kind: String, text: String): String {
+            val p = repo.profileNow()
+            val (merged, changed) = when (kind) {
+                "condition" -> HealthMemory.merge(p.conditions, text)
+                "medicine" -> HealthMemory.merge(p.medicines, text)
+                else -> HealthMemory.merge(p.allergies, text)
+            }
+            if (!changed) return "Already saved."
+            repo.saveProfile(
+                when (kind) {
+                    "condition" -> p.copy(conditions = merged)
+                    "medicine" -> p.copy(medicines = merged)
+                    else -> p.copy(allergies = merged)
+                }
+            )
+            return "Saved to the health profile."
         }
 
         override suspend fun audit(tool: String, args: String, result: String) {

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="o_who_title">ಸಿಂಹ ಯಾರಿಗಾಗಿ?</string>
+    <string name="o_who_self">ನನಗಾಗಿ</string>
+    <string name="o_who_self_d">ನಾನು ಸಿಂಹವನ್ನು ನನ್ನ ಸ್ವಂತ ಫೋನ್‌ನಲ್ಲಿ ಬಳಸುತ್ತೇನೆ.</string>
+    <string name="o_who_other">ನಾನು ಆರೈಕೆ ಮಾಡುವವರಿಗಾಗಿ</string>
+    <string name="o_who_other_d">ನಾನು ಅವರಿಗಾಗಿ ಸಿಂಹವನ್ನು ಸೆಟ್ ಮಾಡುತ್ತಿದ್ದೇನೆ.</string>
+    <string name="o_who_invite">ನನ್ನ ಬಳಿ ಆಹ್ವಾನ ಕೋಡ್ ಇದೆ</string>
+    <string name="o_name_title_self">ನಿಮ್ಮ ಹೆಸರೇನು?</string>
+    <string name="o_name_title_other">ಸಿಂಹ ಯಾರನ್ನು ಕರೆಯಬೇಕು?</string>
+    <string name="o_name_label_self">ನಿಮ್ಮ ಹೆಸರು</string>
+    <string name="o_name_label_other">ಅವರ ಹೆಸರು</string>
+    <string name="o_err_name">ದಯವಿಟ್ಟು ಹೆಸರು ಬರೆಯಿರಿ.</string>
+    <string name="o_err_phone">10 ಅಂಕಿಗಳ ಸರಿಯಾದ ಫೋನ್ ನಂಬರ್ ಬರೆಯಿರಿ.</string>
+    <string name="o_err_label">ದಯವಿಟ್ಟು ಇವರು ಯಾರೆಂದು ತಿಳಿಸಿ.</string>
+    <string name="o_err_contact">ಮುಂದುವರಿಯಲು ಕನಿಷ್ಠ ಒಬ್ಬರನ್ನು ಸೇರಿಸಿ.</string>
+    <string name="o_contacts_body_self">ನಿಮಗೆ ಸಹಾಯ ಬೇಕಾದಾಗ ಸಿಂಹ ಕರೆ ಮಾಡಬಹುದಾದ ಕನಿಷ್ಠ ಒಬ್ಬರನ್ನು ಸೇರಿಸಿ.</string>
+    <string name="o_contacts_body_other">ಅವರಿಗೆ ಸಹಾಯ ಬೇಕಾದಾಗ ಸಿಂಹ ಕರೆ ಮಾಡಬಹುದಾದ ಕನಿಷ್ಠ ಒಬ್ಬರನ್ನು ಸೇರಿಸಿ.</string>
+    <string name="o_add_family">ಕುಟುಂಬದವರನ್ನು ಸೇರಿಸಿ</string>
+    <string name="o_add_neighbour">ನೆರೆಯವರನ್ನು ಸೇರಿಸಿ</string>
+    <string name="o_add_doctor">ವೈದ್ಯರನ್ನು ಸೇರಿಸಿ</string>
+    <string name="o_label">ಹೆಸರು ಅಥವಾ ಸಂಬಂಧ, ಉದಾಹರಣೆಗೆ ಮಗಳು</string>
+    <string name="o_phone">ಫೋನ್ ನಂಬರ್</string>
+    <string name="o_add">ಸೇರಿಸಿ</string>
+    <string name="o_cancel">ರದ್ದುಮಾಡಿ</string>
+    <string name="o_clinic_body_self">ಕಡ್ಡಾಯವಲ್ಲ. ನಿಮ್ಮ ವೈದ್ಯರನ್ನು ಮತ್ತು ನೀವು ನಂಬುವ ಆಸ್ಪತ್ರೆಯನ್ನು ಸೇರಿಸಿ.</string>
+    <string name="o_clinic_body_other">ಕಡ್ಡಾಯವಲ್ಲ. ಅವರ ವೈದ್ಯರನ್ನು ಮತ್ತು ಅವರು ನಂಬುವ ಆಸ್ಪತ್ರೆಯನ್ನು ಸೇರಿಸಿ.</string>
+    <string name="o_find_hospital">ನನ್ನ ಹತ್ತಿರದ ಆಸ್ಪತ್ರೆಗಳನ್ನು ಹುಡುಕಿ</string>
+    <string name="o_hospital_name">ಆಸ್ಪತ್ರೆಯ ಹೆಸರು</string>
+    <string name="o_hospital_hint">ಮ್ಯಾಪ್ಸ್‌ನಲ್ಲಿ ಆಸ್ಪತ್ರೆಯನ್ನು ಆರಿಸಿ, ನಂತರ ಅದರ ಹೆಸರನ್ನು ಇಲ್ಲಿ ಬರೆಯಿರಿ.</string>
+    <string name="o_cond_why_self">ತುರ್ತು ಸಮಯದಲ್ಲಿ ವೈದ್ಯರು ನಿಮಗೆ ಬೇಗ ಚಿಕಿತ್ಸೆ ನೀಡಲು ಇದು ಸಹಾಯ ಮಾಡುತ್ತದೆ.</string>
+    <string name="o_cond_why_other">ತುರ್ತು ಸಮಯದಲ್ಲಿ ವೈದ್ಯರು ಅವರಿಗೆ ಬೇಗ ಚಿಕಿತ್ಸೆ ನೀಡಲು ಇದು ಸಹಾಯ ಮಾಡುತ್ತದೆ.</string>
+    <string name="o_med_why_self">ನೀವು ಯಾವ ಔಷಧಿಗಳನ್ನು ತೆಗೆದುಕೊಳ್ಳುತ್ತೀರಿ ಎಂದು ಸಿಂಹ ವೈದ್ಯರಿಗೆ ಹೇಳಬಲ್ಲದು.</string>
+    <string name="o_med_why_other">ಅವರು ಯಾವ ಔಷಧಿಗಳನ್ನು ತೆಗೆದುಕೊಳ್ಳುತ್ತಾರೆ ಎಂದು ಸಿಂಹ ವೈದ್ಯರಿಗೆ ಹೇಳಬಲ್ಲದು.</string>
+    <string name="o_all_why_self">ನಿಮಗೆ ಒಗ್ಗದ ವಸ್ತುಗಳ ಬಗ್ಗೆ ಸಿಂಹ ವೈದ್ಯರನ್ನು ಎಚ್ಚರಿಸಬಲ್ಲದು.</string>
+    <string name="o_all_why_other">ಅವರಿಗೆ ಒಗ್ಗದ ವಸ್ತುಗಳ ಬಗ್ಗೆ ಸಿಂಹ ವೈದ್ಯರನ್ನು ಎಚ್ಚರಿಸಬಲ್ಲದು.</string>
+    <string name="o_remember_self">ನೀವು ಹೇಳುವುದನ್ನು ಸಿಂಹ ಕೂಡ ನೆನಪಿನಲ್ಲಿಡುತ್ತದೆ.</string>
+    <string name="o_remember_other">ಅವರು ಹೇಳುವುದನ್ನು ಸಿಂಹ ಕೂಡ ನೆನಪಿನಲ್ಲಿಡುತ್ತದೆ.</string>
+    <string name="o_notif_short_self">ಸಿಂಹ ಪ್ರತಿದಿನ ನೀವು ಹೇಗಿದ್ದೀರಿ ಎಂದು ಕೇಳುತ್ತದೆ.</string>
+    <string name="o_notif_short_other">ಸಿಂಹ ಪ್ರತಿದಿನ ಅವರು ಹೇಗಿದ್ದಾರೆ ಎಂದು ಕೇಳುತ್ತದೆ.</string>
+    <string name="o_ap_family_q_other">ಅವರಿಗಾಗಿ ಸಿಂಹ ಅವರ ಕುಟುಂಬಕ್ಕೆ ಕರೆ ಮಾಡಬಹುದೇ?</string>
+    <string name="o_ap_hospital_q_other">ಅವರಿಗಾಗಿ ಸಿಂಹ ಆಸ್ಪತ್ರೆಗೆ ಕರೆ ಮಾಡಬಹುದೇ?</string>
+    <string name="o_ap_record_q_other">ಸಿಂಹ ಅವರ ಸಂದೇಶಗಳನ್ನು ರೆಕಾರ್ಡ್ ಮಾಡಬಹುದೇ?</string>
+</resources>

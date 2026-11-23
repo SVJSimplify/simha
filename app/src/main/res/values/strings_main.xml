@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="m_greet">Namaste, %1$s</string>
+    <string name="m_greet_plain">Namaste</string>
+    <string name="m_talk_sub">Ask anything or tell me how you feel</string>
+    <string name="m_call_family">Call family</string>
+    <string name="m_call_doctor">Call doctor</string>
+    <string name="m_link_profile">Profile</string>
+    <string name="m_link_settings">Settings</string>
+    <string name="m_get_help">Get help now</string>
+    <string name="m_ask_if">Ask how I am if I haven\'t used my phone for</string>
+    <string name="m_wait_before">Wait before calling family</string>
+    <string name="m_timing_note">If you have not used your phone for %1$s, Simha asks how you are. If you do not answer, Simha waits %2$s, then calls your family.</string>
+    <plurals name="m_hours">
+        <item quantity="one">%d hour</item>
+        <item quantity="other">%d hours</item>
+    </plurals>
+    <plurals name="m_minutes">
+        <item quantity="one">%d minute</item>
+        <item quantity="other">%d minutes</item>
+    </plurals>
+    <string name="m_set_contacts">Contacts</string>
+    <string name="m_contacts_missing">Please add at least one family contact.</string>
+    <string name="m_set_medical">Medical</string>
+    <string name="m_med_note">Simha remembers health details you mention while talking. You can check and edit them here.</string>
+    <string name="m_set_ai">AI and voice</string>
+    <string name="m_add_family">Add family</string>
+    <string name="m_add_neighbour">Add neighbour</string>
+    <string name="m_add_doctor">Add doctor</string>
+    <string name="m_label">Label</string>
+    <string name="m_phone">Phone number</string>
+    <string name="m_pick_contacts">Choose from contacts</string>
+    <string name="m_err_label">Please type a name or label, like Dad.</string>
+    <string name="m_err_phone">Enter a 10-digit phone number. +91 is okay.</string>
+    <string name="m_cancel">Cancel</string>
+    <string name="m_hospital_name">Hospital name (optional)</string>
+    <string name="m_hospital_hint">Open Maps, choose a hospital, then type its name below.</string>
+    <string name="m_find_hospitals">Find hospitals near me</string>
+    <string name="m_maps_failed">Maps could not be opened on this phone.</string>
+</resources>

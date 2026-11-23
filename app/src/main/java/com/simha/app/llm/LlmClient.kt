@@ -27,12 +27,19 @@ data class LlmConfig(val baseUrl: String = "", val apiKey: String = "", val mode
     val configured: Boolean get() = baseUrl.isNotBlank() && apiKey.isNotBlank() && model.isNotBlank()
 }
 
-object LlmPresets {
-    val all = listOf(
-        "OpenAI" to "https://api.openai.com/v1",
-        "Sarvam" to "https://api.sarvam.ai/v1",
-        "OpenRouter" to "https://openrouter.ai/api/v1",
-    )
+data class SarvamConfig(
+    val apiKey: String = "",
+    val agentKey: String = "",
+    val orgId: String = "",
+    val workspaceId: String = "",
+    val appId: String = "",
+    val appVersion: String = "",
+    val connectionId: String = "",
+    val agentPhone: String = "",
+) {
+    val speechReady: Boolean get() = apiKey.isNotBlank()
+    val agentReady: Boolean
+        get() = listOf(agentKey, orgId, workspaceId, appId, connectionId, agentPhone).all { it.isNotBlank() } && appVersion.trim().toIntOrNull() != null
 }
 
 class LlmStore(private val ctx: Context) {
@@ -60,6 +67,37 @@ class LlmStore(private val ctx: Context) {
     }
 
     fun config(): LlmConfig = load().getOrDefault(LlmConfig())
+
+    fun sarvam(): SarvamConfig = try {
+        SarvamConfig(
+            sp.getString("s_key", "") ?: "",
+            sp.getString("s_agent_key", "") ?: "",
+            sp.getString("s_org", "") ?: "",
+            sp.getString("s_ws", "") ?: "",
+            sp.getString("s_app", "") ?: "",
+            sp.getString("s_ver", "") ?: "",
+            sp.getString("s_conn", "") ?: "",
+            sp.getString("s_phone", "") ?: "",
+        )
+    } catch (e: Exception) {
+        SarvamConfig()
+    }
+
+    fun saveSarvam(c: SarvamConfig): Result<Unit> = try {
+        sp.edit()
+            .putString("s_key", c.apiKey.trim())
+            .putString("s_agent_key", c.agentKey.trim())
+            .putString("s_org", c.orgId.trim())
+            .putString("s_ws", c.workspaceId.trim())
+            .putString("s_app", c.appId.trim())
+            .putString("s_ver", c.appVersion.trim())
+            .putString("s_conn", c.connectionId.trim())
+            .putString("s_phone", c.agentPhone.trim())
+            .apply()
+        Result.success(Unit)
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
 
     fun save(c: LlmConfig): Result<Unit> = try {
         sp.edit().putString("base", c.baseUrl.trim()).putString("key", c.apiKey.trim()).putString("model", c.model.trim()).apply()

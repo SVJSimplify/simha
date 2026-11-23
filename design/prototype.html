@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Simha prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600&family=Nunito:wght@400;500;600;700&family=Fraunces:wght@500&family=DM+Sans:wght@400;500;600&family=Noto+Sans+Devanagari:wght@400;500;600&family=Noto+Sans+Telugu:wght@400;500;600&family=Noto+Sans+Kannada:wght@400;500;600&family=Noto+Sans+Tamil:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+body{background:#E9E4DB;font-family:system-ui,sans-serif;display:flex;flex-direction:column;align-items:center;gap:18px;padding:20px 0 40px;min-height:100vh}
+.themes{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;padding:0 12px}
+.themes button,.jump select{font:500 15px system-ui,sans-serif;padding:10px 16px;border-radius:999px;border:1px solid #bdb4a6;background:#fff;color:#2b2b2b;cursor:pointer}
+.themes button[aria-pressed=true]{background:#222;color:#fff;border-color:#222}
+.phone{--shadow:0 2px 0 rgba(0,0,0,.1),0 6px 14px color-mix(in srgb,var(--primary) 26%,transparent);position:relative;width:360px;height:780px;overflow:hidden;border-radius:32px;box-shadow:0 0 0 10px #1d1d1f,0 24px 50px rgba(0,0,0,.3);background:var(--bg);color:var(--text);font-family:var(--font);font-size:20px;line-height:1.45;display:flex;flex-direction:column}
+[data-theme=D]{--bg:#FFFFFF;--surface:#FFFFFF;--fill:#FDE9CF;--border:#EADFD2;--text:#1F1A17;--text2:#5C524A;--primary:#B23C0A;--onp:#FFFFFF;--accent:#F2A541;--success:#2F6B4F;--emerg:#A51D1D;--r:16px;--font:"Lexend","Noto Sans Devanagari","Noto Sans Telugu","Noto Sans Kannada","Noto Sans Tamil",sans-serif;--fh:var(--font)}
+[data-theme=E]{--bg:#FBF0EE;--surface:#FFFFFF;--fill:#F6E3DF;--border:#EBD5D1;--text:#2B1D1F;--text2:#634B4E;--primary:#7E2F3B;--onp:#FFFFFF;--accent:#E2B26A;--success:#2F6B4F;--emerg:#B3261E;--r:22px;--font:"Nunito","Noto Sans Devanagari","Noto Sans Telugu","Noto Sans Kannada","Noto Sans Tamil",sans-serif;--fh:var(--font)}
+[data-theme=F]{--bg:#F1F2F8;--surface:#FFFFFF;--fill:#E5E8F5;--border:#D9DCEB;--text:#1B1F33;--text2:#4B5070;--primary:#2E3A87;--onp:#FFFFFF;--accent:#D9A441;--success:#2F6B4F;--emerg:#B3261E;--r:14px;--font:"DM Sans","Noto Sans Devanagari","Noto Sans Telugu","Noto Sans Kannada","Noto Sans Tamil",sans-serif;--fh:"Fraunces","Noto Sans Devanagari","Noto Sans Telugu","Noto Sans Kannada","Noto Sans Tamil",serif}
+.top{height:64px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 8px}
+.top.off{display:none}
+.back{width:56px;height:56px;border-radius:50%;border:0;background:transparent;color:var(--text);display:grid;place-items:center;cursor:pointer;transition:transform 120ms}
+.back:active{transform:scale(.97)}
+.dots{display:flex;gap:6px;align-items:center}
+.dots i{width:10px;height:10px;border-radius:5px;background:var(--border);transition:all 200ms}
+.dots i.d{background:var(--primary);opacity:.45}
+.dots i.c{background:var(--primary);width:24px}
+.spacer{width:56px}
+.stage{flex:1;position:relative}
+.screen{position:absolute;inset:0;display:none;flex-direction:column}
+.screen.on{display:flex;animation:in 200ms ease-out}
+@keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.body{flex:1;overflow:auto;padding:4px 16px 16px;display:flex;flex-direction:column;gap:12px}
+.foot{flex:none;padding:12px 16px 20px;display:grid;gap:12px}
+h1{font:500 28px/1.3 var(--fh)}
+h2{font:500 22px/1.3 var(--fh);margin-top:8px}
+.lead{color:var(--text2)}
+.cap{font-size:16px;color:var(--text2);line-height:1.4}
+b{font-weight:500}
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:64px;padding:8px 16px;border-radius:var(--r);border:1px solid transparent;font:500 22px/1.25 var(--font);cursor:pointer;transition:transform 120ms}
+.btn:active,.card:active,.opt:active,.chip:active,.round:active{transform:scale(.97)}
+.btn:focus-visible,.card:focus-visible,.opt:focus-visible,.chip:focus-visible,.round:focus-visible,.link:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--primary);outline-offset:3px}
+.primary{background:var(--primary);color:var(--onp);box-shadow:var(--shadow)}
+.secondary{background:var(--surface);color:var(--text);border-color:var(--border)}
+.emergency{background:var(--emerg);color:#fff;box-shadow:0 2px 0 rgba(0,0,0,.14),0 6px 14px color-mix(in srgb,var(--emerg) 30%,transparent)}
+.link{background:none;border:0;min-height:56px;padding:0 16px;font:500 20px var(--font);color:var(--text2);text-decoration:underline;text-underline-offset:4px;cursor:pointer;justify-self:center}
+.link.sm{font-size:18px}
+.ico{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.tile{width:56px;height:56px;border-radius:var(--r);background:color-mix(in srgb,var(--accent) 24%,var(--surface));color:var(--primary);display:grid;place-items:center;flex:none}
+.tile.lg{width:96px;height:96px;border-radius:50%}
+.tile.lg .ico{width:44px;height:44px}
+.card{display:flex;gap:14px;align-items:flex-start;text-align:left;width:100%;padding:18px;border-radius:var(--r);border:1px solid var(--border);background:var(--surface);color:var(--text);font:400 20px/1.4 var(--font);cursor:pointer;transition:transform 120ms}
+.card b{font:500 22px/1.3 var(--fh);display:block}
+.card span{color:var(--text2)}
+.opt{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:64px;padding:12px 16px;border-radius:var(--r);border:1px solid var(--border);background:var(--surface);color:var(--text);font:400 22px/1.3 var(--font);text-align:left;cursor:pointer;transition:transform 120ms}
+.opt small{display:block;font-size:16px;color:var(--text2)}
+.opt .rd{width:24px;height:24px;border-radius:50%;border:2px solid var(--border);flex:none;display:grid;place-items:center}
+.opt[aria-checked=true]{border-color:var(--primary);box-shadow:inset 0 0 0 1px var(--primary)}
+.opt[aria-checked=true] .rd{border-color:var(--primary)}
+.opt[aria-checked=true] .rd::after{content:"";width:12px;height:12px;border-radius:50%;background:var(--primary)}
+.list{display:grid;gap:8px}
+.field{display:grid;gap:6px}
+.field label{font-weight:500}
+input[type=text],input[type=password],input[type=tel],textarea{width:100%;height:64px;padding:0 16px;border-radius:var(--r);border:1px solid var(--border);background:var(--surface);color:var(--text);font:400 20px var(--font)}
+textarea{height:150px;padding:14px 16px;resize:none}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;display:grid;gap:12px}
+.fillbox{background:var(--fill);border-radius:var(--r);padding:16px}
+.dot{display:inline-block;width:12px;height:12px;border-radius:50%;background:var(--success);margin-right:8px}
+.map{position:relative;height:170px;border-radius:var(--r);border:1px solid var(--border);overflow:hidden;background:linear-gradient(90deg,transparent 30%,var(--border) 30% 33%,transparent 33% 68%,var(--border) 68% 71%,transparent 71%),linear-gradient(0deg,transparent 40%,var(--border) 40% 44%,transparent 44%),color-mix(in srgb,var(--accent) 12%,var(--surface));display:grid;place-items:center}
+.map .tile{background:var(--primary);color:var(--onp);border-radius:50%}
+.map p{position:absolute;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--border);padding:12px;font-size:16px;font-weight:500;text-align:center}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.hero{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;text-align:center}
+.band{flex:none;background:var(--fill);padding:28px 16px 16px;border-radius:0 0 var(--r) var(--r);display:grid;gap:12px}
+.status{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;font-size:18px;line-height:1.4}
+.talkcard{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;padding:24px 16px;border-radius:var(--r);border:0;background:var(--primary);color:var(--onp);box-shadow:var(--shadow);text-align:center;cursor:pointer;transition:transform 120ms;font:400 20px/1.35 var(--font)}
+.talkcard:active{transform:scale(.97)}
+.talkcard:focus-visible{outline:3px solid var(--primary);outline-offset:3px}
+.talkcard .mk{width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,.18);display:grid;place-items:center}
+.talkcard .mk .ico{width:36px;height:36px}
+.talkcard b{font:500 26px/1.25 var(--fh)}
+.stack{flex-direction:column;gap:8px;min-height:104px;padding:12px;font-size:20px}
+.stack .ico{width:30px;height:30px;color:var(--primary)}
+.links{display:flex;justify-content:center;gap:12px;margin-top:auto}
+.sos{border-top:1px solid var(--border);background:var(--surface);padding:12px 16px 20px}
+.sos .btn{min-height:72px;font-size:24px}
+.bubble{max-width:84%;padding:12px 16px;border-radius:var(--r);background:var(--surface);border:1px solid var(--border)}
+.bubble.me{align-self:flex-end;background:var(--primary);color:var(--onp);border-color:var(--primary)}
+.chat{flex:1;overflow:auto;padding:4px 16px;display:flex;flex-direction:column;gap:10px}
+.dock{flex:none;padding:8px 16px 16px;display:grid;gap:10px}
+.say{display:grid;grid-template-columns:1fr 56px;gap:8px}
+.say input{height:56px}
+.round{border-radius:50%;border:1px solid var(--border);background:var(--surface);color:var(--text);display:grid;place-items:center;cursor:pointer;transition:transform 120ms}
+.mic{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;justify-items:center}
+.mic .round.cam{width:64px;height:64px}
+.mic .round.big{width:88px;height:88px;background:var(--primary);color:var(--onp);border-color:var(--primary);box-shadow:var(--shadow)}
+.mic .round.big .ico{width:36px;height:36px}
+.mic .round.big.on{background:var(--success);border-color:var(--success)}
+.chips{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.chip{min-height:56px;padding:4px 12px;border-radius:var(--r);border:1px solid var(--border);background:var(--surface);color:var(--text);font:500 18px/1.2 var(--font);cursor:pointer;transition:transform 120ms}
+.chip[aria-pressed=true]{background:var(--primary);color:var(--onp);border-color:var(--primary)}
+.group{background:var(--surface);border:1px solid var(--border);border-radius:var(--r)}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:64px;padding:12px 16px}
+.row+.row{border-top:1px solid var(--border)}
+.row small{display:block;font-size:16px;color:var(--text2);line-height:1.35}
+.meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.rc{font-style:normal;border:1px solid var(--border);background:var(--fill);border-radius:999px;padding:2px 12px;font-size:16px;color:var(--text)}
+.sw{appearance:none;-webkit-appearance:none;flex:none;width:60px;height:36px;border-radius:18px;background:var(--border);position:relative;cursor:pointer;transition:background 200ms}
+.sw::after{content:"";position:absolute;top:4px;left:4px;width:28px;height:28px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform 200ms}
+.sw:checked{background:var(--success)}
+.sw:checked::after{transform:translateX(24px)}
+.sw:focus-visible{outline:3px solid var(--primary);outline-offset:3px}
+.toast{position:absolute;left:16px;right:16px;bottom:110px;background:var(--text);color:var(--bg);border-radius:var(--r);padding:12px 16px;text-align:center;opacity:0;pointer-events:none;transition:opacity 200ms;z-index:5}
+.toast.on{opacity:1}
+.ok{color:var(--success);font-weight:500}
+.jump{display:flex;gap:8px;align-items:center;color:#444;font:15px system-ui,sans-serif}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="themes" role="group" aria-label="Theme">
+<button data-t="D" aria-pressed="true">D Saffron dawn</button>
+<button data-t="E" aria-pressed="false">E Rose clay</button>
+<button data-t="F" aria-pressed="false">F Indigo and ochre</button>
+</div>
+
+<div class="phone" id="phone" data-theme="D">
+<div class="top" id="top">
+<button class="back" id="back" data-al="back"><i data-i="back"></i></button>
+<div class="dots" id="dots"></div>
+<div class="spacer"></div>
+</div>
+<div class="stage">
+
+<section class="screen" id="s1">
+<div class="body">
+<h1 data-k="s1h"></h1>
+<p class="lead" data-k="s1l"></p>
+<button class="card" data-path="self"><div class="tile"><i data-i="user"></i></div><div><b data-k="forMe"></b><span data-k="forMeS"></span></div></button>
+<button class="card" data-path="helper"><div class="tile"><i data-i="users"></i></div><div><b data-k="forOther"></b><span data-k="forOtherS"></span></div></button>
+</div>
+</section>
+
+<section class="screen" id="s2">
+<div class="body">
+<h1 data-k="langH"></h1>
+<div class="list" id="langA"></div>
+<div class="field"><label for="name" id="nameQ" data-k="nameQ1"></label><input type="text" id="name" value="Kamala"></div>
+</div>
+<div class="foot"><button class="btn primary" data-go="s3" data-k="cont"></button></div>
+</section>
+
+<section class="screen" id="s3">
+<div class="body">
+<h1 data-k="contH"></h1>
+<p class="lead" data-k="contL"></p>
+<button class="btn secondary" data-add="rF" data-title="addF"><i data-i="plus"></i><span data-k="addF"></span></button>
+<button class="btn secondary" data-add="rN" data-title="addN"><i data-i="plus"></i><span data-k="addN"></span></button>
+<button class="btn secondary" data-add="rD" data-title="addD"><i data-i="plus"></i><span data-k="addD"></span></button>
+<h2 data-k="orPick"></h2>
+<button class="btn secondary" data-pick><i data-i="user"></i><span data-k="pickC"></span></button>
+<div class="panel" id="lblBox" hidden>
+<p id="lblWho" data-k="addF"></p>
+<p id="pickInfo" class="ok" hidden>Ravi Kumar · +91 98765 43210</p>
+<div class="field"><label for="lbl" data-k="label"></label><input type="text" id="lbl" data-ph="phLabel"></div>
+<div class="field" id="phF"><label for="ph" data-k="phoneL"></label><input type="tel" id="ph" placeholder="+91 98765 43210"></div>
+<button class="btn primary" id="lblSave" data-k="save"></button>
+</div>
+<div class="group" id="saved" hidden></div>
+</div>
+<div class="foot"><button class="btn primary" data-go="s4" data-k="cont"></button></div>
+</section>
+
+<section class="screen" id="s4">
+<div class="body">
+<h1 data-k="hospH"></h1>
+<p class="lead" data-k="hospL"></p>
+<div class="map"><div class="tile"><i data-i="pin"></i></div><p data-k="mapNote"></p></div>
+<div class="list" id="hosp"></div>
+</div>
+<div class="foot"><button class="btn primary" data-go="s5" data-k="cont"></button><button class="btn secondary" data-go="s5" data-k="skip"></button></div>
+</section>
+
+<section class="screen" id="s8">
+<div class="body">
+<div class="hero">
+<div class="tile lg"><i data-i="mic"></i></div>
+<h1 data-k="micH"></h1>
+<div>
+<p data-k="micA"></p>
+<p data-k="micB"></p>
+<p data-k="micC"></p>
+</div>
+</div>
+</div>
+<div class="foot"><button class="btn secondary" data-home data-k="allow"></button><button class="link" data-home style="margin-top:8px" data-k="notNow"></button></div>
+</section>
+
+<section class="screen" id="s9">
+<div class="band">
+<h1 data-k="greet"></h1>
+<div class="status"><span class="dot"></span><b data-k="stWith"></b> · <span data-k="lastCk"></span></div>
+</div>
+<div class="body" style="padding-top:16px">
+<button class="talkcard" data-go="s11"><span class="mk"><i data-i="mic"></i></span><b data-k="talkT"></b><span data-k="talkS"></span></button>
+<div class="grid2">
+<button class="btn secondary stack" data-toast="askCall"><i data-i="users"></i><span data-k="callFam"></span></button>
+<button class="btn secondary stack" data-toast="askCall"><i data-i="phone"></i><span data-k="callDoc"></span></button>
+</div>
+<div class="links"><button class="link sm" data-go="s5" data-k="prof"></button><button class="link sm" data-go="s13" data-k="sett"></button></div>
+</div>
+<div class="sos"><button class="btn emergency" data-go="s12" data-k="help"></button></div>
+</section>
+
+<section class="screen" id="s10">
+<div class="body">
+<div class="hero">
+<div class="tile lg"><i data-i="heart"></i></div>
+<h1 data-k="okayH"></h1>
+</div>
+</div>
+<div class="foot" style="padding-bottom:28px"><button class="btn primary" data-home data-msg="thanks" data-k="fine"></button><button class="btn emergency" data-go="s12" data-k="needHelp"></button></div>
+</section>
+
+<section class="screen" id="s11">
+<div class="chat">
+<div class="bubble" data-k="c1"></div>
+<div class="bubble me" data-k="c2"></div>
+<div class="bubble" data-k="c3"></div>
+<div class="bubble me" data-k="c4"></div>
+</div>
+<div class="dock">
+<div class="say"><input type="text" data-ph="typeMsg" data-al="typeMsg"><button class="round" data-al="send"><i data-i="send"></i></button></div>
+<div class="mic"><button class="round cam" data-al="cam"><i data-i="cam"></i></button><button class="round big" id="mic" data-al="talkAria"><i data-i="mic"></i></button><span></span></div>
+<p class="cap" id="micCap" style="text-align:center"></p>
+</div>
+</section>
+
+<section class="screen" id="s12">
+<div class="body">
+<h1 data-k="calmH"></h1>
+<p class="lead" data-k="calmL"></p>
+<div class="panel">
+<p class="cap" id="stepN"></p>
+<p id="stepT" style="font-size:22px"></p>
+</div>
+<div class="fillbox" id="dial" hidden><p data-k="dialNote"></p></div>
+</div>
+<div class="foot"><button class="btn primary" id="next" data-k="next"></button><button class="btn emergency" id="c112"><i data-i="phone"></i><span data-k="call112"></span></button></div>
+</section>
+
+<section class="screen" id="s13">
+<div class="body" style="gap:10px">
+<h1 data-k="settH"></h1>
+<h2 data-k="ckT"></h2>
+<p data-k="askIf"></p>
+<div class="chips" id="tm"></div>
+<p style="margin-top:6px" data-k="waitB"></p>
+<div class="chips" id="wt"></div>
+<p class="cap" id="tmNote"></p>
+<h2 data-k="langS"></h2>
+<div class="list" id="langB"></div>
+<h2 data-k="apprH"></h2>
+<div class="group">
+<label class="row"><span data-k="ap1"></span><input class="sw" type="checkbox" checked></label>
+<label class="row"><span data-k="ap2"></span><input class="sw" type="checkbox"></label>
+<label class="row"><span data-k="ap3"></span><input class="sw" type="checkbox"></label>
+</div>
+<h2 data-k="permH"></h2>
+<div class="group">
+<label class="row"><span><span data-k="p1"></span><small data-k="p1s"></small></span><input class="sw" type="checkbox" checked></label>
+<label class="row"><span><span data-k="p2"></span><small data-k="p2s"></small></span><input class="sw" type="checkbox" checked></label>
+<label class="row"><span><span data-k="p3"></span><small data-k="p3s"></small></span><input class="sw" type="checkbox" checked></label>
+<label class="row"><span><span data-k="p4"></span><small data-k="p4s"></small></span><input class="sw" type="checkbox" checked></label>
+</div>
+<h2 data-k="medH"></h2>
+<p class="cap" data-k="medNote"></p>
+<h2 data-k="aiH"></h2>
+<div class="field"><label for="u" data-k="baseUrl"></label><input type="text" id="u" placeholder="https://api.example.com/v1"></div>
+<div class="field"><label for="k" data-k="apiKey"></label><input type="password" id="k" value="sk-example-key"></div>
+<div class="field"><label for="m" data-k="modelL"></label><input type="text" id="m" placeholder="model-name"></div>
+<button class="btn secondary" id="test" data-k="test"></button>
+<p class="ok" id="testR" data-k="connOk" hidden></p>
+<h2 data-k="cgH"></h2>
+<div class="group"><div class="row"><span><span data-k="priya"></span><small data-k="cgSub"></small></span><button class="link sm" data-toast="toastRm" style="padding:0" data-k="remove"></button></div></div>
+<button class="btn secondary" data-toast="toastInv" data-k="invite"></button>
+<h2 data-k="simhaH"></h2>
+<button class="btn secondary" data-toast="stopped" style="margin-bottom:12px" data-k="stop"></button>
+</div>
+</section>
+
+<div class="toast" id="toast"></div>
+</div>
+</div>
+
+<div class="jump"><label for="jp">Jump to screen</label>
+<select id="jp"></select></div>
+
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const ICONS={back:'<path d="M15 5l-7 7 7 7"/>',mic:'<rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/>',cam:'<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>',plus:'<path d="M12 5v14M5 12h14"/>',send:'<path d="M4 12l16-8-6 16-2-6z"/>',user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>',users:'<circle cx="9" cy="8" r="3.5"/><path d="M2 20c0-3.5 3-5.5 7-5.5s7 2 7 5.5M16 5a3.5 3.5 0 010 7M18 15c2.5.5 4 2 4 5"/>',pin:'<path d="M12 21s7-6 7-11a7 7 0 10-14 0c0 5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/>',heart:'<path d="M12 20s-8-5-8-11a4.5 4.5 0 018-2.5A4.5 4.5 0 0120 9c0 6-8 11-8 11z"/>',phone:'<path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z"/>'};
+const LANGS=[['en','English'],['hi','हिन्दी'],['te','తెలుగు'],['kn','ಕನ್ನಡ'],['ta','தமிழ்']];
+const DIST=['1.2 km','2.4 km','3.8 km'];
+const NAMES=['Who is Simha for?','Language and name','Emergency contacts','Nearby hospital','Conditions','Medicines','Allergies','Permission','Home','Check-in','Talk','Emergency','Settings'];
+const T={
+en:{s1h:'Who is Simha for?',s1l:'Simha watches over one person and asks how they are each day.',forMe:'For me',forMeS:'I will set up Simha for myself.',forOther:'For someone I care for',forOtherS:'I will set it up on their phone, with them.',langH:'Choose a language',nameQ1:'What is your name?',nameQ2:'Who should Simha call?',cont:'Continue',skip:'Skip',contH:'Who can Simha call?',contL:'Add the people Simha can reach in an emergency.',addF:'Add family',addN:'Add neighbour',addD:'Add doctor',orPick:'Or pick from your phone',pickC:'Choose from contacts',label:'Label',phoneL:'Phone number',phLabel:'e.g. Dad, Ravi uncle',save:'Save',picked:'Picked from your contacts',rF:'Family',rN:'Neighbour',rD:'Doctor',rC:'Contact',hospH:'Pick a nearby hospital',hospL:'Simha uses it to guide you in an emergency.',mapNote:'Opens Google Maps near you',away:'away',h1:'Apollo Hospital',h2:'Sunrise Multispeciality Hospital',h3:'Government General Hospital',m1h:'What health conditions do you have?',m1l:'Simha shares this with doctors in an emergency.',m1f:'Conditions',m1p:'For example, diabetes or high blood pressure',m2h:'Which medicines do you take?',m2l:'So Simha can remind you and tell the doctor.',m2f:'Medicines',m2p:'For example, metformin in the morning',m3h:'Are you allergic to anything?',m3l:'So helpers know what to avoid.',m3f:'Allergies',m3p:'For example, penicillin or peanuts',medNote:'Simha remembers health details you mention while talking. You can check and edit them here.',micH:'Allow the microphone',micA:'So you can talk to Simha.',micB:'Simha listens only after you tap the mic.',micC:'You can change this any time in Settings.',allow:'Allow',notNow:'Not now',greet:'Namaste, {n}',stWith:'Simha is with you',lastCk:'Last check-in 2 hours ago',talkT:'Talk to Simha',talkS:'Ask anything or tell me how you feel',callFam:'Call family',callDoc:'Call doctor',prof:'Profile',sett:'Settings',help:'Get help now',askCall:'Simha will ask before calling',okayH:'Are you okay?',fine:'I am fine',needHelp:'I need help',thanks:'Thank you, {n}',c1:'Namaste {n}. How are you feeling today?',c2:'A little tired. Please call my daughter.',c3:'I can call Priya. Shall I call her now?',c4:'Yes, please.',typeMsg:'Type a message',send:'Send',cam:'Camera',talkAria:'Talk',tapTalk:'Tap to talk',listening:'Listening. Tap to stop',calmH:'Stay calm',calmL:'Simha is with you. One step at a time.',stepOf:'Step {a} of 3',e1:'Sit down and stay where you are, if it is safe.',e2:'Simha is telling your family and sharing your location.',e3:'Call 112 for an ambulance or the police. The dialer opens and you press call.',dialNote:'Your phone dialer opens with 112. Press the green call button yourself.',next:'Next',call112:'Call 112',settH:'Settings',ckT:'Check-in timing',askIf:"Ask me how I am if I haven't used my phone for",waitB:'Wait before calling family',hrW:'hour',hrsW:'hours',minW:'minutes',hrS:'h',minS:'min',tmNote:'If you have not used your phone for {h}, Simha asks how you are. If you do not answer, Simha waits {m}, then calls your family.',langS:'Language',apprH:'Approvals',ap1:'Call my family for me',ap2:'Call a hospital for me',ap3:'Record my messages',permH:'Permissions',p1:'Microphone',p1s:'So you can talk to Simha',p2:'Location',p2s:'Shared only when you ask for help',p3:'Notifications',p3s:'Simha will ask how you are each day',p4:'Usage access',p4s:'So Simha knows you are active',medH:'Medical',aiH:'AI model',baseUrl:'Base URL',apiKey:'API key',modelL:'Model',test:'Test connection',connOk:'Connection works',cgH:'Caregivers',priya:'Priya',cgSub:'Daughter · sees status and alerts',remove:'Remove',invite:'Invite a caregiver',toastRm:'Priya removed',toastInv:'Invite code ready to share',simhaH:'Simha',stop:'Stop Simha',stopped:'Simha stopped',back:'Back'},
+hi:{s1h:'सिम्हा किसके लिए है?',s1l:'सिम्हा एक व्यक्ति का ध्यान रखता है और रोज़ पूछता है कि वे कैसे हैं।',forMe:'मेरे लिए',forMeS:'अपने लिए सिम्हा सेट करना है।',forOther:'जिनकी मुझे परवाह है उनके लिए',forOtherS:'उनके फ़ोन पर, उनके साथ बैठकर सेट करना है।',langH:'भाषा चुनें',nameQ1:'आपका नाम क्या है?',nameQ2:'सिम्हा किसे फ़ोन करे?',cont:'आगे बढ़ें',skip:'छोड़ें',contH:'सिम्हा किसे फ़ोन कर सकता है?',contL:'वे लोग जोड़ें जिन्हें सिम्हा आपात स्थिति में बुला सके।',addF:'परिवार जोड़ें',addN:'पड़ोसी जोड़ें',addD:'डॉक्टर जोड़ें',orPick:'या फ़ोन से चुनें',pickC:'संपर्कों से चुनें',label:'लेबल',phoneL:'फ़ोन नंबर',phLabel:'जैसे: पिताजी, रवि चाचा',save:'सेव करें',picked:'आपके संपर्कों से चुना गया',rF:'परिवार',rN:'पड़ोसी',rD:'डॉक्टर',rC:'संपर्क',hospH:'पास का अस्पताल चुनें',hospL:'आपात स्थिति में सिम्हा इससे आपको रास्ता दिखाएगा।',mapNote:'आपके पास गूगल मैप्स खुलेगा',away:'दूर',h1:'अपोलो अस्पताल',h2:'सनराइज़ मल्टीस्पेशियलिटी अस्पताल',h3:'सरकारी सामान्य अस्पताल',m1h:'आपको कौन सी बीमारियाँ हैं?',m1l:'आपात स्थिति में सिम्हा यह डॉक्टर को बताता है।',m1f:'बीमारियाँ',m1p:'जैसे: डायबिटीज़ या ब्लड प्रेशर',m2h:'आप कौन सी दवाइयाँ लेते हैं?',m2l:'ताकि सिम्हा आपको याद दिला सके और डॉक्टर को बता सके।',m2f:'दवाइयाँ',m2p:'जैसे: सुबह मेटफॉर्मिन',m3h:'क्या आपको किसी चीज़ से एलर्जी है?',m3l:'ताकि मदद करने वाले जानें कि क्या नहीं देना है।',m3f:'एलर्जी',m3p:'जैसे: पेनिसिलिन या मूँगफली',medNote:'बातचीत में आप जो सेहत की बातें बताते हैं, सिम्हा उन्हें याद रखता है। आप उन्हें यहाँ देख और बदल सकते हैं।',micH:'माइक्रोफ़ोन की अनुमति दें',micA:'ताकि आप सिम्हा से बात कर सकें।',micB:'आप माइक दबाएँगे तभी सिम्हा सुनेगा।',micC:'आप इसे कभी भी सेटिंग्स में बदल सकते हैं।',allow:'अनुमति दें',notNow:'अभी नहीं',greet:'नमस्ते, {n}',stWith:'सिम्हा आपके साथ है',lastCk:'पिछली जाँच 2 घंटे पहले',talkT:'सिम्हा से बात करें',talkS:'कुछ भी पूछें या बताएँ कैसा लग रहा है',callFam:'परिवार को फ़ोन',callDoc:'डॉक्टर को फ़ोन',prof:'प्रोफ़ाइल',sett:'सेटिंग्स',help:'अभी मदद चाहिए',askCall:'फ़ोन करने से पहले सिम्हा पूछेगा',okayH:'क्या आप ठीक हैं?',fine:'मैं ठीक हूँ',needHelp:'मुझे मदद चाहिए',thanks:'धन्यवाद, {n}',c1:'नमस्ते {n}। आज तबीयत कैसी है?',c2:'थोड़ी थकान है। कृपया मेरी बेटी को फ़ोन करो।',c3:'मैं प्रिया को फ़ोन कर सकता हूँ। क्या अभी करूँ?',c4:'हाँ, कर दो।',typeMsg:'संदेश लिखें',send:'भेजें',cam:'कैमरा',talkAria:'बात करें',tapTalk:'बोलने के लिए दबाएँ',listening:'सुन रहा हूँ। रोकने के लिए दबाएँ',calmH:'शांत रहें',calmL:'सिम्हा आपके साथ है। एक-एक कदम करके चलें।',stepOf:'कदम {a} / 3',e1:'अगर सुरक्षित हो तो बैठ जाएँ और वहीं रहें।',e2:'सिम्हा आपके परिवार को बता रहा है और आपकी लोकेशन भेज रहा है।',e3:'एम्बुलेंस या पुलिस के लिए 112 पर फ़ोन करें। डायलर खुलेगा, कॉल का बटन आप दबाएँगे।',dialNote:'आपके फ़ोन का डायलर 112 के साथ खुलेगा। हरा कॉल बटन आप खुद दबाएँ।',next:'आगे',call112:'112 पर फ़ोन करें',settH:'सेटिंग्स',ckT:'हालचाल पूछने का समय',askIf:'अगर मैंने फ़ोन इतनी देर इस्तेमाल नहीं किया तो मुझसे हालचाल पूछें',waitB:'परिवार को फ़ोन करने से पहले रुकें',hrW:'घंटा',hrsW:'घंटे',minW:'मिनट',hrS:'घं',minS:'मिनट',tmNote:'अगर आपने {h} तक फ़ोन इस्तेमाल नहीं किया, तो सिम्हा आपका हालचाल पूछेगा। जवाब न मिलने पर सिम्हा {m} रुकेगा, फिर आपके परिवार को फ़ोन करेगा।',langS:'भाषा',apprH:'मेरी मंज़ूरी',ap1:'मेरे लिए परिवार को फ़ोन करें',ap2:'मेरे लिए अस्पताल को फ़ोन करें',ap3:'मेरे संदेश रिकॉर्ड करें',permH:'फ़ोन की अनुमतियाँ',p1:'माइक्रोफ़ोन',p1s:'ताकि आप सिम्हा से बात कर सकें',p2:'लोकेशन',p2s:'सिर्फ़ तब साझा होती है जब आप मदद माँगें',p3:'सूचनाएँ',p3s:'सिम्हा रोज़ आपका हालचाल पूछेगा',p4:'उपयोग की पहुँच',p4s:'ताकि सिम्हा जान सके कि आप सक्रिय हैं',medH:'सेहत की जानकारी',aiH:'एआई मॉडल',baseUrl:'बेस URL',apiKey:'एपीआई की',modelL:'मॉडल',test:'कनेक्शन जाँचें',connOk:'कनेक्शन ठीक है',cgH:'देखभाल करने वाले',priya:'प्रिया',cgSub:'बेटी · स्थिति और अलर्ट देखती हैं',remove:'हटाएँ',invite:'देखभाल करने वाले को बुलाएँ',toastRm:'प्रिया को हटा दिया गया',toastInv:'बुलावे का कोड साझा करने के लिए तैयार है',simhaH:'सिम्हा',stop:'सिम्हा बंद करें',stopped:'सिम्हा बंद हो गया',back:'वापस'},
+te:{s1h:'సింహ ఎవరి కోసం?',s1l:'సింహ ఒక వ్యక్తిని చూసుకుంటుంది, ప్రతిరోజూ ఎలా ఉన్నారో అడుగుతుంది.',forMe:'నా కోసం',forMeS:'నా కోసం సింహను సెట్ చేస్తాను.',forOther:'నేను చూసుకునే వారి కోసం',forOtherS:'వారి ఫోన్‌లో, వారితో కలిసి సెట్ చేస్తాను.',langH:'భాష ఎంచుకోండి',nameQ1:'మీ పేరు ఏమిటి?',nameQ2:'సింహ ఎవరికి ఫోన్ చేయాలి?',cont:'కొనసాగండి',skip:'వదిలేయండి',contH:'సింహ ఎవరికి ఫోన్ చేయగలదు?',contL:'అత్యవసర సమయంలో సింహ సంప్రదించగల వారిని చేర్చండి.',addF:'కుటుంబ సభ్యులను చేర్చండి',addN:'పొరుగువారిని చేర్చండి',addD:'డాక్టర్‌ను చేర్చండి',orPick:'లేదా ఫోన్ నుండి ఎంచుకోండి',pickC:'కాంటాక్ట్‌ల నుండి ఎంచుకోండి',label:'లేబుల్',phoneL:'ఫోన్ నంబర్',phLabel:'ఉదా: నాన్న, రవి మామయ్య',save:'సేవ్ చేయండి',picked:'మీ కాంటాక్ట్‌ల నుండి ఎంచుకున్నది',rF:'కుటుంబం',rN:'పొరుగువారు',rD:'డాక్టర్',rC:'కాంటాక్ట్',hospH:'దగ్గరలోని ఆసుపత్రిని ఎంచుకోండి',hospL:'అత్యవసర సమయంలో సింహ దీని ద్వారా దారి చూపుతుంది.',mapNote:'మీ దగ్గర గూగుల్ మ్యాప్స్ తెరుచుకుంటుంది',away:'దూరంలో',h1:'అపోలో ఆసుపత్రి',h2:'సన్‌రైజ్ మల్టీస్పెషాలిటీ ఆసుపత్రి',h3:'ప్రభుత్వ సాధారణ ఆసుపత్రి',m1h:'మీకు ఏ ఆరోగ్య సమస్యలు ఉన్నాయి?',m1l:'అత్యవసర సమయంలో సింహ ఇది డాక్టర్లకు చెబుతుంది.',m1f:'ఆరోగ్య సమస్యలు',m1p:'ఉదా: షుగర్ లేదా బీపీ',m2h:'మీరు ఏ మందులు వాడుతున్నారు?',m2l:'సింహ గుర్తు చేయడానికి, డాక్టర్‌కు చెప్పడానికి.',m2f:'మందులు',m2p:'ఉదా: ఉదయం మెట్‌ఫార్మిన్',m3h:'మీకు ఏదైనా అలెర్జీ ఉందా?',m3l:'సహాయం చేసేవారికి ఏవి ఇవ్వకూడదో తెలియడానికి.',m3f:'అలెర్జీలు',m3p:'ఉదా: పెన్సిలిన్ లేదా వేరుశనగ',medNote:'మాట్లాడేటప్పుడు మీరు చెప్పే ఆరోగ్య వివరాలను సింహ గుర్తుపెట్టుకుంటుంది. వాటిని ఇక్కడ చూసి మార్చుకోవచ్చు.',micH:'మైక్రోఫోన్‌కు అనుమతి ఇవ్వండి',micA:'మీరు సింహతో మాట్లాడడానికి.',micB:'మీరు మైక్ నొక్కిన తర్వాతే సింహ వింటుంది.',micC:'దీన్ని ఎప్పుడైనా సెట్టింగ్స్‌లో మార్చవచ్చు.',allow:'అనుమతించండి',notNow:'ఇప్పుడు వద్దు',greet:'నమస్తే, {n}',stWith:'సింహ మీతో ఉంది',lastCk:'చివరి పలకరింపు 2 గంటల క్రితం',talkT:'సింహతో మాట్లాడండి',talkS:'ఏదైనా అడగండి లేదా మీకు ఎలా ఉందో చెప్పండి',callFam:'కుటుంబానికి కాల్',callDoc:'డాక్టర్‌కు కాల్',prof:'ప్రొఫైల్',sett:'సెట్టింగ్స్',help:'ఇప్పుడే సహాయం కావాలి',askCall:'కాల్ చేసే ముందు సింహ అడుగుతుంది',okayH:'మీరు బాగున్నారా?',fine:'నేను బాగున్నాను',needHelp:'నాకు సహాయం కావాలి',thanks:'ధన్యవాదాలు, {n}',c1:'నమస్తే {n}. ఈ రోజు మీకు ఎలా ఉంది?',c2:'కొంచెం అలసటగా ఉంది. నా కూతురికి ఫోన్ చేయండి.',c3:'నేను ప్రియకు ఫోన్ చేయగలను. ఇప్పుడే చేయనా?',c4:'అవును, చేయండి.',typeMsg:'సందేశం రాయండి',send:'పంపండి',cam:'కెమెరా',talkAria:'మాట్లాడండి',tapTalk:'మాట్లాడడానికి నొక్కండి',listening:'వింటున్నాను. ఆపడానికి నొక్కండి',calmH:'ప్రశాంతంగా ఉండండి',calmL:'సింహ మీతో ఉంది. ఒక్కొక్క అడుగు వేద్దాం.',stepOf:'{a} / 3వ అడుగు',e1:'సురక్షితంగా ఉంటే కూర్చుని ఉన్న చోటే ఉండండి.',e2:'సింహ మీ కుటుంబానికి చెబుతోంది, మీ లొకేషన్ పంపుతోంది.',e3:'అంబులెన్స్ లేదా పోలీసుల కోసం 112కు కాల్ చేయండి. డయలర్ తెరుచుకుంటుంది, కాల్ బటన్ మీరే నొక్కాలి.',dialNote:'మీ ఫోన్ డయలర్ 112తో తెరుచుకుంటుంది. ఆకుపచ్చ కాల్ బటన్‌ను మీరే నొక్కండి.',next:'తర్వాత',call112:'112కు కాల్ చేయండి',settH:'సెట్టింగ్స్',ckT:'పలకరింపు సమయం',askIf:'నేను ఇంత సేపు ఫోన్ వాడకపోతే నన్ను పలకరించండి',waitB:'కుటుంబానికి కాల్ చేసే ముందు ఆగే సమయం',hrW:'గంట',hrsW:'గంటలు',minW:'నిమిషాలు',hrS:'గం',minS:'నిమి',tmNote:'మీరు {h} ఫోన్ వాడకపోతే సింహ మిమ్మల్ని పలకరిస్తుంది. మీరు బదులివ్వకపోతే సింహ {m} ఆగి, ఆ తర్వాత మీ కుటుంబానికి కాల్ చేస్తుంది.',langS:'భాష',apprH:'నా ఆమోదాలు',ap1:'నా కోసం కుటుంబానికి కాల్ చేయండి',ap2:'నా కోసం ఆసుపత్రికి కాల్ చేయండి',ap3:'నా సందేశాలను రికార్డ్ చేయండి',permH:'ఫోన్ అనుమతులు',p1:'మైక్రోఫోన్',p1s:'మీరు సింహతో మాట్లాడడానికి',p2:'లొకేషన్',p2s:'మీరు సహాయం అడిగినప్పుడే షేర్ అవుతుంది',p3:'నోటిఫికేషన్లు',p3s:'సింహ ప్రతిరోజూ మిమ్మల్ని పలకరిస్తుంది',p4:'వినియోగ యాక్సెస్',p4s:'మీరు చురుకుగా ఉన్నారని సింహకు తెలియడానికి',medH:'ఆరోగ్య వివరాలు',aiH:'ఏఐ మోడల్',baseUrl:'బేస్ URL',apiKey:'ఏపీఐ కీ',modelL:'మోడల్',test:'కనెక్షన్ పరీక్షించండి',connOk:'కనెక్షన్ బాగుంది',cgH:'సంరక్షకులు',priya:'ప్రియ',cgSub:'కూతురు · మీ స్థితి, అలర్ట్‌లు చూస్తారు',remove:'తొలగించండి',invite:'సంరక్షకులను ఆహ్వానించండి',toastRm:'ప్రియను తొలగించారు',toastInv:'ఆహ్వాన కోడ్ షేర్ చేయడానికి సిద్ధంగా ఉంది',simhaH:'సింహ',stop:'సింహను ఆపండి',stopped:'సింహ ఆగింది',back:'వెనుకకు'},
+kn:{s1h:'ಸಿಂಹ ಯಾರಿಗಾಗಿ?',s1l:'ಸಿಂಹ ಒಬ್ಬರನ್ನು ಗಮನಿಸುತ್ತದೆ ಮತ್ತು ಪ್ರತಿದಿನ ಹೇಗಿದ್ದೀರಿ ಎಂದು ಕೇಳುತ್ತದೆ.',forMe:'ನನಗಾಗಿ',forMeS:'ನನಗಾಗಿ ಸಿಂಹವನ್ನು ಸಿದ್ಧಪಡಿಸುತ್ತೇನೆ.',forOther:'ನಾನು ಕಾಳಜಿ ವಹಿಸುವವರಿಗಾಗಿ',forOtherS:'ಅವರ ಫೋನ್‌ನಲ್ಲಿ, ಅವರ ಜೊತೆ ಸೇರಿ ಸಿದ್ಧಪಡಿಸುತ್ತೇನೆ.',langH:'ಭಾಷೆ ಆಯ್ಕೆಮಾಡಿ',nameQ1:'ನಿಮ್ಮ ಹೆಸರೇನು?',nameQ2:'ಸಿಂಹ ಯಾರಿಗೆ ಕರೆ ಮಾಡಬೇಕು?',cont:'ಮುಂದುವರಿಸಿ',skip:'ಬಿಡಿ',contH:'ಸಿಂಹ ಯಾರಿಗೆ ಕರೆ ಮಾಡಬಹುದು?',contL:'ತುರ್ತು ಸಮಯದಲ್ಲಿ ಸಿಂಹ ಸಂಪರ್ಕಿಸಬಹುದಾದವರನ್ನು ಸೇರಿಸಿ.',addF:'ಕುಟುಂಬದವರನ್ನು ಸೇರಿಸಿ',addN:'ನೆರೆಯವರನ್ನು ಸೇರಿಸಿ',addD:'ವೈದ್ಯರನ್ನು ಸೇರಿಸಿ',orPick:'ಅಥವಾ ಫೋನ್‌ನಿಂದ ಆರಿಸಿ',pickC:'ಸಂಪರ್ಕಗಳಿಂದ ಆರಿಸಿ',label:'ಲೇಬಲ್',phoneL:'ಫೋನ್ ಸಂಖ್ಯೆ',phLabel:'ಉದಾ: ಅಪ್ಪ, ರವಿ ಮಾವ',save:'ಉಳಿಸಿ',picked:'ನಿಮ್ಮ ಸಂಪರ್ಕಗಳಿಂದ ಆರಿಸಿದ್ದು',rF:'ಕುಟುಂಬ',rN:'ನೆರೆಯವರು',rD:'ವೈದ್ಯರು',rC:'ಸಂಪರ್ಕ',hospH:'ಹತ್ತಿರದ ಆಸ್ಪತ್ರೆ ಆರಿಸಿ',hospL:'ತುರ್ತು ಸಮಯದಲ್ಲಿ ಸಿಂಹ ಇದರ ಮೂಲಕ ದಾರಿ ತೋರಿಸುತ್ತದೆ.',mapNote:'ನಿಮ್ಮ ಹತ್ತಿರ ಗೂಗಲ್ ಮ್ಯಾಪ್ಸ್ ತೆರೆಯುತ್ತದೆ',away:'ದೂರ',h1:'ಅಪೋಲೋ ಆಸ್ಪತ್ರೆ',h2:'ಸನ್‌ರೈಸ್ ಮಲ್ಟಿಸ್ಪೆಷಾಲಿಟಿ ಆಸ್ಪತ್ರೆ',h3:'ಸರ್ಕಾರಿ ಸಾಮಾನ್ಯ ಆಸ್ಪತ್ರೆ',m1h:'ನಿಮಗೆ ಯಾವ ಆರೋಗ್ಯ ಸಮಸ್ಯೆಗಳಿವೆ?',m1l:'ತುರ್ತು ಸಮಯದಲ್ಲಿ ಸಿಂಹ ಇದನ್ನು ವೈದ್ಯರಿಗೆ ತಿಳಿಸುತ್ತದೆ.',m1f:'ಆರೋಗ್ಯ ಸಮಸ್ಯೆಗಳು',m1p:'ಉದಾ: ಸಕ್ಕರೆ ಕಾಯಿಲೆ ಅಥವಾ ಬಿಪಿ',m2h:'ನೀವು ಯಾವ ಔಷಧಿಗಳನ್ನು ತೆಗೆದುಕೊಳ್ಳುತ್ತೀರಿ?',m2l:'ಸಿಂಹ ನೆನಪಿಸಲು ಮತ್ತು ವೈದ್ಯರಿಗೆ ಹೇಳಲು.',m2f:'ಔಷಧಿಗಳು',m2p:'ಉದಾ: ಬೆಳಿಗ್ಗೆ ಮೆಟ್‌ಫಾರ್ಮಿನ್',m3h:'ನಿಮಗೆ ಯಾವುದಾದರೂ ಅಲರ್ಜಿ ಇದೆಯೇ?',m3l:'ಸಹಾಯ ಮಾಡುವವರಿಗೆ ಯಾವುದನ್ನು ಕೊಡಬಾರದು ಎಂದು ತಿಳಿಯಲು.',m3f:'ಅಲರ್ಜಿಗಳು',m3p:'ಉದಾ: ಪೆನ್ಸಿಲಿನ್ ಅಥವಾ ಕಡಲೆಕಾಯಿ',medNote:'ಮಾತನಾಡುವಾಗ ನೀವು ಹೇಳುವ ಆರೋಗ್ಯ ವಿವರಗಳನ್ನು ಸಿಂಹ ನೆನಪಿನಲ್ಲಿಡುತ್ತದೆ. ಅವನ್ನು ಇಲ್ಲಿ ನೋಡಿ ಬದಲಾಯಿಸಬಹುದು.',micH:'ಮೈಕ್ರೋಫೋನ್‌ಗೆ ಅನುಮತಿ ನೀಡಿ',micA:'ನೀವು ಸಿಂಹದ ಜೊತೆ ಮಾತನಾಡಲು.',micB:'ನೀವು ಮೈಕ್ ಒತ್ತಿದ ಮೇಲೆ ಮಾತ್ರ ಸಿಂಹ ಕೇಳುತ್ತದೆ.',micC:'ಇದನ್ನು ಯಾವಾಗ ಬೇಕಾದರೂ ಸೆಟ್ಟಿಂಗ್ಸ್‌ನಲ್ಲಿ ಬದಲಾಯಿಸಬಹುದು.',allow:'ಅನುಮತಿಸಿ',notNow:'ಈಗ ಬೇಡ',greet:'ನಮಸ್ಕಾರ, {n}',stWith:'ಸಿಂಹ ನಿಮ್ಮ ಜೊತೆಗಿದೆ',lastCk:'ಕೊನೆಯ ವಿಚಾರಣೆ 2 ಗಂಟೆ ಹಿಂದೆ',talkT:'ಸಿಂಹದ ಜೊತೆ ಮಾತನಾಡಿ',talkS:'ಏನಾದರೂ ಕೇಳಿ ಅಥವಾ ನಿಮಗೆ ಹೇಗಿದೆ ಎಂದು ಹೇಳಿ',callFam:'ಕುಟುಂಬಕ್ಕೆ ಕರೆ',callDoc:'ವೈದ್ಯರಿಗೆ ಕರೆ',prof:'ಪ್ರೊಫೈಲ್',sett:'ಸೆಟ್ಟಿಂಗ್ಸ್',help:'ಈಗಲೇ ಸಹಾಯ ಬೇಕು',askCall:'ಕರೆ ಮಾಡುವ ಮೊದಲು ಸಿಂಹ ಕೇಳುತ್ತದೆ',okayH:'ನೀವು ಚೆನ್ನಾಗಿದ್ದೀರಾ?',fine:'ನಾನು ಚೆನ್ನಾಗಿದ್ದೇನೆ',needHelp:'ನನಗೆ ಸಹಾಯ ಬೇಕು',thanks:'ಧನ್ಯವಾದಗಳು, {n}',c1:'ನಮಸ್ಕಾರ {n}. ಇಂದು ಹೇಗಿದ್ದೀರಿ?',c2:'ಸ್ವಲ್ಪ ಸುಸ್ತಾಗಿದೆ. ದಯವಿಟ್ಟು ನನ್ನ ಮಗಳಿಗೆ ಕರೆ ಮಾಡಿ.',c3:'ನಾನು ಪ್ರಿಯಾಗೆ ಕರೆ ಮಾಡಬಹುದು. ಈಗಲೇ ಮಾಡಲಾ?',c4:'ಹೌದು, ಮಾಡಿ.',typeMsg:'ಸಂದೇಶ ಬರೆಯಿರಿ',send:'ಕಳುಹಿಸಿ',cam:'ಕ್ಯಾಮೆರಾ',talkAria:'ಮಾತನಾಡಿ',tapTalk:'ಮಾತನಾಡಲು ಒತ್ತಿ',listening:'ಕೇಳುತ್ತಿದ್ದೇನೆ. ನಿಲ್ಲಿಸಲು ಒತ್ತಿ',calmH:'ಶಾಂತವಾಗಿರಿ',calmL:'ಸಿಂಹ ನಿಮ್ಮ ಜೊತೆಗಿದೆ. ಒಂದೊಂದೇ ಹೆಜ್ಜೆ.',stepOf:'ಹೆಜ್ಜೆ {a} / 3',e1:'ಸುರಕ್ಷಿತವಾಗಿದ್ದರೆ ಕುಳಿತು ಅಲ್ಲೇ ಇರಿ.',e2:'ಸಿಂಹ ನಿಮ್ಮ ಕುಟುಂಬಕ್ಕೆ ತಿಳಿಸುತ್ತಿದೆ ಮತ್ತು ನಿಮ್ಮ ಸ್ಥಳ ಕಳುಹಿಸುತ್ತಿದೆ.',e3:'ಆಂಬುಲೆನ್ಸ್ ಅಥವಾ ಪೊಲೀಸ್‌ಗಾಗಿ 112ಕ್ಕೆ ಕರೆ ಮಾಡಿ. ಡಯಲರ್ ತೆರೆಯುತ್ತದೆ, ಕರೆ ಬಟನ್ ನೀವೇ ಒತ್ತಬೇಕು.',dialNote:'ನಿಮ್ಮ ಫೋನ್ ಡಯಲರ್ 112 ಜೊತೆ ತೆರೆಯುತ್ತದೆ. ಹಸಿರು ಕರೆ ಬಟನ್ ಅನ್ನು ನೀವೇ ಒತ್ತಿ.',next:'ಮುಂದೆ',call112:'112ಕ್ಕೆ ಕರೆ ಮಾಡಿ',settH:'ಸೆಟ್ಟಿಂಗ್ಸ್',ckT:'ವಿಚಾರಣೆ ಸಮಯ',askIf:'ನಾನು ಇಷ್ಟು ಹೊತ್ತು ಫೋನ್ ಬಳಸದಿದ್ದರೆ ನನ್ನನ್ನು ವಿಚಾರಿಸಿ',waitB:'ಕುಟುಂಬಕ್ಕೆ ಕರೆ ಮಾಡುವ ಮೊದಲು ಕಾಯುವ ಸಮಯ',hrW:'ಗಂಟೆ',hrsW:'ಗಂಟೆ',minW:'ನಿಮಿಷ',hrS:'ಗಂ',minS:'ನಿಮಿ',tmNote:'ನೀವು {h} ಫೋನ್ ಬಳಸದಿದ್ದರೆ ಸಿಂಹ ನಿಮ್ಮನ್ನು ವಿಚಾರಿಸುತ್ತದೆ. ನೀವು ಉತ್ತರಿಸದಿದ್ದರೆ ಸಿಂಹ {m} ಕಾಯುತ್ತದೆ, ನಂತರ ನಿಮ್ಮ ಕುಟುಂಬಕ್ಕೆ ಕರೆ ಮಾಡುತ್ತದೆ.',langS:'ಭಾಷೆ',apprH:'ನನ್ನ ಒಪ್ಪಿಗೆಗಳು',ap1:'ನನ್ನ ಪರವಾಗಿ ಕುಟುಂಬಕ್ಕೆ ಕರೆ ಮಾಡಿ',ap2:'ನನ್ನ ಪರವಾಗಿ ಆಸ್ಪತ್ರೆಗೆ ಕರೆ ಮಾಡಿ',ap3:'ನನ್ನ ಸಂದೇಶಗಳನ್ನು ರೆಕಾರ್ಡ್ ಮಾಡಿ',permH:'ಫೋನ್ ಅನುಮತಿಗಳು',p1:'ಮೈಕ್ರೋಫೋನ್',p1s:'ನೀವು ಸಿಂಹದ ಜೊತೆ ಮಾತನಾಡಲು',p2:'ಸ್ಥಳ',p2s:'ನೀವು ಸಹಾಯ ಕೇಳಿದಾಗ ಮಾತ್ರ ಹಂಚಲಾಗುತ್ತದೆ',p3:'ಅಧಿಸೂಚನೆಗಳು',p3s:'ಸಿಂಹ ಪ್ರತಿದಿನ ನಿಮ್ಮನ್ನು ವಿಚಾರಿಸುತ್ತದೆ',p4:'ಬಳಕೆಯ ಪ್ರವೇಶ',p4s:'ನೀವು ಸಕ್ರಿಯರಾಗಿದ್ದೀರಿ ಎಂದು ಸಿಂಹಕ್ಕೆ ತಿಳಿಯಲು',medH:'ಆರೋಗ್ಯ ವಿವರಗಳು',aiH:'ಎಐ ಮಾದರಿ',baseUrl:'ಬೇಸ್ URL',apiKey:'ಎಪಿಐ ಕೀ',modelL:'ಮಾದರಿ',test:'ಸಂಪರ್ಕ ಪರೀಕ್ಷಿಸಿ',connOk:'ಸಂಪರ್ಕ ಸರಿಯಾಗಿದೆ',cgH:'ಆರೈಕೆದಾರರು',priya:'ಪ್ರಿಯಾ',cgSub:'ಮಗಳು · ನಿಮ್ಮ ಸ್ಥಿತಿ ಮತ್ತು ಎಚ್ಚರಿಕೆಗಳನ್ನು ನೋಡುತ್ತಾರೆ',remove:'ತೆಗೆಯಿರಿ',invite:'ಆರೈಕೆದಾರರನ್ನು ಆಹ್ವಾನಿಸಿ',toastRm:'ಪ್ರಿಯಾ ಅವರನ್ನು ತೆಗೆಯಲಾಗಿದೆ',toastInv:'ಆಹ್ವಾನ ಕೋಡ್ ಹಂಚಲು ಸಿದ್ಧ',simhaH:'ಸಿಂಹ',stop:'ಸಿಂಹವನ್ನು ನಿಲ್ಲಿಸಿ',stopped:'ಸಿಂಹ ನಿಂತಿದೆ',back:'ಹಿಂದೆ'},
+ta:{s1h:'சிம்ஹா யாருக்காக?',s1l:'சிம்ஹா ஒருவரைக் கவனித்துக்கொண்டு, தினமும் எப்படி இருக்கிறார்கள் என்று கேட்கும்.',forMe:'எனக்காக',forMeS:'எனக்காக சிம்ஹாவை அமைக்கிறேன்.',forOther:'நான் கவனிப்பவருக்காக',forOtherS:'அவர்களின் தொலைபேசியில், அவர்களுடன் சேர்ந்து அமைக்கிறேன்.',langH:'மொழியைத் தேர்ந்தெடுக்கவும்',nameQ1:'உங்கள் பெயர் என்ன?',nameQ2:'சிம்ஹா யாரை அழைக்க வேண்டும்?',cont:'தொடரவும்',skip:'தவிர்க்கவும்',contH:'சிம்ஹா யாரை அழைக்கலாம்?',contL:'அவசர நேரத்தில் சிம்ஹா தொடர்பு கொள்ளக்கூடியவர்களைச் சேர்க்கவும்.',addF:'குடும்பத்தினரைச் சேர்க்கவும்',addN:'அண்டை வீட்டாரைச் சேர்க்கவும்',addD:'மருத்துவரைச் சேர்க்கவும்',orPick:'அல்லது தொலைபேசியிலிருந்து தேர்ந்தெடுக்கவும்',pickC:'தொடர்புகளிலிருந்து தேர்ந்தெடுக்கவும்',label:'லேபிள்',phoneL:'தொலைபேசி எண்',phLabel:'எ.கா: அப்பா, ரவி மாமா',save:'சேமிக்கவும்',picked:'உங்கள் தொடர்புகளிலிருந்து தேர்ந்தது',rF:'குடும்பம்',rN:'அண்டை வீட்டார்',rD:'மருத்துவர்',rC:'தொடர்பு',hospH:'அருகிலுள்ள மருத்துவமனையைத் தேர்ந்தெடுக்கவும்',hospL:'அவசர நேரத்தில் சிம்ஹா இதன் வழியே உங்களுக்கு வழி காட்டும்.',mapNote:'உங்கள் அருகே கூகுள் மேப்ஸ் திறக்கும்',away:'தொலைவில்',h1:'அப்போலோ மருத்துவமனை',h2:'சன்ரைஸ் பல்துறை மருத்துவமனை',h3:'அரசு பொது மருத்துவமனை',m1h:'உங்களுக்கு என்ன உடல்நலப் பிரச்சினைகள் உள்ளன?',m1l:'அவசர நேரத்தில் சிம்ஹா இதை மருத்துவர்களிடம் சொல்லும்.',m1f:'உடல்நலப் பிரச்சினைகள்',m1p:'எ.கா: சர்க்கரை நோய் அல்லது இரத்த அழுத்தம்',m2h:'நீங்கள் என்ன மருந்துகள் எடுக்கிறீர்கள்?',m2l:'சிம்ஹா நினைவூட்டவும், மருத்துவரிடம் சொல்லவும்.',m2f:'மருந்துகள்',m2p:'எ.கா: காலையில் மெட்ஃபார்மின்',m3h:'உங்களுக்கு ஏதாவது ஒவ்வாமை உள்ளதா?',m3l:'உதவுபவர்கள் எதைத் தவிர்க்க வேண்டும் என்று தெரிந்துகொள்ள.',m3f:'ஒவ்வாமைகள்',m3p:'எ.கா: பெனிசிலின் அல்லது வேர்க்கடலை',medNote:'பேசும்போது நீங்கள் சொல்லும் உடல்நல விவரங்களை சிம்ஹா நினைவில் வைத்திருக்கும். அவற்றை இங்கே பார்த்து மாற்றலாம்.',micH:'மைக்ரோஃபோனுக்கு அனுமதி தரவும்',micA:'நீங்கள் சிம்ஹாவுடன் பேசுவதற்காக.',micB:'நீங்கள் மைக்கைத் தொட்ட பிறகுதான் சிம்ஹா கேட்கும்.',micC:'இதை எப்போது வேண்டுமானாலும் அமைப்புகளில் மாற்றலாம்.',allow:'அனுமதி',notNow:'இப்போது வேண்டாம்',greet:'வணக்கம், {n}',stWith:'சிம்ஹா உங்களுடன் இருக்கிறது',lastCk:'கடைசி நலம் விசாரிப்பு 2 மணி நேரத்துக்கு முன்',talkT:'சிம்ஹாவிடம் பேசுங்கள்',talkS:'எதையும் கேளுங்கள் அல்லது எப்படி உணர்கிறீர்கள் என்று சொல்லுங்கள்',callFam:'குடும்பத்தை அழை',callDoc:'மருத்துவரை அழை',prof:'சுயவிவரம்',sett:'அமைப்புகள்',help:'உடனே உதவி வேண்டும்',askCall:'அழைக்கும் முன் சிம்ஹா கேட்கும்',okayH:'நீங்கள் நலமா?',fine:'நான் நலம்',needHelp:'எனக்கு உதவி வேண்டும்',thanks:'நன்றி, {n}',c1:'வணக்கம் {n}. இன்று எப்படி இருக்கிறீர்கள்?',c2:'கொஞ்சம் களைப்பாக இருக்கிறது. என் மகளை அழையுங்கள்.',c3:'நான் பிரியாவை அழைக்கலாம். இப்போதே அழைக்கட்டுமா?',c4:'ஆம், அழையுங்கள்.',typeMsg:'செய்தியை எழுதுங்கள்',send:'அனுப்பு',cam:'கேமரா',talkAria:'பேசு',tapTalk:'பேச தொடவும்',listening:'கேட்கிறேன். நிறுத்த தொடவும்',calmH:'அமைதியாக இருங்கள்',calmL:'சிம்ஹா உங்களுடன் இருக்கிறது. ஒவ்வொரு படியாகச் செல்வோம்.',stepOf:'படி {a} / 3',e1:'பாதுகாப்பாக இருந்தால் உட்கார்ந்து, இருக்கும் இடத்திலேயே இருங்கள்.',e2:'சிம்ஹா உங்கள் குடும்பத்துக்குத் தெரிவித்து, உங்கள் இருப்பிடத்தை அனுப்புகிறது.',e3:'ஆம்புலன்ஸ் அல்லது காவல்துறைக்கு 112ஐ அழையுங்கள். டயலர் திறக்கும், அழைப்பு பொத்தானை நீங்களே அழுத்த வேண்டும்.',dialNote:'உங்கள் தொலைபேசியின் டயலர் 112 உடன் திறக்கும். பச்சை அழைப்பு பொத்தானை நீங்களே அழுத்துங்கள்.',next:'அடுத்து',call112:'112ஐ அழை',settH:'அமைப்புகள்',ckT:'நலம் விசாரிக்கும் நேரம்',askIf:'நான் இவ்வளவு நேரம் தொலைபேசியைப் பயன்படுத்தவில்லை என்றால் என்னிடம் நலம் விசாரிக்கவும்',waitB:'குடும்பத்தை அழைக்கும் முன் காத்திருக்கும் நேரம்',hrW:'மணி நேரம்',hrsW:'மணி நேரம்',minW:'நிமிடங்கள்',hrS:'மணி',minS:'நிமி',tmNote:'நீங்கள் {h} தொலைபேசியைப் பயன்படுத்தவில்லை என்றால் சிம்ஹா நலம் விசாரிக்கும். பதில் வராவிட்டால் சிம்ஹா {m} காத்திருந்து, பிறகு உங்கள் குடும்பத்தை அழைக்கும்.',langS:'மொழி',apprH:'என் ஒப்புதல்கள்',ap1:'எனக்காக குடும்பத்தை அழைக்கவும்',ap2:'எனக்காக மருத்துவமனையை அழைக்கவும்',ap3:'என் செய்திகளைப் பதிவு செய்யவும்',permH:'தொலைபேசி அனுமதிகள்',p1:'மைக்ரோஃபோன்',p1s:'நீங்கள் சிம்ஹாவுடன் பேசுவதற்காக',p2:'இருப்பிடம்',p2s:'நீங்கள் உதவி கேட்கும்போது மட்டுமே பகிரப்படும்',p3:'அறிவிப்புகள்',p3s:'சிம்ஹா தினமும் உங்களிடம் நலம் விசாரிக்கும்',p4:'பயன்பாட்டு அணுகல்',p4s:'நீங்கள் செயலில் இருப்பதை சிம்ஹா அறிய',medH:'உடல்நல விவரங்கள்',aiH:'AI மாதிரி',baseUrl:'அடிப்படை URL',apiKey:'API திறவுகோல்',modelL:'மாதிரி',test:'இணைப்பைச் சோதிக்கவும்',connOk:'இணைப்பு சரியாக உள்ளது',cgH:'கவனிப்பாளர்கள்',priya:'பிரியா',cgSub:'மகள் · உங்கள் நிலையையும் எச்சரிக்கைகளையும் பார்ப்பார்',remove:'நீக்கு',invite:'கவனிப்பாளரை அழைக்கவும்',toastRm:'பிரியா நீக்கப்பட்டார்',toastInv:'அழைப்புக் குறியீடு பகிரத் தயார்',simhaH:'சிம்ஹா',stop:'சிம்ஹாவை நிறுத்து',stopped:'சிம்ஹா நிறுத்தப்பட்டது',back:'பின்'}
+};
+const S={lang:'en',hosp:0,tm:2,wt:10,em:0,mic:false,path:'self',contacts:[],form:{role:'rF',pick:false}};
+let H=['s1'];
+const nm=()=>$('#name').value.trim()||'Kamala';
+const t=(k,v={})=>{let s=(T[S.lang][k]??T.en[k]??k).replace('{n}',nm());for(const x in v)s=s.replace(`{${x}}`,v[x]);return s};
+[1,2,3].forEach(i=>{const n=i+4,e=document.createElement('section');e.className='screen';e.id='s'+n;e.innerHTML=`<div class="body"><h1 data-k="m${i}h"></h1><p class="lead" data-k="m${i}l"></p><div class="field"><label for="f${n}" data-k="m${i}f"></label><textarea id="f${n}" data-ph="m${i}p"></textarea></div><p class="cap" data-k="medNote"></p></div><div class="foot"><button class="btn primary" data-go="s${n+1}" data-k="cont"></button><button class="btn secondary" data-go="s${n+1}" data-k="skip"></button></div>`;$('.stage').appendChild(e)});
+function icons(r=document){r.querySelectorAll('i[data-i]').forEach(e=>{e.outerHTML=`<svg class="ico" viewBox="0 0 24 24" aria-hidden="true">${ICONS[e.dataset.i]}</svg>`})}
+icons();
+$('#dots').innerHTML='<i></i>'.repeat(8);
+function go(id,m='push'){
+ if(m==='push')H.push(id);else if(m==='root')H=[id];
+ $$('.screen').forEach(e=>e.classList.toggle('on',e.id===id));
+ const n=parseInt(id.slice(1));
+ $('#top').classList.toggle('off',id==='s10'||id==='s9');
+ $('#back').style.visibility=H.length>1&&id!=='s9'?'visible':'hidden';
+ $('#dots').style.visibility=n<=8?'visible':'hidden';
+ $$('#dots i').forEach((d,i)=>{d.className=i+1<n?'d':i+1===n?'c':''});
+ if(id==='s12'){S.em=0;stepRender();$('#dial').hidden=true}
+ $('#jp').value=id;
+}
+function stepRender(){$('#stepN').textContent=t('stepOf',{a:S.em+1});$('#stepT').textContent=t('e'+(S.em+1));$('#next').hidden=S.em===2}
+function toast(x){const e=$('#toast');e.textContent=x;e.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('on'),2000)}
+function opts(el,items,sel,fn){el.innerHTML='';items.forEach(([k,l,s])=>{const b=document.createElement('button');b.className='opt';b.setAttribute('role','radio');b.setAttribute('aria-checked',String(k===sel));b.innerHTML=`<span>${l}${s?`<small>${s}</small>`:''}</span><span class="rd"></span>`;b.onclick=()=>fn(k);el.appendChild(b)})}
+function renderLang(){['#langA','#langB'].forEach(s=>opts($(s),LANGS,S.lang,k=>{S.lang=k;apply()}))}
+function renderHosp(){opts($('#hosp'),DIST.map((d,i)=>[i,t('h'+(i+1)),`${d} ${t('away')}`]),S.hosp,k=>{S.hosp=k;renderHosp()})}
+function chips(el,vals,key,unit){el.innerHTML='';vals.forEach(v=>{const b=document.createElement('button');b.className='chip';b.textContent=`${v} ${t(unit)}`;b.setAttribute('aria-pressed',String(v===S[key]));b.onclick=()=>{S[key]=v;timing()};el.appendChild(b)})}
+function timing(){chips($('#tm'),[1,2,3,4,6,8],'tm','hrS');chips($('#wt'),[5,10,15],'wt','minS');$('#tmNote').textContent=t('tmNote',{h:`${S.tm} ${t(S.tm===1?'hrW':'hrsW')}`,m:`${S.wt} ${t('minW')}`})}
+function micCap(){$('#micCap').textContent=t(S.mic?'listening':'tapTalk')}
+function renderSaved(){const g=$('#saved');g.innerHTML='';S.contacts.forEach(c=>{const r=document.createElement('div'),a=document.createElement('span'),m=document.createElement('small'),rc=document.createElement('em'),n=document.createElement('span');r.className='row';m.className='meta';rc.className='rc';rc.textContent=t(c.r);n.textContent=c.n;m.append(rc,n);a.append(document.createTextNode(c.l),m);r.appendChild(a);g.appendChild(r)});g.hidden=!S.contacts.length}
+function apply(){
+ document.documentElement.lang=S.lang;
+ $('#nameQ').dataset.k=S.path==='self'?'nameQ1':'nameQ2';
+ $('#lblWho').dataset.k=S.form.pick?'picked':S.form.title||'addF';
+ $$('[data-k]').forEach(e=>e.textContent=t(e.dataset.k));
+ $$('[data-ph]').forEach(e=>e.placeholder=t(e.dataset.ph));
+ $$('[data-al]').forEach(e=>e.setAttribute('aria-label',t(e.dataset.al)));
+ renderLang();renderHosp();timing();stepRender();micCap();renderSaved();
+}
+$('#jp').innerHTML=NAMES.map((n,i)=>`<option value="s${i+1}">${i+1}. ${n}</option>`).join('');
+$('#jp').onchange=e=>go(e.target.value);
+$$('.themes button').forEach(b=>b.onclick=()=>{$('#phone').dataset.theme=b.dataset.t;$$('.themes button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)))});
+$('#back').onclick=()=>{H.pop();go(H[H.length-1],'none')};
+$('#name').oninput=apply;
+document.addEventListener('click',e=>{
+ const p=e.target.closest('[data-path]');
+ if(p){S.path=p.dataset.path;apply();go('s2');return}
+ const a=e.target.closest('[data-add]'),k=e.target.closest('[data-pick]');
+ if(a||k){const b=a||k;S.form=a?{role:a.dataset.add,pick:false,title:a.dataset.title}:{role:'rC',pick:true};$('#lbl').value='';$('#ph').value='';$('#phF').hidden=S.form.pick;$('#pickInfo').hidden=!S.form.pick;b.after($('#lblBox'));$('#lblBox').hidden=false;apply();$('#lblBox').scrollIntoView({block:'nearest'});return}
+ const h=e.target.closest('[data-home]');
+ if(h){if(h.dataset.msg)toast(t(h.dataset.msg));go('s9','root');return}
+ const x=e.target.closest('[data-toast]');
+ if(x){toast(t(x.dataset.toast));return}
+ const g=e.target.closest('[data-go]');
+ if(g)go(g.dataset.go);
+});
+$('#lblSave').onclick=()=>{const f=S.form;S.contacts.push({l:$('#lbl').value.trim()||t(f.role),r:f.role,n:f.pick?'+91 98765 43210':$('#ph').value.trim()});renderSaved();$('#lblBox').hidden=true};
+$('#mic').onclick=()=>{S.mic=!S.mic;$('#mic').classList.toggle('on',S.mic);micCap()};
+$('#next').onclick=()=>{if(S.em<2){S.em++;stepRender()}};
+$('#c112').onclick=()=>{$('#dial').hidden=false};
+$('#test').onclick=()=>{$('#testR').hidden=false};
+apply();
+go('s1','root');
+</script>
+</body>
+</html>

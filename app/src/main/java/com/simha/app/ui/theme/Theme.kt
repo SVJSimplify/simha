@@ -5,69 +5,98 @@ import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.simha.app.R
 
-private val LightScheme = lightColorScheme(
-    primary = Slate,
-    onPrimary = Sand,
-    primaryContainer = DeepSand,
-    onPrimaryContainer = Slate,
-    secondary = MutedSlate,
-    onSecondary = Sand,
-    secondaryContainer = DeepSand,
-    onSecondaryContainer = Slate,
-    tertiary = SuccessGreen,
-    onTertiary = Color.White,
-    background = Sand,
-    onBackground = Slate,
-    surface = Cream,
-    onSurface = Slate,
-    surfaceVariant = DeepSand,
-    onSurfaceVariant = MutedSlate,
-    outline = BorderGrey,
-    error = EmergencyRed,
-    onError = Color.White,
+val SimhaRadius = 22.dp
+
+val LocalSimha = staticCompositionLocalOf { LightSimha }
+
+@OptIn(ExperimentalTextApi::class)
+private fun nunito(w: Int) = Font(
+    R.font.nunito,
+    FontWeight(w),
+    variationSettings = FontVariation.Settings(FontVariation.weight(w)),
 )
 
-private val DarkScheme = darkColorScheme(
-    primary = Sand,
-    onPrimary = DarkBg,
-    primaryContainer = DarkSurfaceAlt,
-    onPrimaryContainer = Sand,
-    secondary = DarkMuted,
-    onSecondary = DarkBg,
-    secondaryContainer = DarkSurfaceAlt,
-    onSecondaryContainer = Sand,
-    tertiary = DarkSuccess,
-    onTertiary = DarkBg,
-    background = DarkBg,
-    onBackground = Sand,
-    surface = DarkSurface,
-    onSurface = Sand,
-    surfaceVariant = DarkSurfaceAlt,
-    onSurfaceVariant = DarkMuted,
-    outline = BorderGrey,
-    error = EmergencyRed,
-    onError = Color.White,
-)
+val NunitoFamily = FontFamily(nunito(400), nunito(500), nunito(600))
+
+private fun scheme(c: SimhaColors, dark: Boolean) = if (dark) {
+    darkColorScheme(
+        primary = c.primary,
+        onPrimary = c.onPrimary,
+        primaryContainer = c.fill,
+        onPrimaryContainer = c.text,
+        secondary = c.text2,
+        onSecondary = c.page,
+        secondaryContainer = c.fill,
+        onSecondaryContainer = c.text,
+        tertiary = c.success,
+        onTertiary = c.page,
+        background = c.page,
+        onBackground = c.text,
+        surface = c.surface,
+        onSurface = c.text,
+        surfaceVariant = c.fill,
+        onSurfaceVariant = c.text2,
+        outline = c.border,
+        outlineVariant = c.border,
+        error = c.emergency,
+        onError = Color.White,
+    )
+} else {
+    lightColorScheme(
+        primary = c.primary,
+        onPrimary = c.onPrimary,
+        primaryContainer = c.fill,
+        onPrimaryContainer = c.text,
+        secondary = c.text2,
+        onSecondary = c.surface,
+        secondaryContainer = c.fill,
+        onSecondaryContainer = c.text,
+        tertiary = c.success,
+        onTertiary = Color.White,
+        background = c.page,
+        onBackground = c.text,
+        surface = c.surface,
+        onSurface = c.text,
+        surfaceVariant = c.fill,
+        onSurfaceVariant = c.text2,
+        outline = c.border,
+        outlineVariant = c.border,
+        error = c.emergency,
+        onError = Color.White,
+    )
+}
 
 private val SimhaTypography = Typography(
-    titleLarge = TextStyle(fontSize = 28.sp, fontWeight = FontWeight.Medium, lineHeight = 40.sp),
-    bodyLarge = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Normal, lineHeight = 30.sp),
-    bodyMedium = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Normal, lineHeight = 30.sp),
-    labelLarge = TextStyle(fontSize = 22.sp, fontWeight = FontWeight.Medium, lineHeight = 32.sp),
-    bodySmall = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Normal, lineHeight = 24.sp),
-    labelSmall = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Normal, lineHeight = 24.sp),
+    titleLarge = TextStyle(fontFamily = NunitoFamily, fontSize = 28.sp, fontWeight = FontWeight.Medium, lineHeight = 36.sp),
+    titleMedium = TextStyle(fontFamily = NunitoFamily, fontSize = 22.sp, fontWeight = FontWeight.Medium, lineHeight = 30.sp),
+    bodyLarge = TextStyle(fontFamily = NunitoFamily, fontSize = 20.sp, fontWeight = FontWeight.Normal, lineHeight = 28.sp),
+    bodyMedium = TextStyle(fontFamily = NunitoFamily, fontSize = 20.sp, fontWeight = FontWeight.Normal, lineHeight = 28.sp),
+    labelLarge = TextStyle(fontFamily = NunitoFamily, fontSize = 22.sp, fontWeight = FontWeight.Medium, lineHeight = 28.sp),
+    bodySmall = TextStyle(fontFamily = NunitoFamily, fontSize = 16.sp, fontWeight = FontWeight.Normal, lineHeight = 22.sp),
+    labelSmall = TextStyle(fontFamily = NunitoFamily, fontSize = 16.sp, fontWeight = FontWeight.Normal, lineHeight = 22.sp),
 )
 
 @Composable
 fun SimhaTheme(dark: Boolean, content: @Composable () -> Unit) {
-    MaterialTheme(
-        colorScheme = if (dark) DarkScheme else LightScheme,
-        typography = SimhaTypography,
-        content = content,
-    )
+    val c = if (dark) DarkSimha else LightSimha
+    CompositionLocalProvider(LocalSimha provides c) {
+        MaterialTheme(
+            colorScheme = scheme(c, dark),
+            typography = SimhaTypography,
+            content = content,
+        )
+    }
 }

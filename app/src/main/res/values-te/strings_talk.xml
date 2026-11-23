@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="aiset_llm">AI సహాయకుడు (LLM)</string>
+    <string name="aiset_base">బేస్ URL</string>
+    <string name="aiset_key">API కీ</string>
+    <string name="aiset_model">మోడల్</string>
+    <string name="aiset_test">కనెక్షన్ పరీక్షించండి</string>
+    <string name="aiset_testing">పరీక్షిస్తోంది...</string>
+    <string name="aiset_missing">ముందుగా బేస్ URL, API కీ, మోడల్ నింపండి.</string>
+    <string name="aiset_ok">కనెక్ట్ అయింది. మోడల్ సమాధానం: %1$s</string>
+    <string name="aiset_fail">కనెక్షన్ విఫలమైంది: %1$s</string>
+    <string name="aiset_sarvam">సర్వం వాయిస్</string>
+    <string name="aiset_sarvam_hint">ఐచ్ఛికం. సర్వం కీ ఉంటే సింహ మీ భాషలో సర్వం గొంతులతో వింటుంది, మాట్లాడుతుంది. లేకపోతే ఫోన్ సొంత గొంతు వాడతారు.</string>
+    <string name="aiset_sarvam_key">సర్వం API కీ</string>
+    <string name="aiset_test_sarvam">సర్వం పరీక్షించండి</string>
+    <string name="aiset_sarvam_missing">ముందుగా సర్వం API కీ నమోదు చేయండి.</string>
+    <string name="aiset_sarvam_ok">సర్వం పనిచేస్తోంది. %1$d KB ఆడియో వచ్చింది.</string>
+    <string name="aiset_agent">సర్వం వాయిస్-ఏజెంట్ కాల్స్</string>
+    <string name="aiset_agent_hint">ఒక్కసారి సెటప్: సర్వం డ్యాష్‌బోర్డ్‌లో వాయిస్ ఏజెంట్‌ను సృష్టించి, కమిట్ చేసి, ఫోన్ నంబర్ కలపండి. తర్వాత వర్క్‌స్పేస్ API కీ, ఐడీలను ఇక్కడ నమోదు చేయండి. ఖాళీగా ఉంటే సింహ అనుమతించిన కాల్ చేసి సందేశాన్ని బిగ్గరగా చెబుతుంది.</string>
+    <string name="aiset_agent_key">వాయిస్ ఏజెంట్ API కీ</string>
+    <string name="aiset_org">సంస్థ ఐడీ</string>
+    <string name="aiset_ws">వర్క్‌స్పేస్ ఐడీ</string>
+    <string name="aiset_app">ఏజెంట్ (యాప్) ఐడీ</string>
+    <string name="aiset_ver">ఏజెంట్ వెర్షన్ నంబర్</string>
+    <string name="aiset_conn">టెలిఫోనీ కనెక్షన్ ఐడీ</string>
+    <string name="aiset_phone">ఏజెంట్ ఫోన్ నంబర్</string>
+    <string name="aiset_save">సేవ్ చేయి</string>
+    <string name="aiset_saved">ఈ ఫోన్‌లో సురక్షితంగా సేవ్ అయింది.</string>
+    <string name="aiset_store_error">సురక్షిత నిల్వను వాడలేకపోయాం: %1$s</string>
+    <string name="sarvam_fallback">సర్వం వాయిస్ వాడలేకపోయాం, ఫోన్ గొంతు వాడుతున్నాం: %1$s</string>
+    <string name="esc_line">నమస్కారం. నేను ఆటోమేటెడ్ సహాయకుడిని, %1$s తరఫున ఫోన్ చేస్తున్నాను. %1$s %2$d నిమిషాలుగా భద్రత తనిఖీకి స్పందించలేదు. దయచేసి ఇప్పుడే %1$sకి ఫోన్ చేయండి లేదా వెళ్లి చూడండి.</string>
+</resources>
