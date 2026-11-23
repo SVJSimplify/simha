@@ -52,15 +52,15 @@ fun HomeScreen(
         err?.let { Card { Body(stringResource(R.string.sync_error, it)) } }
         BigButton(stringResource(R.string.talk), onTalk, icon = R.drawable.ic_mic)
         val actions: List<@Composable (Modifier) -> Unit> = listOf(
-            { m: Modifier -> BigButton(stringResource(R.string.family), onFamily, m) },
-            { m: Modifier -> BigButton(stringResource(R.string.doctor), onDoctor, m) },
-            { m: Modifier -> BigButton(stringResource(R.string.help), onHelp, m, Kind.Emergency) },
+            @Composable { m: Modifier -> BigButton(stringResource(R.string.family), onFamily, m) },
+            @Composable { m: Modifier -> BigButton(stringResource(R.string.doctor), onDoctor, m) },
+            @Composable { m: Modifier -> BigButton(stringResource(R.string.help), onHelp, m, Kind.Emergency) },
         )
         Grid(l.columns, actions)
-        SwitchRow(stringResource(R.string.night), s.night) { vm.setNight(it) }
+        SwitchRow(stringResource(R.string.night), s.night, { vm.setNight(it) })
         val more: List<@Composable (Modifier) -> Unit> = listOf(
-            { m: Modifier -> BigButton(stringResource(R.string.profile_title), onProfile, m, Kind.Secondary) },
-            { m: Modifier -> BigButton(stringResource(R.string.set_title), onSettings, m, Kind.Secondary) },
+            @Composable { m: Modifier -> BigButton(stringResource(R.string.profile_title), onProfile, m, Kind.Secondary) },
+            @Composable { m: Modifier -> BigButton(stringResource(R.string.set_title), onSettings, m, Kind.Secondary) },
         )
         Grid(l.columns.coerceAtMost(2), more)
     }
