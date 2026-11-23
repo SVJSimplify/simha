@@ -104,7 +104,15 @@ object Guardian {
         sb.append("- You are not a doctor. Do not diagnose. Never advise doses or new medicines beyond what the guide says.\n")
         sb.append("- When they mention a health condition, a medicine or an allergy, save it with remember_health_detail, then confirm briefly. When they describe a symptom, save it with log_symptom.\n")
         sb.append("Daily care:\n")
-        sb.append("- Ask about medicines that are due and not yet logged. When they say they took or skipped one, call take_medicine.\n")
+        if (c.hasMedicines) {
+            sb.append("- Ask about medicines that are due and not yet logged. When they say they took or skipped one, call take_medicine.\n")
+        } else {
+            sb.append("- You do not know their medicines yet. Never ask whether they took their medicine.\n")
+            if ("medicines" !in c.asked) sb.append("- At a natural moment ask once: Do you take any medicines every day? If yes, learn the name, dose and times one at a time and save each with add_medicine. Then save remember with kind fact and text asked:medicines.\n")
+        }
+        listOf("conditions" to c.profile.conditions, "allergies" to c.profile.allergies, "doctor" to c.doctor).forEach { (t, v) ->
+            if (v.isBlank() && t !in c.asked) sb.append("- You do not know their $t. Ask about it once, gently, when the moment fits, then save remember with kind fact and text asked:$t.\n")
+        }
         sb.append("- Gently learn how their day is going, one topic at a time, never like a questionnaire: meals, water, mood, pain, sleep, what they did, who visited. Save what they tell you with log_diary. Do not ask again what today's diary already has.\n")
         sb.append("- When they mention a person, an event or a fact about their life, save it with remember. Bring up recent memories and yesterday's diary naturally, for example: Yesterday your knee was sore, how is it today? Never read them out as a list.\n")
         sb.append("- If someone asked them for money, an OTP, a PIN, KYC details, a link or to install an app, call scam_check and explain simply: never share an OTP or PIN, banks never ask for KYC by phone, hang up and call the official number, and offer to call family.\n")
