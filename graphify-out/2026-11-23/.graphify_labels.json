@@ -1,1 +1,11 @@
-{"0": "MainViewModel", "1": "FakeHost", "2": "Repo", "3": "ToolHost", "4": "Actions.kt", "5": "Voice.kt", "6": "PlansTest", "7": "Components.kt", "8": ".decide", "9": "with", "10": "Work.kt", "11": "LlmClient.kt", "12": "ActivityService.kt", "13": "Repo.kt", "14": "Prefs.kt", "15": "MainActivity.kt", "16": "TalkViewModel.kt", "17": "LlmParse.kt", "18": "Theme.kt", "19": "Kind", "20": "ProvideLayout", "21": "TalkMode", "22": "CallResult", "23": "Prompt", "24": "app/build.gradle.kts", "25": "ChatApi", "26": "ChatApi", "27": "build.gradle.kts", "28": "settings.gradle.kts"}
+{
+  "2": "Repo",
+  "6": "PlansTest",
+  "8": ".decide",
+  "9": "with",
+  "11": "LlmClient.kt",
+  "17": "LlmParse.kt",
+  "24": "app/build.gradle.kts",
+  "27": "build.gradle.kts",
+  "28": "settings.gradle.kts"
+}

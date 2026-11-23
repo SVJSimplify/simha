@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="gd_open_checkin">Hello %1$s, how are you feeling right now?</string>
+    <string name="gd_open_medicine">%1$s, it is time for your %2$s. Have you taken it?</string>
+    <string name="gd_open_medicine_generic">%1$s, it is time for your medicine. Have you taken it?</string>
+    <string name="gd_open_morning">Good morning, %1$s! I hope you slept well.</string>
+    <string name="gd_open_plan">Today you have: %1$s.</string>
+    <plurals name="gd_open_msgs">
+        <item quantity="one">You have %1$d new message from your family. Shall I play it?</item>
+        <item quantity="other">You have %1$d new messages from your family. Shall I play them?</item>
+    </plurals>
+    <string name="gd_open_evening">Good evening, %1$s. How was your day? Tell me what you did today.</string>
+    <string name="gd_open_fall">%1$s, did you fall? Are you hurt?</string>
+    <string name="gd_open_night">%1$s, it looks like you are awake. Is everything alright? Do you need anything?</string>
+    <string name="gd_open_family">%1$s, you have a new message from %2$s. Shall I play it?</string>
+    <string name="gd_open_family_generic">%1$s, you have a new message from your family. Shall I play it?</string>
+    <string name="gd_open_heat">%1$s, it is very hot today. Please drink some water. Have you had water recently?</string>
+    <string name="gd_wakeword_title">Start talking by saying Hey Simha</string>
+    <string name="gd_wakeword_hint">While Simha is open on the screen, it listens for the words Hey Simha. The microphone stays on in that time. Off by default.</string>
+    <string name="gd_wakeword_needs_mic">Allow the microphone to use Hey Simha.</string>
+    <string name="gd_open_unwell">%1$s, I am here with you. Tell me what is wrong. How are you feeling?</string>
+</resources>

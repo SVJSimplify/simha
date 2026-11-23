@@ -13,6 +13,7 @@ import com.simha.app.llm.SimhaTools
 import com.simha.app.llm.StreamAcc
 import com.simha.app.llm.ToolCall
 import com.simha.app.llm.ToolHost
+import com.simha.app.logic.MedicalProfile
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
@@ -48,6 +49,13 @@ private class FakeHost(
     override suspend fun setReminder(text: String, minutes: Int): String { calls += "reminder:$minutes"; return "set" }
     override suspend fun updateProfileField(field: String, value: String): String { calls += "profile:$field"; return "ok" }
     override suspend fun rememberHealthDetail(kind: String, text: String): String { calls += "health:$kind:$text"; return "saved" }
+    override suspend fun medicalProfile() = MedicalProfile(allergies = "peanuts", medicines = "EpiPen")
+    override suspend fun logDiary(update: JsonObject): String { calls += "diary:" + update.keys.sorted().joinToString("+"); return "ok" }
+    override suspend fun remember(kind: String, text: String): String { calls += "remember:$kind:$text"; return "ok" }
+    override suspend fun takeMedicine(name: String, status: String): String { calls += "dose:$name:$status"; return "ok" }
+    override suspend fun listMedicines() = JsonArray(emptyList())
+    override suspend fun familyContact(label: String?) = contacts.firstOrNull { it.role == "family" && (label == null || it.name.equals(label, true)) }
+    override suspend fun playFamilyMessages(): String { calls += "play"; return "ok" }
     override suspend fun audit(tool: String, args: String, result: String) { audits += Triple(tool, args, result) }
 }
 
@@ -224,12 +232,71 @@ class LlmToolsTest {
     }
 
     @Test
+    fun firstAidWithDangerOpensEmergencyScreen() {
+        val host = FakeHost()
+        val out = dispatch(host, "get_first_aid", """{"situation":"chest pain since morning"}""")
+        assertTrue(out.contains("\"call_112_now\":true"))
+        assertTrue(out.contains("steps"))
+        assertEquals(listOf("emergency_screen"), host.calls)
+    }
+
+    @Test
+    fun firstAidWithoutDangerDoesNotEscalate() {
+        val host = FakeHost()
+        val out = dispatch(host, "get_first_aid", """{"situation":"low sugar, feeling shaky"}""")
+        assertTrue(out.contains("\"call_112_now\":false"))
+        assertTrue(host.calls.isEmpty())
+        val bad = dispatch(host, "get_first_aid", """{"situation":"hello there"}""")
+        assertTrue(bad.contains("error"))
+    }
+
+    @Test
+    fun firstAidIsPersonalised() {
+        val host = FakeHost()
+        val out = dispatch(host, "get_first_aid", """{"situation":"allergic reaction"}""")
+        assertTrue(out.contains("peanuts"))
+    }
+
+    @Test
+    fun diaryRememberAndMedicineValidation() {
+        val host = FakeHost()
+        assertTrue(dispatch(host, "log_diary", "{}").contains("error"))
+        dispatch(host, "log_diary", """{"meals":"idli, tea","mood":"happy"}""")
+        dispatch(host, "remember", """{"kind":"person","text":"Priya is the daughter"}""")
+        assertTrue(dispatch(host, "remember", """{"kind":"summary","text":"x"}""").contains("error"))
+        dispatch(host, "take_medicine", """{"name":"Metformin","status":"taken"}""")
+        assertTrue(dispatch(host, "take_medicine", """{"name":"Metformin","status":"missed"}""").contains("error"))
+        assertEquals(listOf("diary:meals+mood", "remember:person:Priya is the daughter", "dose:Metformin:taken"), host.calls)
+    }
+
+    @Test
+    fun scamCheckIsStructuredAndNeedsNoHost() {
+        val host = FakeHost()
+        val out = dispatch(host, "scam_check", """{"description":"A caller said my bank KYC is blocked and asked for my OTP"}""")
+        assertTrue(out.contains("\"risk\":\"high\""))
+        assertTrue(out.contains("rules"))
+        assertTrue(host.calls.isEmpty())
+    }
+
+    @Test
+    fun callFamilyOnlyWhenApproved() {
+        val no = FakeHost(contacts = listOf(ContactInfo("Priya", "999", "family", approved = false)))
+        assertTrue(dispatch(no, "call_family", "{}").contains("refused"))
+        assertTrue(no.calls.isEmpty())
+        val yes = FakeHost(contacts = listOf(ContactInfo("Priya", "999", "family", approved = true)))
+        dispatch(yes, "call_family", """{"label":"priya"}""")
+        assertEquals(listOf("call:Priya"), yes.calls)
+        assertTrue(dispatch(FakeHost(), "call_family", "{}").contains("error"))
+    }
+
+    @Test
     fun definitionsCoverAllTools() {
         val names = SimhaTools.definitions.map { it.jsonObject["function"]!!.jsonObject["name"]!!.jsonPrimitive.content }.toSet()
         val expected = setOf(
             "get_profile", "get_contacts", "get_status", "log_symptom", "mark_checkin_ok", "open_emergency_screen",
             "dial_emergency", "call_approved_contact", "send_family_alert", "start_recording", "look_with_camera",
-            "set_reminder", "update_profile_field", "remember_health_detail",
+            "set_reminder", "update_profile_field", "remember_health_detail", "get_first_aid", "log_diary", "remember",
+            "take_medicine", "list_medicines", "scam_check", "call_family", "play_family_messages",
         )
         assertEquals(expected, names)
     }

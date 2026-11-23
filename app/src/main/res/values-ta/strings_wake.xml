@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ch_wake">சிம்ஹா அழைப்புகள்</string>
+    <string name="wake_n_checkin">நீங்கள் நலமா?</string>
+    <string name="wake_n_medicine">உங்கள் மருந்து எடுக்கும் நேரம்</string>
+    <string name="wake_n_morning">காலை வணக்கம்</string>
+    <string name="wake_n_evening">மாலை வணக்கம்</string>
+    <string name="wake_n_fall">நீங்கள் கீழே விழுந்தீர்களா? நலமா?</string>
+    <string name="wake_n_night">இரவில் விழித்திருக்கிறீர்களா? நான் உதவட்டுமா?</string>
+    <string name="wake_n_family">உங்கள் குடும்பத்திடமிருந்து செய்தி</string>
+    <string name="wake_n_heat">இன்று மிகவும் வெப்பமாக உள்ளது</string>
+    <string name="wake_n_tap">சிம்ஹாவிடம் பேச தட்டவும்</string>
+    <string name="wake_note_inexact">துல்லியமான அலாரங்களுக்கு அனுமதி இல்லாததால் அழைப்புகள் சற்று தாமதமாக வரலாம். கணினி அமைப்புகளில் சிம்ஹாவுக்கு அலாரங்கள் மற்றும் நினைவூட்டல்களை அனுமதிக்கவும்.</string>
+    <string name="wake_sms_safearea">சிம்ஹா எச்சரிக்கை: %1$s பாதுகாப்பான பகுதிக்கு வெளியே உள்ளார். தயவுசெய்து அவரை விசாரிக்கவும்.</string>
+</resources>

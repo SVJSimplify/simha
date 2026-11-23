@@ -19,8 +19,9 @@ android {
         applicationId = "com.simha.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        val code = System.getenv("VERSION_CODE")?.toIntOrNull() ?: 1
+        versionCode = code
+        versionName = "0.1.$code"
         buildConfigField("String", "SUPABASE_URL", "\"https://hvqqagwtkvfpsmammbtb.supabase.co\"")
         buildConfigField("String", "SUPABASE_KEY", "\"sb_publishable_nS76T-gXrNIpXcEQ50mU3g_JdWIU-Pp\"")
     }

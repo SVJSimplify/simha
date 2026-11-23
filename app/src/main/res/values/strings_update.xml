@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="upd_available">Update available: build %1$d</string>
+    <string name="upd_now">Update now</string>
+    <string name="upd_downloading">Downloading… %1$d%%</string>
+    <string name="upd_installed">Update installed. Simha will restart.</string>
+    <string name="upd_retry">Check again</string>
+    <string name="upd_channel">App updates</string>
+    <string name="upd_notif_title">A new Simha update is ready</string>
+    <string name="upd_err_rate">Too many update checks. Please try again later.</string>
+    <string name="upd_err_http">Update server error (%1$d).</string>
+    <string name="upd_err_parse">Could not read update information.</string>
+    <string name="upd_err_net">No connection: %1$s</string>
+    <string name="upd_err_perm">Allow Simha to install updates in the screen that opened, then tap Update now again.</string>
+    <string name="upd_err_empty">The downloaded update file is empty.</string>
+    <string name="upd_err_install">Update failed: %1$s</string>
+</resources>

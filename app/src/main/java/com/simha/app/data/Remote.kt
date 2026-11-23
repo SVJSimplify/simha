@@ -36,7 +36,11 @@ class Remote {
         val o = Json.parseToJsonElement(op.payload).jsonObject
         when (op.kind) {
             "insert" -> sb.from(op.tbl).insert(withUid(o, op.tbl, uid))
-            "upsert" -> sb.from(op.tbl).upsert(withUid(o, op.tbl, uid))
+            "upsert" -> if (op.tbl == "diary") {
+                sb.from(op.tbl).upsert(withUid(o, op.tbl, uid)) { onConflict = "user_id,day" }
+            } else {
+                sb.from(op.tbl).upsert(withUid(o, op.tbl, uid))
+            }
             "delete" -> {
                 val id = o.getValue("id").jsonPrimitive.content
                 sb.from(op.tbl).delete { filter { eq("id", id) } }

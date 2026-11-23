@@ -1,5 +1,9 @@
 package com.simha.app.llm
 
+import com.simha.app.logic.FirstAid
+import com.simha.app.logic.Guide
+import com.simha.app.logic.MedicalProfile
+import com.simha.app.logic.Situation
 import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
@@ -33,13 +37,23 @@ interface ToolHost {
     suspend fun setReminder(text: String, minutes: Int): String
     suspend fun updateProfileField(field: String, value: String): String
     suspend fun rememberHealthDetail(kind: String, text: String): String
+    suspend fun medicalProfile(): MedicalProfile
+    suspend fun logDiary(update: JsonObject): String
+    suspend fun remember(kind: String, text: String): String
+    suspend fun takeMedicine(name: String, status: String): String
+    suspend fun listMedicines(): JsonArray
+    suspend fun familyContact(label: String?): ContactInfo?
+    suspend fun playFamilyMessages(): String
     suspend fun audit(tool: String, args: String, result: String)
 }
 
 object SimhaTools {
     val profileFields = setOf("conditions", "medicines", "allergies", "doctor_name", "doctor_phone")
 
-    private fun tool(name: String, desc: String, props: Map<String, Pair<String, String>> = emptyMap()) = buildJsonObject {
+    val memoryKinds = setOf("fact", "person", "event")
+    val doseStatuses = setOf("taken", "skipped")
+
+    private fun tool(name: String, desc: String, props: Map<String, Pair<String, String>> = emptyMap(), required: Collection<String> = props.keys) = buildJsonObject {
         put("type", "function")
         putJsonObject("function") {
             put("name", name)
@@ -54,7 +68,7 @@ object SimhaTools {
                         }
                     }
                 }
-                putJsonArray("required") { props.keys.forEach { add(it) } }
+                putJsonArray("required") { required.forEach { add(it) } }
             }
         }
     }
@@ -83,6 +97,49 @@ object SimhaTools {
                 "Add a note to a profile field. Existing text is kept.",
                 mapOf("field" to ("string" to "One of conditions, medicines, allergies, doctor_name, doctor_phone"), "value" to ("string" to "Text to add")),
             ),
+            tool(
+                "get_first_aid",
+                "Get the fixed step-by-step first-aid guide for a health situation. Use it whenever the person describes a fall, pain, dizziness, breathlessness, bleeding, a burn, fever, sugar problems, an allergic reaction or a medicine mistake. Never answer such situations without it.",
+                mapOf("situation" to ("string" to "Short description in English of only the signs that are present. Start with one of: ${Situation.entries.joinToString(", ") { it.key }}")),
+            ),
+            tool(
+                "log_diary",
+                "Save what the person tells you about their day into today's diary. Only send what they said. Earlier entries of the day are kept.",
+                mapOf(
+                    "meals" to ("string" to "Meals eaten, comma separated"),
+                    "water" to ("string" to "How much water, for example 4 glasses"),
+                    "mood" to ("string" to "Mood in a few words"),
+                    "pain" to ("string" to "Any pain and where"),
+                    "sleep" to ("string" to "How they slept"),
+                    "activities" to ("string" to "What they did, comma separated"),
+                    "visitors" to ("string" to "Who visited or called, comma separated"),
+                    "notes" to ("string" to "Anything else worth remembering"),
+                ),
+                required = emptyList(),
+            ),
+            tool(
+                "remember",
+                "Remember something about the person's life for later conversations.",
+                mapOf("kind" to ("string" to "One of fact, person, event"), "text" to ("string" to "What to remember, in one short sentence, for example: Priya is the daughter who lives in Pune")),
+            ),
+            tool(
+                "take_medicine",
+                "Record that the person took or skipped a medicine.",
+                mapOf("name" to ("string" to "Medicine name"), "status" to ("string" to "taken or skipped")),
+            ),
+            tool("list_medicines", "List the person's medicines with times and today's dose status."),
+            tool(
+                "scam_check",
+                "Check a suspicious call, message or request for scam signs. Use it whenever the person mentions a stranger asking for money, OTP, PIN, KYC, a link or an app.",
+                mapOf("description" to ("string" to "What happened, in English")),
+            ),
+            tool(
+                "call_family",
+                "Call a family member. Only works for family contacts the person approved. Leave the label out to call the first approved family contact.",
+                mapOf("label" to ("string" to "Optional name or relation, for example daughter or Priya")),
+                required = emptyList(),
+            ),
+            tool("play_family_messages", "Play the person's unplayed voice messages from their family."),
         )
     )
 
@@ -156,7 +213,69 @@ object SimhaTools {
                 val v = a.str("value") ?: return err("value is required")
                 return ok(host.updateProfileField(f, v))
             }
+            "get_first_aid" -> {
+                val t = a.str("situation") ?: return err("situation is required")
+                val sit = FirstAid.match(t) ?: return err("Unknown situation. Use one of: " + Situation.entries.joinToString(", ") { it.key })
+                val g = FirstAid.guide(sit, host.medicalProfile())
+                val urgent = FirstAid.dangerous(sit, t)
+                val note = if (urgent) {
+                    host.openEmergencyScreen()
+                    "Danger signs are present. The emergency screen has been opened. Tell the person calmly to call 112 now, then keep guiding them through the steps while help comes."
+                } else {
+                    "No danger sign has been mentioned yet. Guide them step by step, ask about each danger sign one at a time, and if any is present call get_first_aid again describing it."
+                }
+                return guideJson(g, urgent, note)
+            }
+            "log_diary" -> {
+                val u = DiaryMerge.update(DiaryMerge.allKeys.associateWith { a.str(it) })
+                if (u.isEmpty()) return err("Nothing to save")
+                return ok(host.logDiary(u))
+            }
+            "remember" -> {
+                val k = a.str("kind")?.lowercase() ?: return err("kind is required")
+                if (k !in memoryKinds) return err("kind must be fact, person or event")
+                val t = a.str("text") ?: return err("text is required")
+                return ok(host.remember(k, t.take(300)))
+            }
+            "take_medicine" -> {
+                val n = a.str("name") ?: return err("name is required")
+                val s = a.str("status")?.lowercase() ?: return err("status is required")
+                if (s !in doseStatuses) return err("status must be taken or skipped")
+                return ok(host.takeMedicine(n, s))
+            }
+            "list_medicines" -> return host.listMedicines().toString()
+            "scam_check" -> {
+                val d = a.str("description") ?: return err("description is required")
+                return scamJson(Scam.check(d))
+            }
+            "call_family" -> {
+                val c = host.familyContact(a.str("label")) ?: return err("No family contact found")
+                if (!c.approved) return refuse("This family member is not approved for calls. The person can approve calls in Settings.")
+                return ok(host.callContact(c))
+            }
+            "play_family_messages" -> return ok(host.playFamilyMessages())
             else -> return err("Unknown tool")
         }
     }
+
+    fun guideJson(g: Guide, urgent: Boolean, note: String): String = buildJsonObject {
+        put("situation", g.situation.key)
+        put("title", g.situation.title)
+        put("call_112_now", urgent)
+        put("instruction", note)
+        putJsonArray("steps") { g.steps.forEach { add(it) } }
+        putJsonArray("danger_signs_that_mean_call_112") { g.danger.forEach { add(it) } }
+        putJsonArray("personal_notes") { g.personal.forEach { add(it) } }
+    }.toString()
+
+    fun scamJson(r: ScamReport): String = buildJsonObject {
+        put("risk", if (r.high) "high" else "unclear")
+        putJsonArray("warning_signs") { r.signals.forEach { add(it) } }
+        putJsonArray("rules") { r.rules.forEach { add(it) } }
+        put(
+            "instruction",
+            if (r.high) "This looks like a scam. Calmly tell the person to hang up, share nothing and pay nothing, and offer to call their family."
+            else "Not clearly a scam, but tell the person the rules in simple words and to check with family before acting.",
+        )
+    }.toString()
 }

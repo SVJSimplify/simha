@@ -2,6 +2,7 @@ package com.simha.app.voice
 
 import android.content.Context
 import android.content.Intent
+import android.media.AudioAttributes
 import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaPlayer
@@ -18,6 +19,7 @@ import android.speech.tts.UtteranceProgressListener
 import com.simha.app.data.Repo
 import com.simha.app.llm.LlmStore
 import com.simha.app.llm.SarvamConfig
+import com.simha.app.wake.WakeAudio
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
@@ -125,9 +127,17 @@ class Voice(private val app: Context) {
         finish(item.id)
     }
 
-    private suspend fun play(bytes: ByteArray) = suspendCancellableCoroutine<Unit> { cont ->
-        val f = File.createTempFile("tts", ".wav", app.cacheDir)
+    suspend fun playAudio(bytes: ByteArray, ext: String = ".m4a") = play(bytes, ext)
+
+    private fun attrs(): AudioAttributes = AudioAttributes.Builder()
+        .setUsage(if (WakeAudio.alarmMode) AudioAttributes.USAGE_ALARM else AudioAttributes.USAGE_MEDIA)
+        .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+        .build()
+
+    private suspend fun play(bytes: ByteArray, ext: String = ".wav") = suspendCancellableCoroutine<Unit> { cont ->
+        val f = File.createTempFile("tts", ext, app.cacheDir)
         val mp = MediaPlayer()
+        mp.setAudioAttributes(attrs())
         var closed = false
         fun end() {
             if (closed) return
@@ -207,6 +217,7 @@ class Voice(private val app: Context) {
                     finish(id)
                 } else {
                     applyLang(t, lang)
+                    t.setAudioAttributes(attrs())
                     t.speak(text, TextToSpeech.QUEUE_ADD, null, id)
                 }
             }

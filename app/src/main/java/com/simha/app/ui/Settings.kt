@@ -20,7 +20,12 @@ import com.simha.app.R
 import com.simha.app.data.CaregiverRow
 import com.simha.app.data.Repo
 import com.simha.app.data.Snap
+import com.simha.app.ui.home.Oem
+import com.simha.app.ui.meds.TimeDialog
+import com.simha.app.ui.meds.showTime
 import com.simha.app.ui.talk.AiSettingsSection
+import com.simha.app.update.UpdateBanner
+import com.simha.app.update.UpdateState
 import com.simha.app.ui.theme.LocalSimha
 import kotlinx.coroutines.launch
 
@@ -52,6 +57,8 @@ fun SettingsScreen(
     onAudit: () -> Unit,
     onContacts: (String) -> Unit,
     onProfile: () -> Unit,
+    onMeds: () -> Unit,
+    onMedicalId: () -> Unit,
 ) {
     val ctx = LocalContext.current
     val sl = vm.sl
@@ -60,6 +67,10 @@ fun SettingsScreen(
     val contacts by vm.contacts.collectAsState()
     val callLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { vm.resume.value += 1 }
     val title = stringResource(R.string.set_title)
+    val gs by vm.ui.collectAsState()
+    var pickMorning by remember { mutableStateOf(false) }
+    var pickEvening by remember { mutableStateOf(false) }
+    var homeMsg by remember { mutableStateOf<Int?>(null) }
 
     var cgs by remember { mutableStateOf<List<CaregiverRow>>(emptyList()) }
     var cgErr by remember { mutableStateOf<String?>(null) }
@@ -127,6 +138,30 @@ fun SettingsScreen(
         SectionTitle(stringResource(R.string.m_set_medical))
         Caption(stringResource(R.string.m_med_note))
         SecondaryButton(stringResource(R.string.profile_title), onProfile)
+        SecondaryButton(stringResource(R.string.r3_set_meds), onMeds)
+        SecondaryButton(stringResource(R.string.r3_set_mid), onMedicalId)
+
+        SectionTitle(stringResource(R.string.r3_set_guardian))
+        SwitchRow(stringResource(R.string.r3_hey), gs.hey, { vm.setHey(it) }, stringResource(R.string.r3_hey_hint))
+        SwitchRow(stringResource(R.string.r3_nightwatch), gs.nightWatch, { vm.setNightWatch(it) }, stringResource(R.string.r3_nightwatch_hint))
+        SwitchRow(stringResource(R.string.r3_fall), gs.fall, { vm.setFall(it) }, stringResource(R.string.r3_fall_hint))
+        SwitchRow(stringResource(R.string.r3_safe), gs.safe, { vm.setSafe(it) }, stringResource(R.string.r3_safe_hint))
+        SecondaryButton(stringResource(R.string.r3_safe_set), {
+            scope.launch { homeMsg = if (vm.setHomeHere()) R.string.r3_safe_done else R.string.r3_safe_fail }
+        })
+        homeMsg?.let { Caption(stringResource(it)) }
+        Body(stringResource(R.string.r3_greet_times))
+        SecondaryButton(stringResource(R.string.r3_morning) + "  " + showTime(gs.morning), { pickMorning = true })
+        SecondaryButton(stringResource(R.string.r3_evening) + "  " + showTime(gs.evening), { pickEvening = true })
+        val exactOk = remember(tick) { Oem.exactAllowed(ctx) }
+        SwitchRow(
+            stringResource(R.string.r3_exact), exactOk, { Oem.openExact(ctx) },
+            stringResource(if (exactOk) R.string.r3_exact_on else R.string.r3_exact_off),
+        )
+        SecondaryButton(stringResource(R.string.r3_oem), { Oem.open(ctx) })
+        Caption(stringResource(R.string.r3_oem_hint))
+        if (pickMorning) TimeDialog(gs.morning, { vm.setMorning(it); pickMorning = false }, { pickMorning = false })
+        if (pickEvening) TimeDialog(gs.evening, { vm.setEvening(it); pickEvening = false }, { pickEvening = false })
 
         SectionTitle(stringResource(R.string.m_set_ai))
         AiSettingsSection()
@@ -162,6 +197,10 @@ fun SettingsScreen(
                 sl.repo.createInvite().fold({ reload() }, { cgErr = it.message ?: it.javaClass.simpleName })
             }
         })
+
+        SectionTitle(stringResource(R.string.r3_updates))
+        UpdateBanner()
+        SecondaryButton(stringResource(R.string.r3_check_updates), { UpdateState.checkNow() })
 
         SecondaryButton(stringResource(R.string.set_audit), onAudit)
         SwitchRow(stringResource(R.string.night), s.night, { vm.setNight(it) })

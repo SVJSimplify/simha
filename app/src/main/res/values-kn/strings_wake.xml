@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ch_wake">ಸಿಂಹ ಕರೆಗಳು</string>
+    <string name="wake_n_checkin">ನೀವು ಚೆನ್ನಾಗಿದ್ದೀರಾ?</string>
+    <string name="wake_n_medicine">ನಿಮ್ಮ ಔಷಧಿಯ ಸಮಯವಾಯಿತು</string>
+    <string name="wake_n_morning">ಶುಭೋದಯ</string>
+    <string name="wake_n_evening">ಶುಭ ಸಂಜೆ</string>
+    <string name="wake_n_fall">ನೀವು ಬಿದ್ದಿರಾ? ನೀವು ಚೆನ್ನಾಗಿದ್ದೀರಾ?</string>
+    <string name="wake_n_night">ತಡರಾತ್ರಿ ಎಚ್ಚರವಾಗಿದ್ದೀರಾ? ನಾನು ಸಹಾಯ ಮಾಡಲೇ?</string>
+    <string name="wake_n_family">ನಿಮ್ಮ ಕುಟುಂಬದಿಂದ ಸಂದೇಶ</string>
+    <string name="wake_n_heat">ಇಂದು ತುಂಬಾ ಬಿಸಿಯಾಗಿದೆ</string>
+    <string name="wake_n_tap">ಸಿಂಹರೊಂದಿಗೆ ಮಾತನಾಡಲು ಒತ್ತಿರಿ</string>
+    <string name="wake_note_inexact">ನಿಖರ ಅಲಾರಂಗಳಿಗೆ ಅನುಮತಿ ಇಲ್ಲದ ಕಾರಣ ಕರೆಗಳು ಸ್ವಲ್ಪ ತಡವಾಗಿ ಬರಬಹುದು. ಸಿಸ್ಟಮ್ ಸೆಟ್ಟಿಂಗ್‌ಗಳಲ್ಲಿ ಸಿಂಹಕ್ಕೆ ಅಲಾರಂ ಮತ್ತು ರಿಮೈಂಡರ್‌ಗಳಿಗೆ ಅನುಮತಿ ನೀಡಿ.</string>
+    <string name="wake_sms_safearea">ಸಿಂಹ ಎಚ್ಚರಿಕೆ: %1$s ಸುರಕ್ಷಿತ ಪ್ರದೇಶದ ಹೊರಗೆ ಇದ್ದಾರೆ. ದಯವಿಟ್ಟು ಅವರನ್ನು ವಿಚಾರಿಸಿ.</string>
+</resources>

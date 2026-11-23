@@ -241,7 +241,7 @@ private fun stepText(st: Step): String = when (st.id) {
 }
 
 @Composable
-fun EmergencyScreen(vm: MainViewModel, s: Snap, onBack: () -> Unit) {
+fun EmergencyScreen(vm: MainViewModel, s: Snap, onBack: () -> Unit, onMedicalId: () -> Unit) {
     val ctx = LocalContext.current
     val sl = vm.sl
     val scope = rememberCoroutineScope()
@@ -298,5 +298,6 @@ fun EmergencyScreen(vm: MainViewModel, s: Snap, onBack: () -> Unit) {
             BigButton(stringResource(R.string.em_done), onBack)
         }
         if (idx > 0) BigButton(stringResource(R.string.back), { idx -= 1 }, kind = Kind.Secondary)
+        BigButton(stringResource(R.string.r3_mid_title), onMedicalId, kind = Kind.Secondary)
     }
 }

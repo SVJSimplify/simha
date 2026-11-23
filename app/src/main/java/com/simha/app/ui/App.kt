@@ -23,6 +23,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.simha.app.MainViewModel
 import com.simha.app.data.Snap
+import com.simha.app.ui.meds.MedicalIdScreen
+import com.simha.app.ui.meds.MedicinesScreen
 import com.simha.app.ui.talk.TalkScreen
 import com.simha.app.ui.theme.LocalSimha
 import com.simha.app.ui.theme.SimhaTheme
@@ -78,22 +80,26 @@ private fun AppNav(vm: MainViewModel, s: Snap) {
             HomeScreen(
                 vm, s,
                 onTalk = { nav.navigate("talk/chat") },
+                onUnwell = { nav.navigate("talk/unwell") },
                 onFamily = { nav.navigate("contacts/family") },
                 onDoctor = { nav.navigate("contacts/doctor") },
                 onHelp = { nav.navigate("emergency") },
                 onSettings = { nav.navigate("settings") },
                 onProfile = { nav.navigate("profile") },
+                onMeds = { nav.navigate("meds") },
             )
         }
         composable("talk/{mode}") { e ->
             TalkScreen(
-                checkin = e.arguments?.getString("mode") == "checkin",
+                mode = e.arguments?.getString("mode") ?: "chat",
                 onBack = { if (!nav.popBackStack()) nav.navigate("home") },
                 onEmergency = { nav.navigate("emergency") },
                 onSettings = { nav.navigate("settings") },
             )
         }
-        composable("emergency") { EmergencyScreen(vm, s) { nav.popBackStack() } }
+        composable("emergency") { EmergencyScreen(vm, s, { nav.popBackStack() }, { nav.navigate("medid") }) }
+        composable("meds") { MedicinesScreen(vm) { nav.popBackStack() } }
+        composable("medid") { MedicalIdScreen(vm) { nav.popBackStack() } }
         composable("contacts/{group}") { e ->
             ContactsScreen(vm, s, e.arguments?.getString("group") ?: "family") { nav.popBackStack() }
         }
@@ -105,6 +111,8 @@ private fun AppNav(vm: MainViewModel, s: Snap) {
                 onAudit = { nav.navigate("audit") },
                 onContacts = { nav.navigate("contacts/$it") },
                 onProfile = { nav.navigate("profile") },
+                onMeds = { nav.navigate("meds") },
+                onMedicalId = { nav.navigate("medid") },
             )
         }
         composable("audit") { AuditScreen(vm) { nav.popBackStack() } }

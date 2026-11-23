@@ -44,6 +44,13 @@ private class HealthHost(private val approved: Boolean = false) : ToolHost {
     override suspend fun setReminder(text: String, minutes: Int) = "ok"
     override suspend fun updateProfileField(field: String, value: String) = "ok"
     override suspend fun rememberHealthDetail(kind: String, text: String): String { saved += kind to text; return "saved" }
+    override suspend fun medicalProfile() = com.simha.app.logic.MedicalProfile()
+    override suspend fun logDiary(update: JsonObject) = "ok"
+    override suspend fun remember(kind: String, text: String) = "ok"
+    override suspend fun takeMedicine(name: String, status: String) = "ok"
+    override suspend fun listMedicines() = JsonArray(emptyList())
+    override suspend fun familyContact(label: String?): ContactInfo? = null
+    override suspend fun playFamilyMessages() = "ok"
     override suspend fun audit(tool: String, args: String, result: String) { audits += tool }
 }
 

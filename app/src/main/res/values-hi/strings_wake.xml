@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ch_wake">सिंहा की पुकार</string>
+    <string name="wake_n_checkin">क्या आप ठीक हैं?</string>
+    <string name="wake_n_medicine">आपकी दवा का समय हो गया है</string>
+    <string name="wake_n_morning">सुप्रभात</string>
+    <string name="wake_n_evening">शुभ संध्या</string>
+    <string name="wake_n_fall">क्या आप गिर गए? क्या आप ठीक हैं?</string>
+    <string name="wake_n_night">देर रात जाग रहे हैं? क्या मैं मदद करूँ?</string>
+    <string name="wake_n_family">आपके परिवार का संदेश</string>
+    <string name="wake_n_heat">आज बहुत गर्मी है</string>
+    <string name="wake_n_tap">सिंहा से बात करने के लिए टैप करें</string>
+    <string name="wake_note_inexact">सटीक अलार्म की अनुमति न होने से पुकार थोड़ी देर से आ सकती है। सिस्टम सेटिंग में सिंहा के लिए अलार्म और रिमाइंडर की अनुमति दें।</string>
+    <string name="wake_sms_safearea">सिंहा अलर्ट: %1$s सुरक्षित क्षेत्र से बाहर हैं। कृपया उनका हाल पूछें।</string>
+</resources>

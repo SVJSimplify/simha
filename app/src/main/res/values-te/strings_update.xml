@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="upd_available">అప్‌డేట్ అందుబాటులో ఉంది: బిల్డ్ %1$d</string>
+    <string name="upd_now">ఇప్పుడే అప్‌డేట్ చేయండి</string>
+    <string name="upd_downloading">డౌన్‌లోడ్ అవుతోంది… %1$d%%</string>
+    <string name="upd_installed">అప్‌డేట్ ఇన్‌స్టాల్ అయింది. సింహ మళ్లీ ప్రారంభమవుతుంది.</string>
+    <string name="upd_retry">మళ్లీ తనిఖీ చేయండి</string>
+    <string name="upd_channel">యాప్ అప్‌డేట్‌లు</string>
+    <string name="upd_notif_title">సింహ కొత్త అప్‌డేట్ సిద్ధంగా ఉంది</string>
+    <string name="upd_err_rate">అప్‌డేట్ తనిఖీలు ఎక్కువయ్యాయి. దయచేసి తర్వాత ప్రయత్నించండి.</string>
+    <string name="upd_err_http">అప్‌డేట్ సర్వర్ లోపం (%1$d).</string>
+    <string name="upd_err_parse">అప్‌డేట్ సమాచారాన్ని చదవలేకపోయాం.</string>
+    <string name="upd_err_net">కనెక్షన్ లేదు: %1$s</string>
+    <string name="upd_err_perm">తెరుచుకున్న స్క్రీన్‌లో సింహకు అప్‌డేట్‌లు ఇన్‌స్టాల్ చేయడానికి అనుమతించి, మళ్లీ ఇప్పుడే అప్‌డేట్ చేయండి నొక్కండి.</string>
+    <string name="upd_err_empty">డౌన్‌లోడ్ చేసిన అప్‌డేట్ ఫైల్ ఖాళీగా ఉంది.</string>
+    <string name="upd_err_install">అప్‌డేట్ విఫలమైంది: %1$s</string>
+</resources>

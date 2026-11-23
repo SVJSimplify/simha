@@ -1,6 +1,7 @@
 package com.simha.app.ui
 
 import android.content.Context
+import android.os.Build
 import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -43,13 +44,16 @@ import com.simha.app.data.Repo
 import com.simha.app.data.Snap
 import com.simha.app.data.jo
 import com.simha.app.data.simhaStore
+import com.simha.app.ui.home.Oem
+import com.simha.app.ui.meds.MedicineForm
+import com.simha.app.ui.meds.showTime
 import com.simha.app.logic.Answer
 import com.simha.app.logic.Reply
 import com.simha.app.voice.VoiceIssue
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-const val OB_STEPS = 10
+const val OB_STEPS = 11
 
 class PermText(val name: Int, val short: Int, val why: Int, val no: Int)
 
@@ -133,13 +137,14 @@ fun OnboardingScreen(vm: MainViewModel, s: Snap, onDone: () -> Unit) {
         2 -> StepContacts(vm, helper, { go(1) }) { go(3) }
         3 -> StepClinic(vm, helper, { go(2) }) { go(4) }
         4, 5, 6 -> StepMedical(vm, helper, vm.obStep - 4, { go(vm.obStep - 1) }) { go(vm.obStep + 1) }
-        7 -> StepPerms(vm, helper, { go(6) }) { go(8) }
-        8 -> StepApprovals(vm, helper, answers, { k, v ->
+        7 -> StepMeds(vm, helper, { go(6) }) { go(8) }
+        8 -> StepPerms(vm, helper, { go(7) }) { go(9) }
+        9 -> StepApprovals(vm, helper, answers, { k, v ->
             val m = answers + (k to v)
             answers = m
             scope.launch { vm.sl.prefs.edit { this[OBK.ANSWERED] = m.entries.joinToString(",") { e -> e.key + ":" + (if (e.value) "1" else "0") } } }
-        }, { go(7) }) { go(9) }
-        else -> StepPractice(vm, s, { go(8) }, onDone)
+        }, { go(8) }) { go(10) }
+        else -> StepPractice(vm, s, { go(9) }, onDone)
     }
 }
 
@@ -372,31 +377,87 @@ private fun StepMedical(vm: MainViewModel, h: Boolean, kind: Int, back: () -> Un
     }
 }
 
+private class OnbPerm(
+    val key: String,
+    val t: PermText,
+    val runtime: Array<String>?,
+    val granted: (Context) -> Boolean,
+    val open: (Context, Boolean) -> Unit,
+)
+
+@Composable
+private fun StepMeds(vm: MainViewModel, h: Boolean, back: () -> Unit, next: () -> Unit) {
+    val meds by vm.medicines.collectAsState()
+    var adding by remember { mutableStateOf(false) }
+    val title = stringResource(R.string.r3_ob_meds_title)
+    val body = stringResource(if (h) R.string.r3_ob_meds_body_other else R.string.r3_ob_meds_body_self)
+    ScreenFrame(title, "$title. $body", back) {
+        Progress(7)
+        Body(body)
+        meds.forEach { m ->
+            Card {
+                Body(m.name + if (m.dose.isBlank()) "" else " " + m.dose)
+                Caption(m.times.joinToString(", ") { showTime(it) })
+                SecondaryButton(stringResource(R.string.remove), { vm.deleteMedicine(m.id) })
+            }
+        }
+        if (adding) {
+            MedicineForm(null, { vm.saveMedicine(it); adding = false }, { adding = false })
+        } else {
+            SecondaryButton(stringResource(R.string.r3_meds_add), { adding = true })
+        }
+        PrimaryButton(stringResource(R.string.next), next)
+        SecondaryButton(stringResource(R.string.skip), next)
+    }
+}
+
 @Composable
 private fun StepPerms(vm: MainViewModel, h: Boolean, back: () -> Unit, next: () -> Unit) {
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
     val list = remember {
-        listOf(Perm.Notifications, Perm.Mic, Perm.Camera, Perm.Location, Perm.Usage, Perm.FullScreen, Perm.Battery)
+        val base = listOf(Perm.Notifications, Perm.Mic, Perm.Camera, Perm.Location, Perm.Usage, Perm.FullScreen, Perm.Battery)
             .filter { Perms.available(it) }
+            .map { q -> OnbPerm(q.name, permText(q), Perms.runtime(q), { c -> Perms.granted(c, q) }, { c, r -> Perms.open(c, q, r) }) }
+        val exact = if (Build.VERSION.SDK_INT >= 31) {
+            listOf(
+                OnbPerm(
+                    "Exact", PermText(R.string.r3_pe_name, R.string.r3_pe_short, R.string.r3_pe_why, R.string.r3_pe_no), null,
+                    { c -> Oem.exactAllowed(c) }, { c, _ -> Oem.openExact(c) },
+                )
+            )
+        } else {
+            emptyList()
+        }
+        val oem = if (Oem.applicable()) {
+            listOf(
+                OnbPerm(
+                    "Oem", PermText(R.string.r3_po_name, R.string.r3_po_short, R.string.r3_po_why, R.string.r3_po_no), null,
+                    { _ -> false }, { c, _ -> Oem.open(c) },
+                )
+            )
+        } else {
+            emptyList()
+        }
+        base + exact + oem
     }
     val idx = vm.obPerm.coerceIn(0, list.size - 1)
     val p = list[idx]
-    val t = permText(p)
+    val t = p.t
     var local by remember { mutableIntStateOf(0) }
     val tick by vm.resume.collectAsState()
-    val granted = remember(tick, local, p) { Perms.granted(ctx, p) }
-    var asked by rememberSaveable(p.name) { mutableStateOf(false) }
+    val granted = remember(tick, local, p) { p.granted(ctx) }
+    var asked by rememberSaveable(p.key) { mutableStateOf(false) }
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { local += 1 }
     val name = stringResource(t.name)
-    val short = if (p == Perm.Notifications) stringResource(if (h) R.string.o_notif_short_other else R.string.o_notif_short_self) else stringResource(t.short)
+    val short = if (p.key == Perm.Notifications.name) stringResource(if (h) R.string.o_notif_short_other else R.string.o_notif_short_self) else stringResource(t.short)
     val why = stringResource(t.why)
     val advance: () -> Unit = { if (idx < list.size - 1) vm.obPerm = idx + 1 else next() }
     LaunchedEffect(p, asked, granted) {
-        if (asked) vm.sl.repo.audit("permission_" + p.name.lowercase(), jo("granted" to granted))
+        if (asked) vm.sl.repo.audit("permission_" + p.key.lowercase(), jo("granted" to granted))
     }
     ScreenFrame(name, "$name. $short $why", { if (idx > 0) vm.obPerm = idx - 1 else back() }) {
-        Progress(7)
+        Progress(8)
         Caption(stringResource(R.string.perm_of, idx + 1, list.size))
         Body(short)
         Body(why)
@@ -409,18 +470,18 @@ private fun StepPerms(vm: MainViewModel, h: Boolean, back: () -> Unit, next: () 
         if (!granted) {
             SecondaryButton(stringResource(R.string.perm_allow), {
                 asked = true
-                val r = Perms.runtime(p)
-                if (r != null) launcher.launch(r) else Perms.open(ctx, p, true)
+                val r = p.runtime
+                if (r != null) launcher.launch(r) else p.open(ctx, true)
             })
-            if (asked && Perms.runtime(p) != null) {
-                SecondaryButton(stringResource(R.string.perm_open_settings), { Perms.open(ctx, p, false) })
+            if (asked && p.runtime != null) {
+                SecondaryButton(stringResource(R.string.perm_open_settings), { p.open(ctx, false) })
             }
         }
         if (granted || asked) PrimaryButton(stringResource(R.string.next), advance)
         if (!granted) {
             Spacer(Modifier.height(16.dp))
             TextLink(stringResource(R.string.perm_not_now)) {
-                scope.launch { vm.sl.repo.audit("permission_skipped", jo("perm" to p.name)) }
+                scope.launch { vm.sl.repo.audit("permission_skipped", jo("perm" to p.key)) }
                 advance()
             }
         }
@@ -452,7 +513,7 @@ private fun StepApprovals(
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { local += 1 }
     val q = stringResource(questions[idx])
     ScreenFrame(stringResource(R.string.ob6_title), q, { if (idx > 0) vm.obApproval = idx - 1 else back() }) {
-        Progress(8)
+        Progress(9)
         Body(q)
         val yes: () -> Unit = {
             onAnswer(kind, true)
@@ -510,7 +571,7 @@ private fun StepPractice(vm: MainViewModel, s: Snap, back: () -> Unit, onDone: (
         }
     }
     ScreenFrame(title, greet, back) {
-        Progress(9)
+        Progress(10)
         Card { Body(stringResource(R.string.ci_q)) }
         if (issue == VoiceIssue.Unavailable) Body(stringResource(R.string.voice_unavailable))
         if (issue == VoiceIssue.LangMissing) Body(stringResource(R.string.voice_lang_missing))

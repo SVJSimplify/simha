@@ -25,6 +25,7 @@ import kotlinx.coroutines.runBlocking
 class ActivityService : Service() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private var job: Job? = null
+    private var fall: FallDetector? = null
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -38,6 +39,7 @@ class ActivityService : Service() {
             job = scope.launch {
                 while (isActive) {
                     try {
+                        syncFall()
                         Monitor.tick(this@ActivityService)
                     } catch (e: CancellationException) {
                         throw e
@@ -51,7 +53,29 @@ class ActivityService : Service() {
         return START_STICKY
     }
 
+    private suspend fun syncFall() {
+        val on = com.simha.app.wake.Wake.ui(this).fall
+        if (on && fall == null) {
+            fall = FallDetector(this) {
+                scope.launch {
+                    try {
+                        FallDetector.handle(this@ActivityService)
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        Log.e("Simha", "fall handling failed", e)
+                    }
+                }
+            }.also { it.start() }
+        } else if (!on && fall != null) {
+            fall?.stop()
+            fall = null
+        }
+    }
+
     override fun onDestroy() {
+        fall?.stop()
+        fall = null
         scope.cancel()
         super.onDestroy()
     }

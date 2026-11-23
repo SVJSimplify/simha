@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="upd_available">अपडेट उपलब्ध: बिल्ड %1$d</string>
+    <string name="upd_now">अभी अपडेट करें</string>
+    <string name="upd_downloading">डाउनलोड हो रहा है… %1$d%%</string>
+    <string name="upd_installed">अपडेट इंस्टॉल हो गया। सिंहा फिर से शुरू होगा।</string>
+    <string name="upd_retry">फिर जाँचें</string>
+    <string name="upd_channel">ऐप अपडेट</string>
+    <string name="upd_notif_title">सिंहा का नया अपडेट तैयार है</string>
+    <string name="upd_err_rate">अपडेट की बहुत जाँचें हो गईं। कृपया बाद में कोशिश करें।</string>
+    <string name="upd_err_http">अपडेट सर्वर में त्रुटि (%1$d)।</string>
+    <string name="upd_err_parse">अपडेट की जानकारी पढ़ी नहीं जा सकी।</string>
+    <string name="upd_err_net">कनेक्शन नहीं: %1$s</string>
+    <string name="upd_err_perm">खुली स्क्रीन में सिंहा को अपडेट इंस्टॉल करने दें, फिर दोबारा अभी अपडेट करें दबाएँ।</string>
+    <string name="upd_err_empty">डाउनलोड की गई अपडेट फ़ाइल खाली है।</string>
+    <string name="upd_err_install">अपडेट विफल: %1$s</string>
+</resources>

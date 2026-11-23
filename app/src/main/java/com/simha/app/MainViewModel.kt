@@ -11,6 +11,21 @@ import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.simha.app.data.ContactEntity
+import com.simha.app.data.DoseLog
+import com.simha.app.data.Medicine
+import com.simha.app.data.simhaStore
+import com.simha.app.ui.home.UiKeys
+import com.simha.app.ui.home.UiSettings
+import com.simha.app.ui.home.toUi
+import com.simha.app.monitor.SafeArea
+import com.simha.app.wake.Wake
+import androidx.datastore.preferences.core.MutablePreferences
+import androidx.datastore.preferences.core.edit
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.map
+import java.time.LocalDate
+import java.time.ZoneId
 import com.simha.app.data.K
 import com.simha.app.data.ProfileEntity
 import com.simha.app.data.Snap
@@ -31,6 +46,12 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     val syncError: StateFlow<String?> = sl.repo.syncError
     val route = MutableStateFlow<String?>(null)
     val resume = MutableStateFlow(0)
+    val medicines: StateFlow<List<Medicine>> = sl.guardian.medicines().stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    val doses: StateFlow<List<DoseLog>> = sl.guardian.doses(
+        LocalDate.now().minusDays(7).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+    ).stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    val ui: StateFlow<UiSettings> = app.simhaStore.data.map { it.toUi() }.stateIn(viewModelScope, SharingStarted.Eagerly, UiSettings())
+    var today by mutableStateOf(TodayState())
 
     var obStep by mutableIntStateOf(0)
     var obPerm by mutableIntStateOf(0)
@@ -164,4 +185,93 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             }
         }
     }
+
+    private fun edit(wake: Boolean, block: MutablePreferences.() -> Unit) {
+        val ctx = getApplication<Application>()
+        viewModelScope.launch {
+            ctx.simhaStore.edit { it.block() }
+            if (wake) Wake.scheduleAll(ctx)
+        }
+    }
+
+    fun setHey(on: Boolean) = edit(false) { this[UiKeys.HEY] = on }
+    fun setNightWatch(on: Boolean) = edit(true) { this[UiKeys.NIGHT_WATCH] = on }
+    fun setFall(on: Boolean) = edit(true) { this[UiKeys.FALL] = on }
+    fun setSafe(on: Boolean) = edit(true) { this[UiKeys.SAFE] = on }
+    fun setMorning(t: String) = edit(true) { this[UiKeys.MORNING] = t }
+    fun setEvening(t: String) = edit(true) { this[UiKeys.EVENING] = t }
+    fun setBlood(v: String) = edit(false) { this[UiKeys.BLOOD] = v }
+    fun setIdLock(on: Boolean) = edit(false) { this[UiKeys.ID_LOCK] = on }
+
+    suspend fun setHomeHere(): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val ok = SafeArea.setHomeHere(getApplication())
+            if (ok) sl.repo.audit("safe_area_home_set")
+            ok
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    fun saveMedicine(m: Medicine) {
+        val ctx = getApplication<Application>()
+        viewModelScope.launch {
+            try {
+                sl.guardian.saveMedicine(m)
+            } catch (e: IllegalArgumentException) {
+                return@launch
+            }
+            Wake.scheduleAll(ctx)
+        }
+    }
+
+    fun deleteMedicine(id: String) {
+        val ctx = getApplication<Application>()
+        viewModelScope.launch {
+            sl.guardian.deleteMedicine(id)
+            Wake.scheduleAll(ctx)
+        }
+    }
+
+    fun logDose(medicineId: String?, at: Long, status: String) {
+        val ctx = getApplication<Application>()
+        viewModelScope.launch {
+            try {
+                sl.guardian.logDose(medicineId, at, status)
+            } catch (e: IllegalArgumentException) {
+                return@launch
+            }
+            Wake.scheduleAll(ctx)
+        }
+    }
+
+    fun refreshToday() {
+        viewModelScope.launch {
+            val diary = sl.guardian.diaryFor(LocalDate.now())
+            val mood = diary?.data?.get("mood")?.let { (it as? kotlinx.serialization.json.JsonPrimitive)?.content }?.takeIf { it.isNotBlank() }
+            val start = LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+            val items = mutableListOf<TodayItem>()
+            val uid = try {
+                sl.remote.uid()
+            } catch (e: Exception) {
+                null
+            }
+            uid?.let { sl.repo.personView(it).getOrNull() }?.let { v ->
+                v.events.filter { it.type in setOf("checkin_ok", "checkin_missed", "help") }.forEach { e ->
+                    val t = com.simha.app.logic.TimeUtil.isoMillis(e.createdAt)
+                    if (t != null && t >= start) items += TodayItem(t, e.type, "")
+                }
+                v.calls.forEach { c ->
+                    val t = com.simha.app.logic.TimeUtil.isoMillis(c.createdAt)
+                    if (t != null && t >= start) items += TodayItem(t, "call", c.number)
+                }
+            }
+            if (diary != null && diary.summary.isNotBlank() && diary.updatedAt >= start) items += TodayItem(diary.updatedAt, "diary", diary.summary)
+            today = TodayState(mood, items.sortedByDescending { it.at })
+        }
+    }
 }
+
+data class TodayItem(val at: Long, val kind: String, val arg: String)
+
+data class TodayState(val mood: String? = null, val items: List<TodayItem> = emptyList())

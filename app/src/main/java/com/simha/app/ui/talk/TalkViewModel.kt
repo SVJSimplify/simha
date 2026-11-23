@@ -12,39 +12,55 @@ import androidx.lifecycle.viewModelScope
 import com.simha.app.Actions
 import com.simha.app.R
 import com.simha.app.SimhaApp
+import com.simha.app.data.CallResult
+import com.simha.app.data.Repo
+import com.simha.app.data.Snap
 import com.simha.app.data.jo
 import com.simha.app.forLang
 import com.simha.app.llm.Agent
 import com.simha.app.llm.ChatApi
 import com.simha.app.llm.ContactInfo
+import com.simha.app.llm.DiaryMerge
+import com.simha.app.llm.DoseSlots
+import com.simha.app.llm.Guardian
+import com.simha.app.llm.GuardianContext
 import com.simha.app.llm.HealthMemory
 import com.simha.app.llm.LlmException
+import com.simha.app.llm.MedLine
 import com.simha.app.llm.Msg
 import com.simha.app.llm.ParsedReply
 import com.simha.app.llm.ToolHost
 import com.simha.app.logic.Answer
+import com.simha.app.logic.FirstAid
+import com.simha.app.logic.MedicalProfile
 import com.simha.app.logic.Reply
 import com.simha.app.monitor.Work
-import com.simha.app.data.CallResult
-import com.simha.app.data.Repo
 import com.simha.app.voice.VoiceFail
 import com.simha.app.voice.VoiceKind
+import com.simha.app.wake.Wake
+import com.simha.app.wake.WakeReason
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonArray
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.put
 import java.io.ByteArrayOutputStream
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.ZoneId
 
 enum class TalkMode { Idle, Listening, Thinking, Speaking }
 
@@ -54,38 +70,7 @@ data class UiMsg(val res: Int, val arg: String? = null)
 
 sealed interface TalkEvent {
     data object OpenEmergency : TalkEvent
-}
-
-object Prompt {
-    fun langName(code: String): String = when (code) {
-        "hi" -> "Hindi"
-        "te" -> "Telugu"
-        "kn" -> "Kannada"
-        "ta" -> "Tamil"
-        else -> "English"
-    }
-
-    fun build(name: String, lang: String, conditions: String, medicines: String, allergies: String, doctor: String, checkin: Boolean): String {
-        val sb = StringBuilder()
-        sb.append("You are Simha, a warm companion for ").append(name).append(", who may be elderly and living alone. ")
-        sb.append("Talk like a caring friend, never like a machine.\n")
-        sb.append("- The person's language is ").append(langName(lang)).append(". Every reply must be written only in ").append(langName(lang)).append(" (in its own script), even if the person types or speaks another language, unless they ask you to switch. Use short natural spoken sentences. No lists, no markdown, no emojis.\n")
-        sb.append("- Use ").append(name).append("'s name now and then. Ask only one thing at a time. Remember what they told you earlier in this conversation.\n")
-        sb.append("- When they ask you to do something (call someone, tell family, remember something, look at something with the camera, record a message), do it straight away with your tools. Do not make them open screens or press things, unless a tool result says they must press something, such as send or call.\n")
-        sb.append("- After acting, say in plain words what you did, for example: I have told your daughter Priya. Only say you did something if the tool result confirms it. If a tool says refused or error, say so simply and kindly.\n")
-        sb.append("- When the person mentions a health condition, a medicine they take, or an allergy in passing, save it straight away with remember_health_detail (kind: condition, medicine or allergy), then confirm briefly in one short sentence, for example: I have noted that.\n")
-        sb.append("- Never mention tools, functions, JSON or anything technical.\n")
-        sb.append("- You are not a doctor. Do not diagnose and do not advise treatment. If there are danger signs, stay calm, open the emergency screen and help them call 112. Emergency decisions are not yours: a fixed rules engine handles escalation.\n")
-        sb.append("- Keep every reply brief.\n")
-        sb.append("Medical profile. Conditions: ").append(conditions.ifBlank { "none given" })
-        sb.append(". Medicines: ").append(medicines.ifBlank { "none given" })
-        sb.append(". Allergies: ").append(allergies.ifBlank { "none given" })
-        sb.append(". Doctor: ").append(doctor.ifBlank { "none given" }).append(".\n")
-        if (checkin) {
-            sb.append("This is a check-in. You just asked if they are okay. If they say they are fine, call mark_checkin_ok. If they are not, gently ask what is wrong, save it with log_symptom, and help them.\n")
-        }
-        return sb.toString()
-    }
+    data object Done : TalkEvent
 }
 
 class TalkViewModel(app: Application) : AndroidViewModel(app) {
@@ -106,25 +91,50 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
     private var job: Job? = null
     private var gen = 0
     private var started = false
+    private var reason: WakeReason? = null
+    private var extra: String? = null
+    private var unwell = false
+    private var doseLogged = false
+    private var summarized = false
+    private var startedAt = 0L
+
+    private val closesOnFine: Boolean get() = reason == WakeReason.Checkin || reason == WakeReason.Fall
 
     init {
         viewModelScope.launch { sl.recorder.recording.collect { recording = it } }
+    }
+
+    fun reset() {
+        stop()
+        summarizeOnce()
+        history.clear()
+        lines.clear()
+        started = false
+        checkedIn = false
+        doseLogged = false
+        summarized = false
+        error = null
     }
 
     fun refreshConfig() {
         configured = sl.llmStore.config().configured
     }
 
-    fun begin(checkin: Boolean) {
+    fun begin(reason: WakeReason?, extra: String?, unwell: Boolean = false) {
         if (started) return
         started = true
-        checkinMode = checkin
+        startedAt = System.currentTimeMillis()
+        this.reason = reason
+        this.extra = extra
+        this.unwell = unwell
+        checkinMode = reason == WakeReason.Checkin
         refreshConfig()
         restart(null, true)
     }
 
     fun tapMic() {
         if (mode == TalkMode.Listening) return
+        Wake.noteReply()
         refreshConfig()
         restart(null, false)
     }
@@ -132,6 +142,7 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
     fun submitText(t: String) {
         val s = t.trim()
         if (s.isEmpty()) return
+        Wake.noteReply()
         refreshConfig()
         restart(s, false)
     }
@@ -148,6 +159,7 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun fine() {
+        Wake.noteReply()
         viewModelScope.launch {
             val ctx = getApplication<Application>()
             val snap = sl.prefs.snap()
@@ -160,6 +172,7 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun help() {
+        Wake.noteReply()
         viewModelScope.launch {
             sl.repo.logEvent("help", jo("source" to "checkin_button"))
             events.emit(TalkEvent.OpenEmergency)
@@ -169,6 +182,7 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
     fun camera() {
         refreshConfig()
         if (!configured) return
+        Wake.noteReply()
         gen++
         job?.cancel()
         sl.voice.stopSpeaking()
@@ -213,12 +227,7 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
             try {
                 val snap = sl.prefs.snap()
                 val lc = getApplication<Application>().forLang(snap.lang)
-                if (greet && checkinMode) {
-                    val g = lc.getString(R.string.ci_greet, snap.name)
-                    lines += ChatLine(false, g)
-                    mode = TalkMode.Speaking
-                    sl.voice.say(g, snap.lang)
-                }
+                if (greet) opening(snap, lc)
                 conversation(initial, snap.lang, lc)
             } catch (e: CancellationException) {
                 throw e
@@ -230,10 +239,47 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    private suspend fun opening(snap: Snap, lc: android.content.Context) {
+        val r = reason
+        val text = when {
+            r != null -> {
+                val plan = if (r == WakeReason.Morning) planText() else null
+                val unplayed = if (r == WakeReason.Morning) unplayedCount() else 0
+                Guardian.openingLine(lc, r, snap.name, if (r == WakeReason.Medicine) extra else null, plan, unplayed)
+            }
+            unwell -> lc.getString(R.string.gd_open_unwell, snap.name)
+            else -> return
+        }
+        lines += ChatLine(false, text)
+        history += Msg.assistant(text)
+        mode = TalkMode.Speaking
+        sl.voice.say(text, snap.lang)
+    }
+
+    private suspend fun planText(): String? {
+        val now = System.currentTimeMillis()
+        val zone = ZoneId.systemDefault()
+        val items = sl.guardian.medicines().first().filter { it.active }.flatMap { m ->
+            DoseSlots.slotsToday(m.times, now, zone).filter { it.second > now }.map { (label, at) -> at to (m.name + " " + label) }
+        }.sortedBy { it.first }.map { it.second }
+        return items.take(6).joinToString(", ").ifBlank { null }
+    }
+
+    private suspend fun unplayedCount(): Int =
+        withTimeoutOrNull(4000) { sl.guardian.fetchFamilyMessages().getOrNull()?.count { !it.played } } ?: 0
+
     private fun canListen(): Boolean = Actions.has(getApplication<Application>(), android.Manifest.permission.RECORD_AUDIO)
 
+    private fun finishUp() {
+        events.tryEmit(TalkEvent.Done)
+        summarizeOnce()
+    }
+
     private suspend fun conversation(initial: String?, lang: String, lc: android.content.Context) {
-        if (!configured && !checkinMode && initial == null) return
+        if (!configured && !checkinMode && initial == null) {
+            if (reason != null) finishUp()
+            return
+        }
         var next = initial
         var silent = 0
         while (currentCoroutineContext().isActive) {
@@ -257,7 +303,12 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
                         VoiceKind.NoSpeech -> {
                             silent++
                             if (silent >= 3) {
-                                error = UiMsg(R.string.talk_silent)
+                                if (reason != null) {
+                                    if (reason == WakeReason.Checkin) sl.repo.audit("checkin_no_reply", jo("source" to "conversation"))
+                                    finishUp()
+                                } else {
+                                    error = UiMsg(R.string.talk_silent)
+                                }
                                 return
                             }
                             continue
@@ -275,15 +326,24 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
                 silent = 0
                 text = heard
             }
+            Wake.noteReply()
             if (Reply.isStop(text)) {
                 val b = lc.getString(R.string.talk_bye)
                 lines += ChatLine(false, b)
                 mode = TalkMode.Speaking
                 sl.voice.say(b, lang)
+                finishUp()
                 return
             }
             lines += ChatLine(true, text)
-            if (!handle(text, lang, lc)) return
+            if (!handle(text, lang, lc)) {
+                if (checkedIn && closesOnFine) finishUp()
+                return
+            }
+            if ((closesOnFine && checkedIn) || (reason == WakeReason.Medicine && doseLogged)) {
+                finishUp()
+                return
+            }
         }
     }
 
@@ -314,19 +374,47 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
                 }
             }
         }
+        if (closesOnFine && !checkedIn && Reply.classify(text) == Answer.Fine && FirstAid.match(text) == null) {
+            sl.repo.checkinOk()
+            checkedIn = true
+        }
         history += Msg.user(text)
         return respond(lang, lc)
+    }
+
+    private suspend fun guardianContext(snap: Snap, lang: String): GuardianContext {
+        val p = sl.repo.profileNow()
+        val g = sl.guardian
+        val zone = ZoneId.systemDefault()
+        val now = System.currentTimeMillis()
+        val today = LocalDate.now()
+        val dayStart = today.atStartOfDay(zone).toInstant().toEpochMilli()
+        val logs = g.doses(dayStart).first()
+        val meds = g.medicines().first().filter { it.active }.map { MedLine(it.name, it.dose, it.times, DoseSlots.status(it, logs, now, zone)) }
+        val mem = g.memories(15).map { if (it.kind == "summary") "Earlier conversation: " + it.text else it.text }
+        fun diary(d: com.simha.app.data.Diary?) = d?.let { it.summary.ifBlank { DiaryMerge.summary(it.data) } }.orEmpty()
+        val t = LocalTime.now()
+        return GuardianContext(
+            name = snap.name,
+            language = lang,
+            profile = MedicalProfile(p.conditions, p.medicines, p.allergies),
+            doctor = listOf(p.doctorName, p.doctorPhone).filter { it.isNotBlank() }.joinToString(" "),
+            medicines = meds,
+            memories = mem,
+            todayDiary = diary(g.diaryFor(today)),
+            yesterdayDiary = diary(g.diaryFor(today.minusDays(1))),
+            timeOfDay = Guardian.timeOfDay(t.hour, t.minute),
+            reason = reason,
+            extra = extra,
+            unwell = unwell,
+        )
     }
 
     private suspend fun respond(lang: String, lc: android.content.Context): Boolean {
         mode = TalkMode.Thinking
         val cfg = sl.llmStore.config()
-        val p = sl.repo.profileNow()
         val snap = sl.prefs.snap()
-        val system = Prompt.build(
-            snap.name, lang, p.conditions, p.medicines, p.allergies,
-            listOf(p.doctorName, p.doctorPhone).filter { it.isNotBlank() }.joinToString(" "), checkinMode,
-        )
+        val system = Guardian.systemPrompt(guardianContext(snap, lang))
         val api = object : ChatApi {
             override suspend fun chat(messages: JsonArray, tools: JsonArray, onDelta: (String) -> Unit): ParsedReply =
                 sl.llm.chat(cfg, messages, tools, onDelta)
@@ -364,6 +452,25 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    private fun summarizeOnce() {
+        if (summarized) return
+        summarized = true
+        if (!configured || lines.count { it.fromUser } < 2) return
+        val transcript = lines.joinToString("\n") { (if (it.fromUser) "Person: " else "Simha: ") + it.text }.take(6000)
+        val s = sl
+        appScope.launch {
+            try {
+                val r = s.llm.complete(s.llmStore.config(), Guardian.summaryMessages(transcript), null)
+                val t = r.content?.trim().orEmpty().take(300)
+                if (t.isNotEmpty()) s.guardian.addMemory("summary", t)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                runCatching { s.repo.audit("summary_failed", jo("reason" to (e.message ?: ""))) }
+            }
+        }
+    }
+
     private suspend fun requestPhoto(): Bitmap? {
         val d = CompletableDeferred<Bitmap?>()
         cameraRequest.value = d
@@ -396,12 +503,16 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
     override fun onCleared() {
         sl.voice.stopSpeaking()
         sl.voice.cancelListening()
+        summarizeOnce()
         super.onCleared()
     }
 
     private inner class Host(val lang: String, val lc: android.content.Context) : ToolHost {
         private val app = getApplication<Application>()
         private val repo = sl.repo
+        private val g = sl.guardian
+
+        private fun dayStart(): Long = LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
 
         override suspend fun getProfile(): JsonObject {
             val p = repo.profileNow()
@@ -531,8 +642,82 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
             return "Saved to the health profile."
         }
 
+        override suspend fun medicalProfile(): MedicalProfile {
+            val p = repo.profileNow()
+            val names = g.medicines().first().filter { it.active }.joinToString(", ") { it.name }
+            return MedicalProfile(p.conditions, listOf(p.medicines, names).filter { it.isNotBlank() }.joinToString(", "), p.allergies)
+        }
+
+        override suspend fun logDiary(update: JsonObject): String {
+            val day = LocalDate.now()
+            val merged = DiaryMerge.withDerived(DiaryMerge.merge(g.diaryFor(day)?.data, update))
+            g.upsertDiary(day, merged, DiaryMerge.summary(merged))
+            return "Saved to today's diary."
+        }
+
+        override suspend fun remember(kind: String, text: String): String =
+            if (g.addMemory(kind, text)) "Remembered." else "Already remembered."
+
+        override suspend fun takeMedicine(name: String, status: String): String {
+            val n = name.trim().lowercase()
+            val meds = g.medicines().first().filter { it.active }
+            val m = meds.firstOrNull { it.name.lowercase() == n }
+                ?: meds.firstOrNull { it.name.lowercase().contains(n) || n.contains(it.name.lowercase()) }
+                ?: throw IllegalArgumentException("No medicine with that name is on the list")
+            val now = System.currentTimeMillis()
+            val logs = g.doses(dayStart()).first().filter { it.medicineId == m.id }
+            var at = DoseSlots.pick(m.times, logs, now, ZoneId.systemDefault())
+            if (reason == WakeReason.Medicine) at = maxOf(at, startedAt)
+            g.logDose(m.id, at, status)
+            if (status == "taken") doseLogged = true
+            return "Recorded: " + m.name + " " + status + "."
+        }
+
+        override suspend fun listMedicines(): JsonArray {
+            val now = System.currentTimeMillis()
+            val zone = ZoneId.systemDefault()
+            val logs = g.doses(dayStart()).first()
+            return buildJsonArray {
+                g.medicines().first().filter { it.active }.forEach { m ->
+                    add(
+                        jo(
+                            "name" to m.name, "dose" to m.dose,
+                            "times" to JsonArray(m.times.map { JsonPrimitive(it) }),
+                            "today" to DoseSlots.status(m, logs, now, zone),
+                        )
+                    )
+                }
+            }
+        }
+
+        override suspend fun familyContact(label: String?): ContactInfo? {
+            val fam = repo.contactsNow().filter { it.role in Repo.FAMILY_ROLES }.sortedByDescending { it.approved }
+            val l = label?.trim()?.lowercase().orEmpty()
+            val c = if (l.isEmpty()) fam.firstOrNull() else fam.firstOrNull { it.name.lowercase().contains(l) || l.contains(it.name.lowercase()) || it.role.lowercase() == l }
+            return c?.let { ContactInfo(it.name, it.phone, it.role, it.approved) }
+        }
+
+        override suspend fun playFamilyMessages(): String {
+            val all = g.fetchFamilyMessages().getOrElse { return "Could not reach the server to get the messages." }
+            val un = all.filter { !it.played }.reversed()
+            if (un.isEmpty()) return "There are no new family messages."
+            sl.voice.stopSpeaking()
+            var n = 0
+            for (m in un) {
+                val bytes = g.downloadFamilyMessage(m.storageRef).getOrNull() ?: continue
+                sl.voice.playAudio(bytes)
+                g.markPlayed(m.id)
+                n++
+            }
+            return if (n == un.size) "Played $n family message(s)." else "Played $n of ${un.size} family message(s). The rest could not be loaded."
+        }
+
         override suspend fun audit(tool: String, args: String, result: String) {
             repo.audit("tool_$tool", jo("args" to args.take(500), "result" to result.take(300)))
         }
+    }
+
+    companion object {
+        private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     }
 }

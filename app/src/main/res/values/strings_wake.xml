@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ch_wake">Simha wake-ups</string>
+    <string name="wake_n_checkin">Are you okay?</string>
+    <string name="wake_n_medicine">Time for your medicine</string>
+    <string name="wake_n_morning">Good morning</string>
+    <string name="wake_n_evening">Good evening</string>
+    <string name="wake_n_fall">Did you fall? Are you okay?</string>
+    <string name="wake_n_night">Awake late? Can I help?</string>
+    <string name="wake_n_family">A message from your family</string>
+    <string name="wake_n_heat">It is very hot today</string>
+    <string name="wake_n_tap">Tap to talk to Simha</string>
+    <string name="wake_note_inexact">Wake-ups may come a little late because exact alarms are not allowed. Allow alarms and reminders for Simha in system settings.</string>
+    <string name="wake_sms_safearea">Simha alert: %1$s is outside the safe area. Please check on them.</string>
+</resources>

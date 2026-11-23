@@ -1,6 +1,23 @@
 package com.simha.app.ui
 
+import android.Manifest
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.ui.platform.LocalContext
+import com.simha.app.Actions
+import com.simha.app.data.Diary
+import com.simha.app.data.DoseLog
+import com.simha.app.data.FamilyMessage
+import com.simha.app.ui.home.MsgRecorder
+import com.simha.app.ui.home.dayStats
+import com.simha.app.ui.home.weekStats
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
+import java.time.LocalDate
+import java.time.ZoneId
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -60,11 +77,102 @@ fun CaregiverSetupScreen(vm: MainViewModel, s: Snap, onDone: () -> Unit) {
     }
 }
 
+private enum class RecPhase { Idle, Recording, Ready }
+
+@Composable
+private fun VoiceMessageCard(vm: MainViewModel, s: Snap, sent: List<FamilyMessage>, onSent: () -> Unit) {
+    val ctx = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val rec = remember { MsgRecorder(ctx) }
+    DisposableEffect(Unit) { onDispose { rec.discard() } }
+    var phase by remember { mutableStateOf(RecPhase.Idle) }
+    var secs by remember { mutableStateOf(0) }
+    var playing by remember { mutableStateOf(false) }
+    var busy by remember { mutableStateOf(false) }
+    var msg by remember { mutableStateOf<String?>(null) }
+    val micNeeded = stringResource(R.string.r3_cg_mic_needed)
+    val family = stringResource(R.string.r3_cg_family_name)
+    val sentOk = stringResource(R.string.r3_cg_rec_sent)
+    val finish: () -> Unit = {
+        phase = if (rec.stop()) RecPhase.Ready else RecPhase.Idle
+    }
+    val begin: () -> Unit = {
+        rec.start { finish() }.fold(
+            { phase = RecPhase.Recording; secs = 0; msg = null },
+            { msg = ctx.getString(R.string.r3_cg_rec_error, it.message ?: it.javaClass.simpleName) },
+        )
+    }
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { ok ->
+        if (ok) begin() else msg = micNeeded
+    }
+    LaunchedEffect(phase) {
+        while (phase == RecPhase.Recording) {
+            delay(1000L)
+            secs += 1
+        }
+    }
+    Card {
+        Body(stringResource(R.string.r3_cg_msg_title))
+        when (phase) {
+            RecPhase.Idle -> PrimaryButton(stringResource(R.string.r3_cg_rec), {
+                if (Actions.has(ctx, Manifest.permission.RECORD_AUDIO)) begin() else launcher.launch(Manifest.permission.RECORD_AUDIO)
+            })
+            RecPhase.Recording -> {
+                Caption(stringResource(R.string.r3_cg_rec_recording, secs))
+                PrimaryButton(stringResource(R.string.r3_cg_rec_stop), finish)
+            }
+            RecPhase.Ready -> {
+                SecondaryButton(
+                    stringResource(if (playing) R.string.r3_cg_rec_stop else R.string.r3_cg_rec_preview),
+                    {
+                        if (playing) {
+                            rec.stopPlay()
+                            playing = false
+                        } else {
+                            playing = rec.play { playing = false }
+                        }
+                    },
+                )
+                PrimaryButton(stringResource(R.string.r3_cg_rec_send), {
+                    val f = rec.file
+                    val id = s.personId
+                    if (f != null && id != null && !busy) {
+                        busy = true
+                        scope.launch {
+                            val bytes = withContext(Dispatchers.IO) { runCatching { f.readBytes() } }
+                            bytes.fold(
+                                { b ->
+                                    vm.sl.guardian.sendFamilyMessage(id, s.name.ifBlank { family }, b).fold(
+                                        { rec.discard(); phase = RecPhase.Idle; playing = false; msg = sentOk; onSent() },
+                                        { msg = ctx.getString(R.string.r3_cg_rec_failed, it.message ?: it.javaClass.simpleName) },
+                                    )
+                                },
+                                { msg = ctx.getString(R.string.r3_cg_rec_failed, it.message ?: it.javaClass.simpleName) },
+                            )
+                            busy = false
+                        }
+                    }
+                }, enabled = !busy)
+                SecondaryButton(stringResource(R.string.r3_cg_rec_discard), { rec.discard(); phase = RecPhase.Idle; playing = false })
+            }
+        }
+        msg?.let { Body(it) }
+        Caption(stringResource(R.string.r3_cg_sent_title))
+        if (sent.isEmpty()) Caption(stringResource(R.string.r3_cg_sent_none))
+        sent.take(10).forEach {
+            Caption(shortTime(it.createdAt) + "  " + stringResource(if (it.played) R.string.r3_cg_played else R.string.r3_cg_not_played))
+        }
+    }
+}
+
 @Composable
 fun CaregiverHomeScreen(vm: MainViewModel, s: Snap, onSwitch: () -> Unit) {
     val scope = rememberCoroutineScope()
     var view by remember { mutableStateOf<PersonView?>(null) }
     var err by remember { mutableStateOf<String?>(null) }
+    var doses by remember { mutableStateOf<List<DoseLog>>(emptyList()) }
+    var diaries by remember { mutableStateOf<List<Diary>>(emptyList()) }
+    var sent by remember { mutableStateOf<List<FamilyMessage>>(emptyList()) }
     val reload: () -> Unit = {
         val id = s.personId
         if (id != null) {
@@ -73,6 +181,12 @@ fun CaregiverHomeScreen(vm: MainViewModel, s: Snap, onSwitch: () -> Unit) {
                     { view = it; err = null },
                     { err = it.message ?: it.javaClass.simpleName },
                 )
+            }
+            scope.launch {
+                val since = LocalDate.now().minusDays(6).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+                vm.sl.guardian.dosesFor(id, since).fold({ doses = it }, { err = it.message ?: it.javaClass.simpleName })
+                vm.sl.guardian.diaryFor(id, 7).fold({ diaries = it }, { err = it.message ?: it.javaClass.simpleName })
+                vm.sl.guardian.sentFamilyMessages(id).fold({ sent = it }, { err = it.message ?: it.javaClass.simpleName })
             }
         }
     }
@@ -86,6 +200,31 @@ fun CaregiverHomeScreen(vm: MainViewModel, s: Snap, onSwitch: () -> Unit) {
         err?.let { Body(stringResource(R.string.sync_error, it), color = MaterialTheme.colorScheme.error) }
         Card { Body(stringResource(R.string.cg_last, agoText(TimeUtil.ago(now, lastOk)))) }
         if (v != null) {
+            val zone = ZoneId.systemDefault()
+            val today = LocalDate.now()
+            val d = dayStats(v.events, doses, diaries.firstOrNull { it.day == today }, today, zone)
+            val w = weekStats(v.events, doses, diaries, today, zone)
+            val noData = stringResource(R.string.r3_cg_none_data)
+            Card {
+                Body(stringResource(R.string.r3_cg_summary))
+                Caption(stringResource(R.string.r3_cg_mood, d.mood ?: noData))
+                Caption(stringResource(R.string.r3_cg_checkins, d.fine, d.missed))
+                Caption(stringResource(R.string.r3_cg_doses, d.taken, d.dosesMissed))
+                if (d.summary.isNotBlank()) {
+                    Caption(stringResource(R.string.r3_cg_diary))
+                    Body(d.summary)
+                }
+            }
+            Card {
+                Body(stringResource(R.string.r3_cg_week))
+                Caption(w.dosePct?.let { stringResource(R.string.r3_cg_week_doses, it) } ?: noData)
+                Caption(stringResource(R.string.r3_cg_week_missed, w.missedCheckins))
+                Caption(stringResource(R.string.r3_cg_week_mood, w.avgMood ?: noData))
+                Caption(stringResource(R.string.r3_cg_week_activity))
+                if (w.notes.isEmpty()) Caption(noData)
+                w.notes.forEach { Body(it) }
+            }
+            VoiceMessageCard(vm, s, sent, reload)
             val alerts = v.events.filter { it.type == "alert" || it.type == "checkin_missed" || it.type == "help" }
             Card {
                 Body(stringResource(R.string.cg_alerts))

@@ -12,7 +12,21 @@ import com.simha.app.logic.Approvals
 import com.simha.app.logic.Decision
 import com.simha.app.logic.Rules
 import com.simha.app.logic.RulesEngine
+import com.simha.app.logic.NightState
+import com.simha.app.logic.Routine
 import com.simha.app.voice.Escalation
+import com.simha.app.data.Weather
+import com.simha.app.wake.RoutineStore
+import com.simha.app.wake.Wake
+import com.simha.app.wake.WakeReason
+import com.simha.app.wake.WakeRequest
+import com.simha.app.wake.WakeStore
+import android.os.PowerManager
+import android.util.Log
+import kotlinx.coroutines.CancellationException
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.ZoneId
 import com.simha.app.Actions
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -51,14 +65,76 @@ object Monitor {
             Decision.None -> Unit
             Decision.PromptCheckin -> {
                 sl.prefs.edit { this[K.LAST_PROMPT] = now }
+                if (!Wake.fire(ctx, WakeRequest(WakeReason.Checkin))) sl.repo.audit("notification_blocked", jo("kind" to "checkin"))
                 sl.repo.logEvent("checkin", jo("usage_access" to usageOk))
-                if (!Notifier.checkin(lc, p.name)) sl.repo.audit("notification_blocked", jo("kind" to "checkin"))
             }
             Decision.EscalateCallFamily, Decision.AlertFamily -> if (p.escalatedFor != p.lastPrompt) {
                 sl.prefs.edit { this[K.ESCALATED_FOR] = p.lastPrompt }
                 escalate(ctx, lc, sl.repo, p, d, now)
             }
         }
+        aux(ctx, sl, usage, usageOk, now)
+    }
+
+    suspend fun markPrompt(ctx: Context, now: Long) {
+        val sl = (ctx.applicationContext as SimhaApp).sl
+        val p = sl.prefs.snap()
+        if (p.lastPrompt > p.lastActivity) return
+        sl.prefs.edit { this[K.LAST_PROMPT] = now }
+    }
+
+    private suspend fun step(name: String, block: suspend () -> Unit) {
+        try {
+            block()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.w("Simha", "monitor step $name failed", e)
+        }
+    }
+
+    private suspend fun aux(ctx: Context, sl: com.simha.app.ServiceLocator, usage: Long?, usageOk: Boolean, now: Long) {
+        val zone = ZoneId.systemDefault()
+        val pm = ctx.getSystemService(PowerManager::class.java)
+        step("routine") {
+            if (usage != null) RoutineStore.record(ctx, usage, now)
+            if (pm?.isInteractive == true) RoutineStore.record(ctx, now, now)
+        }
+        step("early") { if (usageOk) earlyCheckin(ctx, sl, now, zone) }
+        step("night") { nightWatch(ctx, pm?.isInteractive == true, now, zone) }
+        step("family") { Wake.pollFamily(ctx) }
+        step("weather") { Weather.refreshIfDue(ctx) }
+        step("safe") { SafeArea.check(ctx) }
+        step("wake") { Wake.refresh(ctx) }
+    }
+
+    private suspend fun earlyCheckin(ctx: Context, sl: com.simha.app.ServiceLocator, now: Long, zone: ZoneId) {
+        val today = LocalDate.now(zone)
+        val by = Routine.learn(RoutineStore.load(ctx), now, zone).expectedActiveBy(today, zone) ?: return
+        val p = sl.prefs.snap()
+        if (now < by || p.lastActivity >= Routine.dayStart(today, zone) || p.lastPrompt > p.lastActivity) return
+        if (WakeStore.str(ctx, "early_day") == today.toString()) return
+        WakeStore.put(ctx, "early_day" to today.toString())
+        sl.prefs.edit { this[K.LAST_PROMPT] = now }
+        if (!Wake.fire(ctx, WakeRequest(WakeReason.Checkin, "No phone activity yet today, well past the usual wake-up time."))) {
+            sl.repo.audit("notification_blocked", jo("kind" to "early_checkin"))
+        }
+        sl.repo.logEvent("checkin", jo("early" to true))
+    }
+
+    private suspend fun nightWatch(ctx: Context, interactive: Boolean, now: Long, zone: ZoneId) {
+        if (!Wake.ui(ctx).nightWatch) return
+        val dt = LocalDateTime.ofInstant(java.time.Instant.ofEpochMilli(now), zone)
+        val day = dt.toLocalDate().toString()
+        val s = NightState(
+            WakeStore.str(ctx, "night_day").orEmpty(),
+            WakeStore.long(ctx, "night_ms"),
+            WakeStore.bool(ctx, "night_fired"),
+            WakeStore.long(ctx, "night_tick"),
+        )
+        val (n, fire) = Routine.nightStep(s, day, Routine.inNightWindow(dt.toLocalTime()), interactive, now)
+        WakeStore.put(ctx, "night_day" to n.day, "night_ms" to n.ms, "night_fired" to n.fired, "night_tick" to n.lastTick)
+        if (fire) Wake.fire(ctx, WakeRequest(WakeReason.NightWatch, "The phone has been in use for over five minutes in the middle of the night. Gently ask if the user cannot sleep or needs anything."))
     }
 
     private suspend fun escalate(ctx: Context, lc: Context, repo: Repo, p: Snap, d: Decision, now: Long) {

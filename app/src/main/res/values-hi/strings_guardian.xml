@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="gd_open_checkin">नमस्ते %1$s, आप अभी कैसा महसूस कर रहे हैं?</string>
+    <string name="gd_open_medicine">%1$s, आपकी %2$s लेने का समय हो गया है। क्या आपने ले ली?</string>
+    <string name="gd_open_medicine_generic">%1$s, आपकी दवा लेने का समय हो गया है। क्या आपने ले ली?</string>
+    <string name="gd_open_morning">सुप्रभात, %1$s! उम्मीद है आप अच्छी तरह सोए।</string>
+    <string name="gd_open_plan">आज आपके लिए: %1$s।</string>
+    <plurals name="gd_open_msgs">
+        <item quantity="one">आपके परिवार की ओर से %1$d नया संदेश है। क्या मैं इसे सुनाऊँ?</item>
+        <item quantity="other">आपके परिवार की ओर से %1$d नए संदेश हैं। क्या मैं इन्हें सुनाऊँ?</item>
+    </plurals>
+    <string name="gd_open_evening">शुभ संध्या, %1$s। आपका दिन कैसा रहा? बताइए, आज आपने क्या किया।</string>
+    <string name="gd_open_fall">%1$s, क्या आप गिर गए? क्या आपको चोट लगी है?</string>
+    <string name="gd_open_night">%1$s, लगता है आप जाग रहे हैं। सब ठीक है न? क्या आपको कुछ चाहिए?</string>
+    <string name="gd_open_family">%1$s, %2$s की ओर से आपके लिए नया संदेश है। क्या मैं सुनाऊँ?</string>
+    <string name="gd_open_family_generic">%1$s, आपके परिवार की ओर से नया संदेश आया है। क्या मैं सुनाऊँ?</string>
+    <string name="gd_open_heat">%1$s, आज बहुत गर्मी है। कृपया थोड़ा पानी पीजिए। क्या आपने हाल में पानी पिया?</string>
+    <string name="gd_wakeword_title">\"हे सिम्हा\" कहकर बात शुरू करें</string>
+    <string name="gd_wakeword_hint">जब सिम्हा स्क्रीन पर खुली हो, तब वह \"हे सिम्हा\" सुनती है। उस समय माइक्रोफ़ोन चालू रहता है। शुरू में बंद रहता है।</string>
+    <string name="gd_wakeword_needs_mic">\"हे सिम्हा\" के लिए माइक्रोफ़ोन की अनुमति दें।</string>
+    <string name="gd_open_unwell">%1$s, मैं आपके साथ हूँ। बताइए क्या हुआ है। आप कैसा महसूस कर रहे हैं?</string>
+</resources>
