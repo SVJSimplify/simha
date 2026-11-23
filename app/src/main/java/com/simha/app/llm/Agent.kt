@@ -1,5 +1,8 @@
 package com.simha.app.llm
 
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 
@@ -17,6 +20,8 @@ object Agent {
         host: ToolHost,
         onSentence: (String) -> Unit,
         onToolStart: () -> Unit,
+        slowMs: Long = 2500,
+        onSlow: () -> Unit = {},
     ): String {
         repeat(MAX_STEPS) {
             var buf = ""
@@ -36,8 +41,22 @@ object Agent {
             }
             history += Msg.assistantCalls(r.content, r.toolCalls)
             onToolStart()
-            r.toolCalls.forEach { history += Msg.tool(it.id, SimhaTools.dispatch(it.name, it.arguments, host)) }
+            r.toolCalls.forEach { c ->
+                history += Msg.tool(c.id, timed(slowMs, onSlow) { SimhaTools.dispatch(c.name, c.arguments, host) })
+            }
         }
         throw LlmException("Too many tool steps without an answer")
+    }
+
+    private suspend fun <T> timed(ms: Long, onSlow: () -> Unit, f: suspend () -> T): T = coroutineScope {
+        val t = launch {
+            delay(ms)
+            onSlow()
+        }
+        try {
+            f()
+        } finally {
+            t.cancel()
+        }
     }
 }

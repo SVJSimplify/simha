@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="r4c_tab_home">హోమ్</string>
+    <string name="r4c_tab_health">ఆరోగ్యం</string>
+    <string name="r4c_tab_settings">సెట్టింగ్‌లు</string>
+    <string name="r4c_tap_talk">మాట్లాడడానికి తాకండి</string>
+    <string name="r4c_add_meds">మీ మందులను జోడించండి</string>
+    <string name="r4c_s_me">నేను</string>
+    <string name="r4c_s_people">నా వాళ్లు</string>
+    <string name="r4c_s_checkins">చెక్-ఇన్‌లు</string>
+    <string name="r4c_s_privacy">గోప్యత</string>
+    <string name="r4c_s_about">గురించి</string>
+</resources>

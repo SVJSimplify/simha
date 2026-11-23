@@ -6,6 +6,11 @@ import com.simha.app.logic.MedicalProfile
 import com.simha.app.voice.Langs
 import com.simha.app.wake.WakeReason
 import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.contentOrNull
+import java.time.LocalDate
+import java.time.LocalTime
 
 data class MedLine(val name: String, val dose: String, val times: List<String>, val status: String)
 
@@ -22,7 +27,22 @@ data class GuardianContext(
     val reason: WakeReason? = null,
     val extra: String? = null,
     val unwell: Boolean = false,
-)
+    val asked: Set<String> = emptySet(),
+    val hook: String? = null,
+) {
+    val hasMedicines: Boolean get() = medicines.isNotEmpty() || profile.medicines.isNotBlank()
+
+    fun known(): Known = Known(
+        medicines = hasMedicines,
+        newPerson = "intro" !in asked && !hasMedicines && profile.conditions.isBlank() && profile.allergies.isBlank() &&
+            doctor.isBlank() && memories.isEmpty() && todayDiary.isBlank() && yesterdayDiary.isBlank(),
+        asked = asked,
+    )
+}
+
+data class Known(val medicines: Boolean = true, val newPerson: Boolean = false, val asked: Set<String> = emptySet())
+
+enum class Open { Checkin, Medicine, Morning, Evening, Fall, Night, Family, FamilyGeneric, Heat, Intro, AskMedicines, None }
 
 object Guardian {
     fun timeOfDay(hour: Int, minute: Int): String {
@@ -33,6 +53,28 @@ object Guardian {
             else -> "night"
         }
         return part + ", " + "%02d:%02d".format(hour, minute)
+    }
+
+    fun variant(seed: Int, n: Int): Int = Math.floorMod(seed, n)
+
+    fun seed(): Int = LocalDate.now().dayOfYear * 24 + LocalTime.now().hour
+
+    fun hookFrom(data: JsonObject?): String? =
+        (data?.get("pain") as? JsonPrimitive)?.contentOrNull?.trim()?.takeIf { it.isNotEmpty() && !it.equals("none", true) && !it.equals("no", true) }?.take(60)
+
+    fun openingKey(reason: WakeReason?, k: Known = Known(), medicine: String? = null, sender: String? = null): Open {
+        val ask = !k.medicines && "medicines" !in k.asked
+        return when (reason) {
+            null -> if (k.newPerson) Open.Intro else if (ask) Open.AskMedicines else Open.None
+            WakeReason.Checkin -> Open.Checkin
+            WakeReason.Medicine -> if (medicine.isNullOrBlank()) Open.Checkin else Open.Medicine
+            WakeReason.Morning -> if (k.newPerson) Open.Intro else if (ask) Open.AskMedicines else Open.Morning
+            WakeReason.Evening -> Open.Evening
+            WakeReason.Fall -> Open.Fall
+            WakeReason.NightWatch -> Open.Night
+            WakeReason.FamilyMessage -> if (sender.isNullOrBlank()) Open.FamilyGeneric else Open.Family
+            WakeReason.Heat -> Open.Heat
+        }
     }
 
     private fun reasonText(r: WakeReason, extra: String?): String = when (r) {
@@ -92,24 +134,34 @@ object Guardian {
         return sb.toString()
     }
 
-    fun openingLine(lc: Context, reason: WakeReason, name: String, medicine: String? = null, plan: String? = null, unplayed: Int = 0, sender: String? = null): String {
+    fun openingLine(
+        lc: Context, reason: WakeReason?, name: String, medicine: String? = null, plan: String? = null, unplayed: Int = 0, sender: String? = null,
+        known: Known = Known(), hook: String? = null, seed: Int = seed(),
+    ): String {
         val r = lc.resources
-        return when (reason) {
-            WakeReason.Checkin -> lc.getString(R.string.gd_open_checkin, name)
-            WakeReason.Medicine ->
-                if (medicine.isNullOrBlank()) lc.getString(R.string.gd_open_medicine_generic, name) else lc.getString(R.string.gd_open_medicine, name, medicine)
-            WakeReason.Morning -> {
-                val sb = StringBuilder(lc.getString(R.string.gd_open_morning, name))
+        fun pick(id: Int, vararg a: Any): String {
+            val v = r.getStringArray(id)
+            return v[variant(seed, v.size)].format(*a)
+        }
+        return when (openingKey(reason, known, medicine, sender)) {
+            Open.Checkin -> pick(R.array.r4b_o_checkin, name)
+            Open.Medicine -> pick(R.array.r4b_o_medicine, name, medicine.orEmpty())
+            Open.Morning -> {
+                val sb = StringBuilder(pick(R.array.r4b_o_morning, name))
                 if (!plan.isNullOrBlank()) sb.append(" ").append(lc.getString(R.string.gd_open_plan, plan))
                 if (unplayed > 0) sb.append(" ").append(r.getQuantityString(R.plurals.gd_open_msgs, unplayed, unplayed))
+                else if (!hook.isNullOrBlank()) sb.append(" ").append(lc.getString(R.string.r4b_hook_pain, hook))
                 sb.toString()
             }
-            WakeReason.Evening -> lc.getString(R.string.gd_open_evening, name)
-            WakeReason.Fall -> lc.getString(R.string.gd_open_fall, name)
-            WakeReason.NightWatch -> lc.getString(R.string.gd_open_night, name)
-            WakeReason.FamilyMessage ->
-                if (sender.isNullOrBlank()) lc.getString(R.string.gd_open_family_generic, name) else lc.getString(R.string.gd_open_family, name, sender)
-            WakeReason.Heat -> lc.getString(R.string.gd_open_heat, name)
+            Open.Evening -> pick(R.array.r4b_o_evening, name)
+            Open.Fall -> lc.getString(R.string.gd_open_fall, name)
+            Open.Night -> lc.getString(R.string.gd_open_night, name)
+            Open.Family -> lc.getString(R.string.gd_open_family, name, sender)
+            Open.FamilyGeneric -> lc.getString(R.string.gd_open_family_generic, name)
+            Open.Heat -> lc.getString(R.string.gd_open_heat, name)
+            Open.Intro -> lc.getString(R.string.r4b_o_intro, name)
+            Open.AskMedicines -> if (reason == WakeReason.Morning) lc.getString(R.string.r4b_gm, name) + " " + lc.getString(R.string.r4b_o_ask_med) else lc.getString(R.string.r4b_o_ask_med)
+            Open.None -> ""
         }
     }
 

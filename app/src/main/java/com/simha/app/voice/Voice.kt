@@ -32,7 +32,10 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
@@ -80,6 +83,10 @@ class Voice(private val app: Context) {
     @Volatile private var rec: SpeechRecognizer? = null
     val issue = MutableStateFlow(VoiceIssue.None)
     val sarvamError = MutableStateFlow<String?>(null)
+    private val levelFlow = MutableStateFlow(0f)
+    val level: StateFlow<Float> = levelFlow.asStateFlow()
+    private var decay: Job? = null
+    private var rangeSeen = false
     private val store = LlmStore(app)
     private val client = SarvamClient()
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -134,14 +141,37 @@ class Voice(private val app: Context) {
         .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
         .build()
 
+    private fun startDecay() {
+        if (decay?.isActive == true) return
+        decay = scope.launch {
+            var t = 0f
+            while (isActive) {
+                t += 0.04f
+                levelFlow.value = if (rangeSeen) levelFlow.value * 0.82f else 0.3f + 0.3f * Math.abs(Math.sin(t * 9.0)).toFloat()
+                delay(40)
+            }
+        }
+    }
+
+    private fun stopDecay() {
+        decay?.cancel()
+        decay = null
+        rangeSeen = false
+        levelFlow.value = 0f
+    }
+
     private suspend fun play(bytes: ByteArray, ext: String = ".wav") = suspendCancellableCoroutine<Unit> { cont ->
         val f = File.createTempFile("tts", ext, app.cacheDir)
         val mp = MediaPlayer()
         mp.setAudioAttributes(attrs())
+        val env = Levels.envelope(bytes)
+        var tick: Job? = null
         var closed = false
         fun end() {
             if (closed) return
             closed = true
+            tick?.cancel()
+            levelFlow.value = 0f
             try { mp.release() } catch (e: Exception) { }
             f.delete()
             if (cont.isActive) cont.resume(Unit)
@@ -151,7 +181,18 @@ class Voice(private val app: Context) {
             mp.setDataSource(f.absolutePath)
             mp.setOnCompletionListener { end() }
             mp.setOnErrorListener { _, _, _ -> end(); true }
-            mp.setOnPreparedListener { it.start() }
+            mp.setOnPreparedListener {
+                it.start()
+                if (env.isNotEmpty()) {
+                    tick = scope.launch {
+                        while (isActive && !closed) {
+                            val p = try { mp.currentPosition } catch (e: Exception) { break }
+                            levelFlow.value = env.getOrElse(p / 40) { 0f }
+                            delay(33)
+                        }
+                    }
+                }
+            }
             mp.prepareAsync()
         } catch (e: Exception) {
             end()
@@ -159,6 +200,8 @@ class Voice(private val app: Context) {
         cont.invokeOnCancellation {
             if (!closed) {
                 closed = true
+                tick?.cancel()
+                levelFlow.value = 0f
                 try { mp.stop() } catch (e: Exception) { }
                 try { mp.release() } catch (e: Exception) { }
                 f.delete()
@@ -176,7 +219,16 @@ class Voice(private val app: Context) {
         }
         t.setSpeechRate(0.9f)
         t.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
-            override fun onStart(utteranceId: String?) {}
+            override fun onStart(utteranceId: String?) {
+                main.post { startDecay() }
+            }
+
+            override fun onRangeStart(utteranceId: String?, start: Int, end: Int, frame: Int) {
+                rangeSeen = true
+                levelFlow.value = 0.9f
+                main.post { startDecay() }
+            }
+
             override fun onDone(utteranceId: String?) = finish(utteranceId)
 
             @Suppress("OVERRIDE_DEPRECATION")
@@ -190,7 +242,10 @@ class Voice(private val app: Context) {
     }
 
     private fun finish(id: String?) {
-        if (id != null && active.remove(id)) pending.value = active.size
+        if (id != null && active.remove(id)) {
+            pending.value = active.size
+            if (active.isEmpty()) main.post { stopDecay() }
+        }
     }
 
     fun speak(text: String, lang: String) {
@@ -254,10 +309,12 @@ class Voice(private val app: Context) {
         main.post {
             current?.cancel()
             tts?.stop()
+            stopDecay()
         }
     }
 
     fun cancelListening() {
+        levelFlow.value = 0f
         main.post {
             rec?.destroy()
             rec = null
@@ -312,11 +369,14 @@ class Voice(private val app: Context) {
                     pcm.write(buf[i].toInt() and 0xff)
                     pcm.write((buf[i].toInt() shr 8) and 0xff)
                 }
-                end = ep.feed(Wav.rms(buf, frame))
+                val rms = Wav.rms(buf, frame)
+                levelFlow.value = Levels.fromRms(rms)
+                end = ep.feed(rms)
             }
         } catch (e: IllegalStateException) {
             return@withContext Result.failure<String>(VoiceFail(VoiceKind.Failed))
         } finally {
+            levelFlow.value = 0f
             try { rec.stop() } catch (e: Exception) { }
             rec.release()
         }
@@ -343,18 +403,24 @@ class Voice(private val app: Context) {
             r.setRecognitionListener(object : RecognitionListener {
                 override fun onReadyForSpeech(params: Bundle?) {}
                 override fun onBeginningOfSpeech() {}
-                override fun onRmsChanged(rmsdB: Float) {}
+                override fun onRmsChanged(rmsdB: Float) {
+                    levelFlow.value = Levels.fromDb(rmsdB)
+                }
                 override fun onBufferReceived(buffer: ByteArray?) {}
-                override fun onEndOfSpeech() {}
+                override fun onEndOfSpeech() {
+                    levelFlow.value = 0f
+                }
                 override fun onEvent(eventType: Int, params: Bundle?) {}
 
                 override fun onError(error: Int) {
+                    levelFlow.value = 0f
                     r.destroy()
                     val kind = if (error == SpeechRecognizer.ERROR_NO_MATCH || error == SpeechRecognizer.ERROR_SPEECH_TIMEOUT) VoiceKind.NoSpeech else VoiceKind.Failed
                     if (cont.isActive) cont.resume(Result.failure(VoiceFail(kind)))
                 }
 
                 override fun onResults(results: Bundle?) {
+                    levelFlow.value = 0f
                     r.destroy()
                     val t = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull()
                     if (cont.isActive) {

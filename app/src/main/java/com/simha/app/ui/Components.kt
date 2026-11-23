@@ -1,12 +1,19 @@
 package com.simha.app.ui
 
 import android.provider.Settings
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.animation.core.CubicBezierEasing
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.InteractionSource
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -32,7 +39,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -43,9 +49,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.material3.LocalContentColor
@@ -56,7 +65,9 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -108,21 +119,47 @@ fun animMs(): Int {
     }
 }
 
+val EmphasizedEasing = CubicBezierEasing(0.2f, 0f, 0f, 1f)
+
+const val NavMs = 250
+
+fun Modifier.pressScale(src: InteractionSource, enabled: Boolean = true): Modifier = composed {
+    val pressed by src.collectIsPressedAsState()
+    val haptic = LocalHapticFeedback.current
+    val spec: AnimationSpec<Float> = if (animMs() == 0) snap() else spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessMedium)
+    val sc by animateFloatAsState(if (pressed && enabled) 0.96f else 1f, spec, label = "press")
+    LaunchedEffect(pressed) { if (pressed && enabled) haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove) }
+    graphicsLayer {
+        scaleX = sc
+        scaleY = sc
+    }
+}
+
 fun Modifier.pressClick(
     onClick: () -> Unit,
     enabled: Boolean = true,
     role: Role? = Role.Button,
 ): Modifier = composed {
     val src = remember { MutableInteractionSource() }
-    val pressed by src.collectIsPressedAsState()
-    val ms = animMs()
-    val sc by animateFloatAsState(if (pressed && enabled) 0.97f else 1f, tween(if (ms == 0) 0 else 120), label = "press")
     this
-        .graphicsLayer {
-            scaleX = sc
-            scaleY = sc
-        }
+        .pressScale(src, enabled)
         .clickable(interactionSource = src, indication = null, enabled = enabled, role = role, onClick = onClick)
+}
+
+@Composable
+fun AnimatedEntrance(index: Int, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+    val still = animMs() == 0
+    var shown by remember { mutableStateOf(still) }
+    LaunchedEffect(Unit) { shown = true }
+    val spec: AnimationSpec<Float> = if (still) snap() else tween(350, delayMillis = index * 40, easing = EmphasizedEasing)
+    val a by animateFloatAsState(if (shown) 1f else 0f, spec, label = "entrance")
+    val dy = with(LocalDensity.current) { 16.dp.toPx() }
+    Box(
+        modifier.graphicsLayer {
+            alpha = a
+            translationY = (1f - a) * dy
+        },
+    ) { content() }
 }
 
 enum class Kind { Primary, Emergency, Secondary, Success }
@@ -159,19 +196,24 @@ fun ScreenFrame(
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         if (onBack != null) {
-                            IconButton(onClick = onBack, modifier = Modifier.size(l.target)) {
-                                Icon(painterResource(R.drawable.ic_back), stringResource(R.string.back))
+                            Box(
+                                Modifier.size(maxOf(l.target, 64.dp)).pressClick(onBack, role = Role.Button),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Icon(painterResource(R.drawable.ic_back), stringResource(R.string.back), Modifier.size(32.dp))
                             }
                         }
                         Text(title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
-                        IconButton(
-                            onClick = { scope.launch { voice.say(read, lang) } },
-                            modifier = Modifier.size(l.target),
+                        Box(
+                            Modifier.size(l.target).pressClick({ scope.launch { voice.say(read, lang) } }, role = Role.Button),
+                            contentAlignment = Alignment.Center,
                         ) {
                             Icon(painterResource(R.drawable.ic_speaker), stringResource(R.string.read_aloud))
                         }
                     }
-                    content()
+                    AnimatedEntrance(0, Modifier.fillMaxWidth()) {
+                        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) { content() }
+                    }
                 }
                 if (bottom != null) {
                     Box(Modifier.fillMaxWidth().padding(horizontal = l.pad, vertical = 12.dp)) { bottom() }
@@ -297,7 +339,7 @@ fun Card(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> U
         contentColor = c.text,
         shape = RoundedCornerShape(SimhaRadius),
         border = BorderStroke(1.dp, c.border),
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth().animateContentSize(),
     ) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp), content = content)
     }
@@ -361,6 +403,7 @@ fun SwitchRow(label: String, checked: Boolean, onChange: (Boolean) -> Unit, hint
         Modifier
             .fillMaxWidth()
             .heightIn(min = l.target)
+            .pressScale(src)
             .toggleable(value = checked, interactionSource = src, indication = null, role = Role.Switch, onValueChange = onChange)
             .padding(vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -459,6 +502,67 @@ fun Grid(cols: Int, items: List<@Composable (Modifier) -> Unit>) {
             row.forEach { it(Modifier.weight(1f)) }
             repeat(cols - row.size) { Spacer(Modifier.weight(1f)) }
         }
+    }
+}
+
+@Composable
+fun TabFrame(
+    top: (@Composable () -> Unit)? = null,
+    bottom: (@Composable () -> Unit)? = null,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    val l = LocalLayout.current
+    val c = LocalSimha.current
+    CompositionLocalProvider(LocalContentColor provides c.text) {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .background(c.page)
+                .windowInsetsPadding(WindowInsets.safeDrawing),
+            contentAlignment = Alignment.TopCenter,
+        ) {
+            Column(Modifier.widthIn(max = 640.dp).fillMaxSize()) {
+                top?.invoke()
+                Column(
+                    Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = l.pad, vertical = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    content = content,
+                )
+                if (bottom != null) {
+                    Box(Modifier.fillMaxWidth().padding(horizontal = l.pad, vertical = 12.dp)) { bottom() }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun NavRow(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, hint: String? = null, icon: Int? = null, tint: Color = Color.Unspecified) {
+    val l = LocalLayout.current
+    val c = LocalSimha.current
+    val shape = RoundedCornerShape(SimhaRadius)
+    Row(
+        modifier
+            .fillMaxWidth()
+            .heightIn(min = l.primaryH)
+            .pressClick(onClick)
+            .clip(shape)
+            .background(c.surface)
+            .border(1.dp, c.border, shape)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        if (icon != null) Icon(painterResource(icon), null, Modifier.size(28.dp), tint = if (tint == Color.Unspecified) c.primary else tint)
+        Column(Modifier.weight(1f)) {
+            Body(text)
+            if (hint != null) Caption(hint)
+        }
+        Text("›", style = MaterialTheme.typography.titleLarge, color = c.text2)
     }
 }
 

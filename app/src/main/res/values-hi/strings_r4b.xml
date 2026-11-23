@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="r4b_fillers">
+        <item>एक पल, देख लेते हैं।</item>
+        <item>बस एक सेकंड।</item>
+        <item>हम्म, ज़रा रुकिए।</item>
+        <item>अभी देखते हैं।</item>
+    </string-array>
+    <string-array name="r4b_o_checkin">
+        <item>नमस्ते %1$s, अभी आप कैसा महसूस कर रहे हैं?</item>
+        <item>%1$s जी, आपका हाल जानना था। आप कैसे हैं?</item>
+        <item>%1$s जी, अभी आप कैसे हैं?</item>
+    </string-array>
+    <string-array name="r4b_o_morning">
+        <item>सुप्रभात, %1$s! उम्मीद है आप अच्छी तरह सोए।</item>
+        <item>सुप्रभात %1$s। आज आपके साथ होना अच्छा लग रहा है।</item>
+        <item>आपको बहुत शुभ प्रभात, %1$s।</item>
+    </string-array>
+    <string-array name="r4b_o_evening">
+        <item>शुभ संध्या, %1$s। आपका दिन कैसा रहा? आज आपने क्या किया?</item>
+        <item>शुभ संध्या %1$s जी। दिन कैसा गुज़रा?</item>
+        <item>%1$s जी, आज का दिन अच्छा रहा?</item>
+    </string-array>
+    <string-array name="r4b_o_medicine">
+        <item>%1$s जी, आपकी %2$s का समय हो गया है। क्या आपने ली?</item>
+        <item>%1$s जी, अभी %2$s लेने का समय है। आपने ले ली?</item>
+        <item>%2$s का समय हो गया, %1$s जी। ले ली आपने?</item>
+    </string-array>
+    <string name="r4b_o_intro">नमस्ते %1$s जी, मैं सिम्हा हूँ, हर दिन आपके साथ। क्या हम थोड़ा परिचय कर लें? आपके परिवार में कौन-कौन है?</string>
+    <string name="r4b_o_ask_med">क्या आप रोज़ कोई दवाई लेते हैं?</string>
+    <string name="r4b_gm">सुप्रभात, %1$s!</string>
+    <string name="r4b_hook_pain">कल आपने %1$s के बारे में बताया था। आज कैसा है?</string>
+</resources>

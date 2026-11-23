@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="r4d_perm_title">ಸಿಂಹ ನಿಮ್ಮನ್ನು ನೋಡಿಕೊಳ್ಳಲಿ</string>
+    <string name="r4d_perm_sub">ಸಿಂಹ ನಿಮ್ಮ ಕ್ಷೇಮ ವಿಚಾರಿಸಲು ಮತ್ತು ಬೇಗ ಸಹಾಯ ಮಾಡಲು ಇವನ್ನು ಅನುಮತಿಸಿ.</string>
+    <string name="r4d_perm_progress">%2$d ರಲ್ಲಿ %1$d ಮುಗಿದಿದೆ</string>
+    <string name="r4d_health_title">ನಿಮ್ಮ ಆರೋಗ್ಯ</string>
+</resources>

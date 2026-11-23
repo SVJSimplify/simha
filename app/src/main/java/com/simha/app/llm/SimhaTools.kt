@@ -44,6 +44,7 @@ interface ToolHost {
     suspend fun listMedicines(): JsonArray
     suspend fun familyContact(label: String?): ContactInfo?
     suspend fun playFamilyMessages(): String
+    suspend fun addMedicine(name: String, dose: String, times: List<String>): String
     suspend fun audit(tool: String, args: String, result: String)
 }
 
@@ -64,6 +65,7 @@ object SimhaTools {
                     props.forEach { (k, v) ->
                         putJsonObject(k) {
                             put("type", v.first)
+                            if (v.first == "array") putJsonObject("items") { put("type", "string") }
                             put("description", v.second)
                         }
                     }
@@ -140,12 +142,29 @@ object SimhaTools {
                 required = emptyList(),
             ),
             tool("play_family_messages", "Play the person's unplayed voice messages from their family."),
+            tool(
+                "add_medicine",
+                "Save a medicine the person takes, with reminders. Use it only after you know the name, the dose and the times of day. Saving a medicine with the same name updates it.",
+                mapOf(
+                    "name" to ("string" to "Medicine name"),
+                    "dose" to ("string" to "Dose, for example 500mg or 1 tablet. Empty if unknown"),
+                    "times" to ("array" to "Times of day in 24 hour HH:MM, for example 08:00 and 20:00"),
+                ),
+                required = listOf("name", "times"),
+            ),
         )
     )
 
     private fun err(m: String) = buildJsonObject { put("error", m) }.toString()
     private fun refuse(m: String) = buildJsonObject { put("refused", m) }.toString()
     private fun ok(m: String) = buildJsonObject { put("result", m) }.toString()
+
+    fun parseTimes(raw: List<String>): List<String> = raw.mapNotNull { t ->
+        val m = Regex("^\\s*(\\d{1,2})[:.](\\d{2})\\s*$").matchEntire(t) ?: return@mapNotNull null
+        val h = m.groupValues[1].toInt()
+        val mi = m.groupValues[2].toInt()
+        if (h in 0..23 && mi in 0..59) "%02d:%02d".format(h, mi) else null
+    }.distinct().sorted()
 
     private fun JsonObject.str(k: String): String? = this[k]?.jsonPrimitive?.contentOrNull?.trim()?.ifEmpty { null }
 
@@ -254,6 +273,17 @@ object SimhaTools {
                 return ok(host.callContact(c))
             }
             "play_family_messages" -> return ok(host.playFamilyMessages())
+            "add_medicine" -> {
+                val n = a.str("name") ?: return err("name is required")
+                val raw = when (val t = a["times"]) {
+                    is JsonArray -> t.map { it.jsonPrimitive.content }
+                    null -> emptyList()
+                    else -> t.jsonPrimitive.content.split(",")
+                }
+                val times = parseTimes(raw)
+                if (times.isEmpty()) return err("times must be like 08:00")
+                return ok(host.addMedicine(n.take(80), (a.str("dose") ?: "").take(60), times.take(8)))
+            }
             else -> return err("Unknown tool")
         }
     }

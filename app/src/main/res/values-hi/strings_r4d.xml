@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="r4d_perm_title">सिंहा को आपकी देखभाल करने दें</string>
+    <string name="r4d_perm_sub">ये अनुमतियाँ दें ताकि सिंहा आपका हाल पूछ सके और जल्दी मदद कर सके।</string>
+    <string name="r4d_perm_progress">%2$d में से %1$d पूरे</string>
+    <string name="r4d_health_title">आपका स्वास्थ्य</string>
+</resources>

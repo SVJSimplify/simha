@@ -56,6 +56,7 @@ private class FakeHost(
     override suspend fun listMedicines() = JsonArray(emptyList())
     override suspend fun familyContact(label: String?) = contacts.firstOrNull { it.role == "family" && (label == null || it.name.equals(label, true)) }
     override suspend fun playFamilyMessages(): String { calls += "play"; return "ok" }
+    override suspend fun addMedicine(name: String, dose: String, times: List<String>): String { calls += "med:$name:$dose:" + times.joinToString("+"); return "ok" }
     override suspend fun audit(tool: String, args: String, result: String) { audits += Triple(tool, args, result) }
 }
 
@@ -290,13 +291,23 @@ class LlmToolsTest {
     }
 
     @Test
+    fun addMedicineParsesTimesAndValidates() {
+        val h = FakeHost()
+        dispatch(h, "add_medicine", """{"name":"Metformin","dose":"500mg","times":["8:00","20:30"]}""")
+        assertEquals(listOf("med:Metformin:500mg:08:00+20:30"), h.calls)
+        assertTrue(dispatch(h, "add_medicine", """{"name":"X","times":["soon"]}""").contains("error"))
+        assertTrue(dispatch(h, "add_medicine", """{"times":["08:00"]}""").contains("error"))
+        assertEquals(listOf("08:00", "21:05"), SimhaTools.parseTimes(listOf("21:05", "8.00", "25:00", "08:00")))
+    }
+
+    @Test
     fun definitionsCoverAllTools() {
         val names = SimhaTools.definitions.map { it.jsonObject["function"]!!.jsonObject["name"]!!.jsonPrimitive.content }.toSet()
         val expected = setOf(
             "get_profile", "get_contacts", "get_status", "log_symptom", "mark_checkin_ok", "open_emergency_screen",
             "dial_emergency", "call_approved_contact", "send_family_alert", "start_recording", "look_with_camera",
             "set_reminder", "update_profile_field", "remember_health_detail", "get_first_aid", "log_diary", "remember",
-            "take_medicine", "list_medicines", "scam_check", "call_family", "play_family_messages",
+            "take_medicine", "list_medicines", "scam_check", "call_family", "play_family_messages", "add_medicine",
         )
         assertEquals(expected, names)
     }

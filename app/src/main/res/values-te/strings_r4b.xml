@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="r4b_fillers">
+        <item>ఒక్క నిమిషం, చూస్తాను.</item>
+        <item>ఒక్క క్షణం.</item>
+        <item>హ్మ్, ఒక్క సెకను.</item>
+        <item>మీ కోసం చూస్తున్నాను.</item>
+    </string-array>
+    <string-array name="r4b_o_checkin">
+        <item>నమస్కారం %1$s, ఇప్పుడు మీకు ఎలా ఉంది?</item>
+        <item>%1$s గారు, మిమ్మల్ని ఒకసారి పలకరిద్దామని. మీరు ఎలా ఉన్నారు?</item>
+        <item>%1$s గారు, ఇప్పుడు ఎలా ఉన్నారు?</item>
+    </string-array>
+    <string-array name="r4b_o_morning">
+        <item>శుభోదయం, %1$s! బాగా నిద్రపోయారని ఆశిస్తున్నాను.</item>
+        <item>శుభోదయం %1$s. ఈ రోజు మీతో ఉండటం చాలా సంతోషంగా ఉంది.</item>
+        <item>మీకు చాలా శుభోదయం, %1$s.</item>
+    </string-array>
+    <string-array name="r4b_o_evening">
+        <item>శుభ సాయంత్రం, %1$s. మీ రోజు ఎలా గడిచింది? ఈ రోజు ఏం చేశారు?</item>
+        <item>శుభ సాయంత్రం %1$s గారు. రోజు ఎలా సాగింది?</item>
+        <item>%1$s గారు, ఈ రోజు బాగా గడిచిందా?</item>
+    </string-array>
+    <string-array name="r4b_o_medicine">
+        <item>%1$s గారు, మీ %2$s వేసుకునే సమయం అయింది. వేసుకున్నారా?</item>
+        <item>%1$s గారు, ఇప్పుడు %2$s వేసుకోవాలి. వేసుకున్నారా?</item>
+        <item>%2$s సమయం అయింది, %1$s గారు. వేసుకున్నారా?</item>
+    </string-array>
+    <string name="r4b_o_intro">నమస్కారం %1$s గారు, నేను సింహని. ప్రతిరోజూ మీతోనే ఉంటాను. మీ గురించి కొంచెం తెలుసుకోవచ్చా? మీ కుటుంబంలో ఎవరెవరు ఉన్నారు?</string>
+    <string name="r4b_o_ask_med">మీరు ప్రతిరోజూ ఏవైనా మందులు వేసుకుంటారా?</string>
+    <string name="r4b_gm">శుభోదయం, %1$s!</string>
+    <string name="r4b_hook_pain">నిన్న మీరు %1$s గురించి చెప్పారు. ఈ రోజు ఎలా ఉంది?</string>
+</resources>

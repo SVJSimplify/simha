@@ -1,6 +1,10 @@
 package com.simha.app.ui.theme
 
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.LocalRippleConfiguration
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RippleAlpha
+import androidx.compose.material3.RippleConfiguration
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
@@ -89,10 +93,14 @@ private val SimhaTypography = Typography(
     labelSmall = TextStyle(fontFamily = NunitoFamily, fontSize = 16.sp, fontWeight = FontWeight.Normal, lineHeight = 22.sp),
 )
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SimhaTheme(dark: Boolean, content: @Composable () -> Unit) {
     val c = if (dark) DarkSimha else LightSimha
-    CompositionLocalProvider(LocalSimha provides c) {
+    CompositionLocalProvider(
+        LocalSimha provides c,
+        LocalRippleConfiguration provides RippleConfiguration(color = c.primary, rippleAlpha = RippleAlpha(0.1f, 0.1f, 0.1f, 0.1f)),
+    ) {
         MaterialTheme(
             colorScheme = scheme(c, dark),
             typography = SimhaTypography,

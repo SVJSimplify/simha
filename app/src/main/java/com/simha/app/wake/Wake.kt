@@ -24,6 +24,10 @@ import com.simha.app.data.Weather
 import com.simha.app.data.jo
 import com.simha.app.data.simhaStore
 import com.simha.app.llm.Guardian
+import com.simha.app.llm.GuardianContext
+import com.simha.app.llm.Known
+import com.simha.app.llm.MedLine
+import com.simha.app.logic.MedicalProfile
 import com.simha.app.ui.home.UiSettings
 import com.simha.app.ui.home.toUi
 import com.simha.app.forLang
@@ -319,6 +323,32 @@ object Wake {
         return true
     }
 
+    private suspend fun knownAndHook(sl: com.simha.app.ServiceLocator): Pair<Known, String?> {
+        val p = sl.repo.profileNow()
+        val g = sl.guardian
+        val today = LocalDate.now()
+        val meds = g.medicines().first().filter { it.active }.map { MedLine(it.name, it.dose, it.times, "") }
+        val all = g.memories(200)
+        val asked = all.filter { it.text.startsWith("asked:") }.map { it.text.removePrefix("asked:").trim().lowercase() }.toSet()
+        val mem = all.filter { !it.text.startsWith("asked:") }.map { it.text }
+        fun diary(d: com.simha.app.data.Diary?) = d?.let { it.summary.ifBlank { com.simha.app.llm.DiaryMerge.summary(it.data) } }.orEmpty()
+        val yesterday = g.diaryFor(today.minusDays(1))
+        val c = GuardianContext(
+            name = "",
+            language = "",
+            profile = MedicalProfile(p.conditions, p.medicines, p.allergies),
+            doctor = listOf(p.doctorName, p.doctorPhone).filter { it.isNotBlank() }.joinToString(" "),
+            medicines = meds,
+            memories = mem,
+            todayDiary = diary(g.diaryFor(today)),
+            yesterdayDiary = diary(yesterday),
+            asked = asked,
+        )
+        val configured = sl.llmStore.config().configured
+        val k = if (configured) c.known() else c.known().copy(newPerson = false, medicines = true)
+        return k to Guardian.hookFrom(yesterday?.data)
+    }
+
     suspend fun fire(ctx: Context, req: WakeRequest): Boolean {
         val app = ctx.applicationContext
         val sl = (app as SimhaApp).sl
@@ -333,7 +363,8 @@ object Wake {
         val canOverlay = Settings.canDrawOverlays(app)
         try {
             val snap = sl.prefs.snap()
-            var text = Guardian.openingLine(lc, r.reason, snap.name, if (r.reason == WakeReason.Medicine) r.extra else null)
+            val (known, hook) = knownAndHook(sl)
+            var text = Guardian.openingLine(lc, r.reason, snap.name, if (r.reason == WakeReason.Medicine) r.extra else null, known = known, hook = hook)
             if (!canOverlay) text += " " + lc.getString(R.string.wake_tap_say)
             sl.voice.speak(text, snap.lang)
         } catch (e: Exception) {

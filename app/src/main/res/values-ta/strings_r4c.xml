@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="r4c_tab_home">முகப்பு</string>
+    <string name="r4c_tab_health">ஆரோக்கியம்</string>
+    <string name="r4c_tab_settings">அமைப்புகள்</string>
+    <string name="r4c_tap_talk">பேச தொடவும்</string>
+    <string name="r4c_add_meds">உங்கள் மருந்துகளைச் சேர்க்கவும்</string>
+    <string name="r4c_s_me">நான்</string>
+    <string name="r4c_s_people">என் மனிதர்கள்</string>
+    <string name="r4c_s_checkins">செக்-இன்கள்</string>
+    <string name="r4c_s_privacy">தனியுரிமை</string>
+    <string name="r4c_s_about">பற்றி</string>
+</resources>

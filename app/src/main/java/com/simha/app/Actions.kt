@@ -75,6 +75,9 @@ object Perms {
         else -> null
     }
 
+    fun runtimeMissing(ctx: Context, list: List<Perm>): Array<String> =
+        list.filter { available(it) && !granted(ctx, it) }.flatMap { runtime(it)?.toList() ?: emptyList() }.distinct().toTypedArray()
+
     fun granted(ctx: Context, p: Perm): Boolean = when (p) {
         Perm.Notifications -> if (Build.VERSION.SDK_INT >= 33) Actions.has(ctx, Manifest.permission.POST_NOTIFICATIONS) else true
         Perm.Mic -> Actions.has(ctx, Manifest.permission.RECORD_AUDIO)

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="r4c_tab_home">ಮುಖಪುಟ</string>
+    <string name="r4c_tab_health">ಆರೋಗ್ಯ</string>
+    <string name="r4c_tab_settings">ಸೆಟ್ಟಿಂಗ್ಸ್</string>
+    <string name="r4c_tap_talk">ಮಾತನಾಡಲು ಮುಟ್ಟಿ</string>
+    <string name="r4c_add_meds">ನಿಮ್ಮ ಔಷಧಿಗಳನ್ನು ಸೇರಿಸಿ</string>
+    <string name="r4c_s_me">ನಾನು</string>
+    <string name="r4c_s_people">ನನ್ನ ಜನರು</string>
+    <string name="r4c_s_checkins">ಚೆಕ್-ಇನ್‌ಗಳು</string>
+    <string name="r4c_s_privacy">ಗೌಪ್ಯತೆ</string>
+    <string name="r4c_s_about">ಬಗ್ಗೆ</string>
+</resources>

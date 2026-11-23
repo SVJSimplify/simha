@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="r4d_perm_title">సింహా మిమ్మల్ని చూసుకోనివ్వండి</string>
+    <string name="r4d_perm_sub">సింహా మీ క్షేమం అడగడానికి, త్వరగా సహాయం చేయడానికి వీటిని అనుమతించండి.</string>
+    <string name="r4d_perm_progress">%2$d లో %1$d పూర్తయ్యాయి</string>
+    <string name="r4d_health_title">మీ ఆరోగ్యం</string>
+</resources>

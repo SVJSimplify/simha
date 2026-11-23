@@ -1,157 +1,220 @@
 package com.simha.app.ui.home
 
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
+import android.os.Build
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.lerp
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import com.simha.app.R
 import com.simha.app.ui.animMs
-import com.simha.app.ui.pressClick
-import com.simha.app.ui.theme.LocalSimha
+import com.simha.app.ui.home.orb.OrbShader
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.sin
 
 enum class OrbState { Idle, Listening, Speaking, Thinking }
 
-@Composable
-fun SimhaOrb(state: OrbState, onTap: () -> Unit, modifier: Modifier = Modifier) {
-    val c = LocalSimha.current
-    val ms = animMs()
-    val still = ms == 0
-    val t = rememberInfiniteTransition(label = "orb")
-    val breathe by t.animateFloat(
-        0f, 1f,
-        infiniteRepeatable(tween(3200, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-        label = "breathe",
-    )
-    val ripple by t.animateFloat(0f, 1f, infiniteRepeatable(tween(1600, easing = LinearEasing)), label = "ripple")
-    val spin by t.animateFloat(0f, 360f, infiniteRepeatable(tween(1400, easing = LinearEasing)), label = "spin")
-    val b0 by t.animateFloat(0f, 1f, infiniteRepeatable(tween(420, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "b0")
-    val b1 by t.animateFloat(0f, 1f, infiniteRepeatable(tween(560, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "b1")
-    val b2 by t.animateFloat(0f, 1f, infiniteRepeatable(tween(480, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "b2")
-    val b3 by t.animateFloat(0f, 1f, infiniteRepeatable(tween(640, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "b3")
-    val ringA by animateFloatAsState(if (state == OrbState.Listening) 1f else 0f, tween(ms), label = "ringA")
-    val arcA by animateFloatAsState(if (state == OrbState.Thinking) 1f else 0f, tween(ms), label = "arcA")
-    val desc = stringResource(R.string.r3_orb_caption_tap)
-    val hi = lerp(c.primary, Color.White, 0.12f)
-    val s = if (still) 1f else 1f + 0.03f * breathe
+private val Rose = Color(0xFF7E2F3B)
+private val Blush = Color(0xFFE9A2AC)
+private val Peach = Color(0xFFF4C7B0)
+private val Gold = Color(0xFFE2B26A)
+private val Cream = Color(0xFFFFF1E2)
 
-    Box(
-        modifier
-            .size(168.dp)
-            .aspectRatio(1f)
-            .pressClick(onTap)
-            .semantics(mergeDescendants = true) { contentDescription = desc },
-        contentAlignment = Alignment.Center,
-    ) {
-        Canvas(Modifier.fillMaxSize()) {
-            val mid = Offset(size.width / 2f, size.height / 2f)
-            val r = size.minDimension * 0.37f
-            if (!still && ringA > 0f) {
-                for (i in 0 until 2) {
-                    val p = (ripple + i * 0.5f) % 1f
-                    drawCircle(
-                        c.primary.copy(alpha = 0.3f * (1f - p) * ringA),
-                        r + (size.minDimension / 2f - r - 1.dp.toPx()) * p,
-                        mid,
-                        style = Stroke(width = 2.dp.toPx()),
-                    )
+@Composable
+fun SimhaOrb(state: OrbState, onTap: () -> Unit, modifier: Modifier = Modifier, level: Float = 0f) {
+    val still = animMs() == 0
+    val desc = stringResource(R.string.r3_orb_caption_tap)
+    val haptic = LocalHapticFeedback.current
+    val owner = LocalLifecycleOwner.current
+    val src = remember { MutableInteractionSource() }
+    val pressed by src.collectIsPressedAsState()
+    val press by animateFloatAsState(
+        if (pressed) 0.95f else 1f,
+        if (still) snap() else spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessMedium),
+        label = "press",
+    )
+    val lv = animateFloatAsState(
+        if (still) 0f else level.coerceIn(0f, 1f),
+        if (still) snap() else spring(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessLow),
+        label = "level",
+    )
+    val listenA by animateFloatAsState(if (state == OrbState.Listening) 1f else 0f, tween(if (still) 0 else 300), label = "listenA")
+    val speakA by animateFloatAsState(if (state == OrbState.Speaking) 1f else 0f, tween(if (still) 0 else 300), label = "speakA")
+    val dimA by animateFloatAsState(if (state == OrbState.Thinking) 1f else 0f, tween(if (still) 0 else 400), label = "dimA")
+    val phase = remember { mutableFloatStateOf(3f) }
+    val clock = remember { mutableFloatStateOf(0f) }
+    val st by rememberUpdatedState(state)
+    val shader = remember { if (Build.VERSION.SDK_INT >= 33) OrbShader() else null }
+
+    LaunchedEffect(pressed) { if (pressed) haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove) }
+
+    LaunchedEffect(still) {
+        if (still) return@LaunchedEffect
+        owner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            var last = 0L
+            var sp = 0.45f
+            androidx.compose.runtime.withFrameNanos { last = it }
+            while (true) {
+                androidx.compose.runtime.withFrameNanos { n ->
+                    val dt = ((n - last) / 1_000_000_000f).coerceIn(0f, 0.05f)
+                    last = n
+                    val target = when (st) {
+                        OrbState.Idle -> 0.45f
+                        OrbState.Listening -> 0.7f
+                        OrbState.Speaking -> 0.8f + 2.4f * lv.value
+                        OrbState.Thinking -> 1.2f
+                    }
+                    sp += (target - sp) * minOf(1f, dt * 4f)
+                    phase.floatValue += dt * sp
+                    clock.floatValue += dt
                 }
-            }
-            if (!still && arcA > 0f) {
-                val ar = r + 8.dp.toPx()
-                drawArc(
-                    c.accent.copy(alpha = arcA),
-                    spin,
-                    90f,
-                    false,
-                    Offset(mid.x - ar, mid.y - ar),
-                    Size(ar * 2, ar * 2),
-                    style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round),
-                )
             }
         }
-        Box(
-            Modifier
-                .size(124.dp)
-                .graphicsLayer {
-                    scaleX = s
-                    scaleY = s
-                    shadowElevation = 8.dp.toPx()
-                    shape = CircleShape
-                    clip = false
-                    ambientShadowColor = c.primary
-                    spotShadowColor = c.primary
+    }
+
+    Canvas(
+        modifier
+            .size(200.dp)
+            .graphicsLayer {
+                scaleX = press
+                scaleY = press
+            }
+            .semantics(mergeDescendants = true) { contentDescription = desc }
+            .clickable(interactionSource = src, indication = null, role = Role.Button, onClick = onTap),
+    ) {
+        val m = size.minDimension
+        val rad = m * 0.34f
+        val cx = size.width / 2f
+        val cy = size.height / 2f - m * 0.06f
+        val c = Offset(cx, cy)
+        val ck = clock.floatValue
+        val l = lv.value
+        val breathe = if (still) 0f else 0.5f - 0.5f * cos(ck * 2f * PI.toFloat() / 4f)
+        val sc = 1f + 0.025f * breathe + 0.06f * l * listenA + 0.05f * l * speakA
+        val wob = if (still) 0f else 0.035f * l * speakA * (0.6f * sin(ck * 6.1f) + 0.4f * sin(ck * 9.7f + 1f))
+        val sx = sc * (1f + wob)
+        val sy = sc * (1f - wob * 0.8f)
+
+        scale(1f - 0.4f * (sc - 1f), 0.22f, Offset(cx, cy + rad + m * 0.06f)) {
+            drawCircle(
+                Brush.radialGradient(
+                    listOf(Rose.copy(alpha = 0.38f), Color.Transparent),
+                    Offset(cx, cy + rad + m * 0.06f),
+                    rad * 0.9f,
+                ),
+                rad * 0.9f,
+                Offset(cx, cy + rad + m * 0.06f),
+            )
+        }
+
+        if (listenA > 0.01f) {
+            val gr = rad * 1.35f
+            drawCircle(
+                Brush.radialGradient(
+                    0.74f to Blush.copy(alpha = 0.45f * l * listenA),
+                    1f to Color.Transparent,
+                    center = c,
+                    radius = gr,
+                ),
+                gr,
+                c,
+            )
+            drawCircle(
+                Blush.copy(alpha = (0.18f + 0.45f * l) * listenA),
+                rad * (1.08f + 0.1f * l),
+                c,
+                style = Stroke(3.dp.toPx()),
+            )
+        }
+
+        scale(sx, sy, c) {
+            if (shader != null && Build.VERSION.SDK_INT >= 33) {
+                shader.set(cx, cy, rad, phase.floatValue, l, dimA)
+                drawCircle(shader.brush, rad, c)
+            } else {
+                val p = phase.floatValue
+                val clip = Path().apply {
+                    addOval(androidx.compose.ui.geometry.Rect(c, rad))
                 }
-                .drawBehind {
-                    drawCircle(c.primary)
+                clipPath(clip) {
+                    drawCircle(
+                        Brush.linearGradient(listOf(Peach, Blush), Offset(cx - rad, cy - rad), Offset(cx + rad, cy + rad)),
+                        rad,
+                        c,
+                    )
+                    val cols = listOf(Rose, Peach, Gold, Blush, Cream)
+                    val orb = floatArrayOf(0.45f, 0.55f, 0.4f, 0.6f, 0.35f)
+                    val spd = floatArrayOf(0.9f, -0.7f, 1.3f, -1.1f, 0.6f)
+                    val br = floatArrayOf(0.8f, 0.7f, 0.65f, 0.75f, 0.55f)
+                    for (i in 0 until 5) {
+                        val a = p * spd[i] + i * 1.3f
+                        val pos = Offset(cx + rad * orb[i] * cos(a), cy + rad * orb[i] * sin(a * 0.9f + i))
+                        val r = rad * br[i] * (1f + 0.15f * l)
+                        drawCircle(
+                            Brush.radialGradient(listOf(cols[i].copy(alpha = if (i == 0) 0.75f else 0.85f), Color.Transparent), pos, r),
+                            r,
+                            pos,
+                        )
+                    }
                     drawCircle(
                         Brush.radialGradient(
-                            listOf(hi, c.primary),
-                            center = Offset(size.width * 0.3f, size.height * 0.28f),
-                            radius = size.width * 0.8f,
-                        )
+                            0f to Color.White.copy(alpha = 0.28f),
+                            0.5f to Color.Transparent,
+                            1f to Rose.copy(alpha = 0.5f),
+                            center = Offset(cx - rad * 0.35f, cy - rad * 0.4f),
+                            radius = rad * 1.7f,
+                        ),
+                        rad,
+                        c,
                     )
-                },
-            contentAlignment = Alignment.Center,
-        ) {
-            Crossfade(state == OrbState.Speaking, animationSpec = tween(ms), label = "glyph") { speaking ->
-                if (speaking) {
-                    Row(
-                        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(5.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        listOf(b0, b1, b2, b3).forEachIndexed { i, v ->
-                            val f = if (still) 0.5f else v
-                            Spacer(
-                                Modifier
-                                    .width(5.dp)
-                                    .height((10f + 24f * f).dp)
-                                    .background(c.onPrimary, RoundedCornerShape(50))
-                            )
-                        }
-                    }
-                } else {
-                    Image(
-                        painterResource(R.drawable.ic_mic),
-                        null,
-                        Modifier.size(44.dp),
-                        colorFilter = ColorFilter.tint(c.onPrimary),
+                    drawCircle(
+                        Brush.radialGradient(0.72f to Color.Transparent, 1f to Rose.copy(alpha = 0.4f), center = c, radius = rad),
+                        rad,
+                        c,
+                    )
+                    if (dimA > 0f) drawCircle(Color(0xFF3A1A20).copy(alpha = 0.18f * dimA), rad, c)
+                }
+                val sp = Offset(cx - rad * 0.38f, cy - rad * 0.48f)
+                withTransform({
+                    rotate(-35f, sp)
+                    scale(1f, 0.5f, sp)
+                }) {
+                    drawCircle(
+                        Brush.radialGradient(listOf(Color.White.copy(alpha = 0.75f), Color.Transparent), sp, rad * 0.3f),
+                        rad * 0.3f,
+                        sp,
                     )
                 }
             }

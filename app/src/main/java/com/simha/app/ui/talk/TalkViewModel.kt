@@ -13,6 +13,7 @@ import com.simha.app.Actions
 import com.simha.app.R
 import com.simha.app.SimhaApp
 import com.simha.app.data.CallResult
+import com.simha.app.data.Medicine
 import com.simha.app.data.Repo
 import com.simha.app.data.Snap
 import com.simha.app.data.jo
@@ -22,11 +23,13 @@ import com.simha.app.llm.ChatApi
 import com.simha.app.llm.ContactInfo
 import com.simha.app.llm.DiaryMerge
 import com.simha.app.llm.DoseSlots
+import com.simha.app.llm.FillerGate
 import com.simha.app.llm.Guardian
 import com.simha.app.llm.GuardianContext
 import com.simha.app.llm.HealthMemory
 import com.simha.app.llm.LlmException
 import com.simha.app.llm.MedLine
+import com.simha.app.llm.Open
 import com.simha.app.llm.Msg
 import com.simha.app.llm.ParsedReply
 import com.simha.app.llm.ToolHost
@@ -61,6 +64,7 @@ import java.io.ByteArrayOutputStream
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneId
+import java.util.UUID
 
 enum class TalkMode { Idle, Listening, Thinking, Speaking }
 
@@ -97,6 +101,7 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
     private var doseLogged = false
     private var summarized = false
     private var startedAt = 0L
+    private val fillers = FillerGate(4)
 
     private val closesOnFine: Boolean get() = reason == WakeReason.Checkin || reason == WakeReason.Fall
 
@@ -223,6 +228,7 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
         sl.voice.stopSpeaking()
         sl.voice.cancelListening()
         error = null
+        live = ""
         job = viewModelScope.launch {
             try {
                 val snap = sl.prefs.snap()
@@ -241,19 +247,36 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
 
     private suspend fun opening(snap: Snap, lc: android.content.Context) {
         val r = reason
+        val c = guardianContext(snap, snap.lang)
+        val k = if (configured) c.known() else c.known().copy(newPerson = false, medicines = true)
+        val med = if (r == WakeReason.Medicine) extra else null
         val text = when {
             r != null -> {
                 val plan = if (r == WakeReason.Morning) planText() else null
                 val unplayed = if (r == WakeReason.Morning) unplayedCount() else 0
-                Guardian.openingLine(lc, r, snap.name, if (r == WakeReason.Medicine) extra else null, plan, unplayed)
+                Guardian.openingLine(lc, r, snap.name, med, plan, unplayed, null, k, c.hook)
             }
             unwell -> lc.getString(R.string.gd_open_unwell, snap.name)
+            configured -> Guardian.openingLine(lc, null, snap.name, known = k)
             else -> return
+        }
+        if (text.isBlank()) return
+        if (!unwell || r != null) {
+            when (Guardian.openingKey(r, k, med)) {
+                Open.Intro -> runCatching { sl.guardian.addMemory("fact", "asked:intro") }
+                Open.AskMedicines -> runCatching { sl.guardian.addMemory("fact", "asked:medicines") }
+                else -> Unit
+            }
         }
         lines += ChatLine(false, text)
         history += Msg.assistant(text)
+        live = text
         mode = TalkMode.Speaking
-        sl.voice.say(text, snap.lang)
+        try {
+            sl.voice.say(text, snap.lang)
+        } finally {
+            live = ""
+        }
     }
 
     private suspend fun planText(): String? {
@@ -391,7 +414,9 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
         val dayStart = today.atStartOfDay(zone).toInstant().toEpochMilli()
         val logs = g.doses(dayStart).first()
         val meds = g.medicines().first().filter { it.active }.map { MedLine(it.name, it.dose, it.times, DoseSlots.status(it, logs, now, zone)) }
-        val mem = g.memories(15).map { if (it.kind == "summary") "Earlier conversation: " + it.text else it.text }
+        val all = g.memories(200)
+        val asked = all.filter { it.text.startsWith("asked:") }.map { it.text.removePrefix("asked:").trim().lowercase() }.toSet()
+        val mem = all.filter { !it.text.startsWith("asked:") }.take(15).map { if (it.kind == "summary") "Earlier conversation: " + it.text else it.text }
         fun diary(d: com.simha.app.data.Diary?) = d?.let { it.summary.ifBlank { DiaryMerge.summary(it.data) } }.orEmpty()
         val t = LocalTime.now()
         return GuardianContext(
@@ -407,6 +432,8 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
             reason = reason,
             extra = extra,
             unwell = unwell,
+            asked = asked,
+            hook = Guardian.hookFrom(g.diaryFor(today.minusDays(1))?.data),
         )
     }
 
@@ -420,6 +447,8 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
                 sl.llm.chat(cfg, messages, tools, onDelta)
         }
         live = ""
+        fillers.newTurn()
+        val fillerText = lc.resources.getStringArray(R.array.r4b_fillers)
         try {
             val reply = Agent.run(
                 api, system, history, Host(lang, lc),
@@ -428,13 +457,18 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
                     live = if (live.isEmpty()) s else live + " " + s
                     sl.voice.speak(s, lang)
                 },
-                onToolStart = { sl.voice.speak(lc.getString(R.string.talk_filler), lang) },
+                onToolStart = {},
+                slowMs = fillers.delayMs,
+                onSlow = {
+                    val i = fillers.pick(lines.any { !it.fromUser } || live.isNotEmpty(), kotlin.random.Random.nextInt(1000))
+                    if (i != null && fillerText.isNotEmpty()) sl.voice.speak(fillerText[i % fillerText.size], lang)
+                },
             )
-            live = ""
             if (reply.isNotBlank()) lines += ChatLine(false, reply)
             trimHistory()
             mode = TalkMode.Speaking
             sl.voice.awaitIdle()
+            live = ""
             return true
         } catch (e: LlmException) {
             live = ""
@@ -710,6 +744,13 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
                 n++
             }
             return if (n == un.size) "Played $n family message(s)." else "Played $n of ${un.size} family message(s). The rest could not be loaded."
+        }
+
+        override suspend fun addMedicine(name: String, dose: String, times: List<String>): String {
+            val old = g.medicines().first().firstOrNull { it.name.equals(name.trim(), true) }
+            g.saveMedicine(Medicine(old?.id ?: UUID.randomUUID().toString(), name.trim(), dose, times, old?.stock, true))
+            Wake.scheduleAll(app)
+            return "Saved " + name.trim() + (if (dose.isBlank()) "" else " $dose") + " at " + times.joinToString(", ") + ". Reminders are set."
         }
 
         override suspend fun audit(tool: String, args: String, result: String) {

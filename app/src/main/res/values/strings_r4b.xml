@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="r4b_fillers">
+        <item>Let me check that.</item>
+        <item>Just a second.</item>
+        <item>Hmm, one sec.</item>
+        <item>Checking for you.</item>
+    </string-array>
+    <string-array name="r4b_o_checkin">
+        <item>Hello %1$s, how are you feeling right now?</item>
+        <item>Hi %1$s, I am just checking on you. How are you?</item>
+        <item>%1$s, how are you doing right now?</item>
+    </string-array>
+    <string-array name="r4b_o_morning">
+        <item>Good morning, %1$s! I hope you slept well.</item>
+        <item>Good morning, %1$s. It is lovely to be with you today.</item>
+        <item>A very good morning to you, %1$s.</item>
+    </string-array>
+    <string-array name="r4b_o_evening">
+        <item>Good evening, %1$s. How was your day? Tell me what you did today.</item>
+        <item>Good evening, %1$s. How did your day go?</item>
+        <item>Evening, %1$s. Did you have a good day?</item>
+    </string-array>
+    <string-array name="r4b_o_medicine">
+        <item>%1$s, it is time for your %2$s. Have you taken it?</item>
+        <item>%1$s, your %2$s is due now. Did you take it?</item>
+        <item>Time for your %2$s, %1$s. Have you had it?</item>
+    </string-array>
+    <string name="r4b_o_intro">Hello %1$s, I am Simha. I will be here with you every day. May I get to know you a little? Who is in your family?</string>
+    <string name="r4b_o_ask_med">Do you take any medicines every day?</string>
+    <string name="r4b_gm">Good morning, %1$s!</string>
+    <string name="r4b_hook_pain">Yesterday you told me about %1$s. How is it today?</string>
+</resources>

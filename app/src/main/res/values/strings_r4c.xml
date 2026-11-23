@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="r4c_tab_home">Home</string>
+    <string name="r4c_tab_health">Health</string>
+    <string name="r4c_tab_settings">Settings</string>
+    <string name="r4c_tap_talk">Tap to talk</string>
+    <string name="r4c_add_meds">Add your medicines</string>
+    <string name="r4c_s_me">Me</string>
+    <string name="r4c_s_people">People</string>
+    <string name="r4c_s_checkins">Check-ins</string>
+    <string name="r4c_s_privacy">Privacy</string>
+    <string name="r4c_s_about">About</string>
+</resources>

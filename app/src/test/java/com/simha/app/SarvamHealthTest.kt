@@ -51,6 +51,7 @@ private class HealthHost(private val approved: Boolean = false) : ToolHost {
     override suspend fun listMedicines() = JsonArray(emptyList())
     override suspend fun familyContact(label: String?): ContactInfo? = null
     override suspend fun playFamilyMessages() = "ok"
+    override suspend fun addMedicine(name: String, dose: String, times: List<String>) = "ok"
     override suspend fun audit(tool: String, args: String, result: String) { audits += tool }
 }
 
