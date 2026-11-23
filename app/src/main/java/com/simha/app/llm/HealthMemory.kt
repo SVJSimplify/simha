@@ -5,7 +5,7 @@ object HealthMemory {
 
     fun split(s: String): List<String> = s.split(',', ';', '\n').map { it.trim() }.filter { it.isNotEmpty() }
 
-    private fun norm(s: String) = s.lowercase().replace(Regex("\s+"), " ").trim()
+    private fun norm(s: String) = s.lowercase().replace(Regex("\\s+"), " ").trim()
 
     fun merge(existing: String, add: String): Pair<String, Boolean> {
         val items = split(existing).toMutableList()
