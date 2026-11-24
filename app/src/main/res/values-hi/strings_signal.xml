@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="sig_pain">दर्द: %1$s</string>
+    <string name="sig_sleep">नींद: %1$s</string>
+    <string name="sig_water">पानी: %1$s</string>
+    <string name="sig_activity">गतिविधि: %1$s</string>
+    <string name="sig_visitors">मिलने आने वाले: %1$d</string>
+    <string name="sig_exc">चेतावनियाँ: %1$s</string>
+    <string name="sig_note">नोट: %1$s</string>
+    <string name="sig_week_falls">गिरना: %1$d</string>
+    <string name="sig_week_pain">इस हफ़्ते दर्द: %1$s</string>
+    <string name="sig_lo">कम</string>
+    <string name="sig_ok">ठीक</string>
+    <string name="sig_hi">ज़्यादा</string>
+    <string name="sig_good">अच्छी</string>
+    <string name="sig_poor">खराब</string>
+    <string name="sig_x_fall">गिरना</string>
+    <string name="sig_x_missed_ci">चेक-इन छूटा</string>
+    <string name="sig_x_missed_dose">दवा छूटी</string>
+    <string name="sig_x_redflag">मदद माँगी</string>
+    <string name="sig_x_esc">अलर्ट भेजा</string>
+    <string name="sig_older">पिछले हफ़्ते</string>
+</resources>

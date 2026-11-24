@@ -79,10 +79,8 @@ class OpeningFillerTest {
 
     @Test
     fun hookFromPain() {
-        fun d(v: String) = JsonObject(mapOf("pain" to JsonPrimitive(v)))
-        assertEquals("knee pain", Guardian.hookFrom(d(" knee pain ")))
-        assertNull(Guardian.hookFrom(d("none")))
-        assertNull(Guardian.hookFrom(d("")))
+        assertEquals("back", Guardian.hookFrom(com.simha.app.logic.Sig(pain = mapOf("knee" to 1, "back" to 3))))
+        assertNull(Guardian.hookFrom(com.simha.app.logic.Sig()))
         assertNull(Guardian.hookFrom(null))
     }
 

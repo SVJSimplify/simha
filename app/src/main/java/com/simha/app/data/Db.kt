@@ -87,29 +87,27 @@ data class MedicineEntity(
     val createdAt: Long,
 )
 
-@Entity(tableName = "dose_log")
-data class DoseLogEntity(
-    @PrimaryKey val id: String,
-    val medicineId: String?,
-    val scheduledAt: Long,
-    val status: String,
-    val createdAt: Long,
-)
-
-@Entity(tableName = "diary")
-data class DiaryEntity(
+@Entity(tableName = "daily_signal")
+data class DailySignalEntity(
     @PrimaryKey val day: String,
-    val data: String,
-    val summary: String,
+    val t: String,
+    val doses: String,
+    val synced: Boolean,
     val updatedAt: Long,
 )
 
-@Entity(tableName = "memories")
-data class MemoryEntity(
-    @PrimaryKey val id: String,
-    val kind: String,
-    val text: String,
-    val createdAt: Long,
+@Entity(tableName = "weekly_signal")
+data class WeeklySignalEntity(
+    @PrimaryKey val week: String,
+    val t: String,
+)
+
+@Entity(tableName = "facts")
+data class FactEntity(
+    @PrimaryKey val k: String,
+    val v: String,
+    val weight: Int,
+    val updatedAt: Long,
 )
 
 @Dao
@@ -123,29 +121,53 @@ interface GuardianDao {
     @Query("DELETE FROM medicines WHERE id = :id")
     suspend fun deleteMedicine(id: String)
 
-    @Insert
-    suspend fun insertDose(d: DoseLogEntity)
+    @Query("SELECT * FROM medicines")
+    suspend fun medicinesNow(): List<MedicineEntity>
 
-    @Query("SELECT * FROM dose_log WHERE scheduledAt >= :since ORDER BY scheduledAt DESC")
-    fun doses(since: Long): Flow<List<DoseLogEntity>>
-
-    @Query("SELECT * FROM diary WHERE day = :day")
-    suspend fun diary(day: String): DiaryEntity?
+    @Query("SELECT * FROM daily_signal WHERE day = :day")
+    suspend fun signal(day: String): DailySignalEntity?
 
     @Upsert
-    suspend fun upsertDiary(d: DiaryEntity)
+    suspend fun upsertSignal(e: DailySignalEntity)
 
-    @Query("SELECT * FROM diary WHERE day >= :fromDay ORDER BY day DESC")
-    suspend fun diarySince(fromDay: String): List<DiaryEntity>
+    @Query("SELECT * FROM daily_signal WHERE day >= :from ORDER BY day DESC")
+    suspend fun signalsSince(from: String): List<DailySignalEntity>
 
-    @Query("SELECT text FROM memories")
-    suspend fun memoryTexts(): List<String>
+    @Query("SELECT * FROM daily_signal WHERE day >= :from ORDER BY day DESC")
+    fun signalsFlow(from: String): Flow<List<DailySignalEntity>>
 
-    @Insert
-    suspend fun insertMemory(m: MemoryEntity)
+    @Query("SELECT * FROM daily_signal WHERE day >= :from AND day <= :to ORDER BY day")
+    suspend fun signalsBetween(from: String, to: String): List<DailySignalEntity>
 
-    @Query("SELECT * FROM memories ORDER BY createdAt DESC LIMIT :limit")
-    suspend fun memories(limit: Int): List<MemoryEntity>
+    @Query("SELECT * FROM daily_signal WHERE synced = 0")
+    suspend fun unsynced(): List<DailySignalEntity>
+
+    @Query("UPDATE daily_signal SET synced = 1 WHERE day = :day AND updatedAt = :at")
+    suspend fun markSynced(day: String, at: Long)
+
+    @Query("UPDATE daily_signal SET doses = '' WHERE day < :day AND doses != ''")
+    suspend fun clearDosesBefore(day: String)
+
+    @Query("DELETE FROM daily_signal WHERE day < :day")
+    suspend fun deleteSignalsBefore(day: String): Int
+
+    @Query("SELECT * FROM weekly_signal WHERE week = :week")
+    suspend fun weekly(week: String): WeeklySignalEntity?
+
+    @Upsert
+    suspend fun upsertWeekly(e: WeeklySignalEntity)
+
+    @Query("DELETE FROM weekly_signal WHERE week < :week")
+    suspend fun deleteWeeklyBefore(week: String): Int
+
+    @Query("SELECT * FROM facts ORDER BY weight DESC, updatedAt DESC")
+    suspend fun facts(): List<FactEntity>
+
+    @Upsert
+    suspend fun upsertFact(f: FactEntity)
+
+    @Query("DELETE FROM facts WHERE k = :k")
+    suspend fun deleteFact(k: String)
 }
 
 val MIGRATION_1_2 = object : Migration(1, 2) {
@@ -157,12 +179,20 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
     }
 }
 
+val MIGRATION_2_3 = object : Migration(2, 3) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("CREATE TABLE IF NOT EXISTS `daily_signal` (`day` TEXT NOT NULL, `t` TEXT NOT NULL, `doses` TEXT NOT NULL, `synced` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, PRIMARY KEY(`day`))")
+        db.execSQL("CREATE TABLE IF NOT EXISTS `weekly_signal` (`week` TEXT NOT NULL, `t` TEXT NOT NULL, PRIMARY KEY(`week`))")
+        db.execSQL("CREATE TABLE IF NOT EXISTS `facts` (`k` TEXT NOT NULL, `v` TEXT NOT NULL, `weight` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, PRIMARY KEY(`k`))")
+    }
+}
+
 @Database(
     entities = [
         ContactEntity::class, ProfileEntity::class, OutboxEntity::class,
-        MedicineEntity::class, DoseLogEntity::class, DiaryEntity::class, MemoryEntity::class,
+        MedicineEntity::class, DailySignalEntity::class, WeeklySignalEntity::class, FactEntity::class,
     ],
-    version = 2,
+    version = 3,
     exportSchema = false,
 )
 abstract class SimhaDb : RoomDatabase() {

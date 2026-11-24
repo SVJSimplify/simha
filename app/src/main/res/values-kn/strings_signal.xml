@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="sig_pain">ನೋವು: %1$s</string>
+    <string name="sig_sleep">ನಿದ್ರೆ: %1$s</string>
+    <string name="sig_water">ನೀರು: %1$s</string>
+    <string name="sig_activity">ಚಟುವಟಿಕೆ: %1$s</string>
+    <string name="sig_visitors">ಭೇಟಿ ನೀಡಿದವರು: %1$d</string>
+    <string name="sig_exc">ಎಚ್ಚರಿಕೆಗಳು: %1$s</string>
+    <string name="sig_note">ಟಿಪ್ಪಣಿ: %1$s</string>
+    <string name="sig_week_falls">ಬೀಳುವಿಕೆ: %1$d</string>
+    <string name="sig_week_pain">ಈ ವಾರ ನೋವು: %1$s</string>
+    <string name="sig_lo">ಕಡಿಮೆ</string>
+    <string name="sig_ok">ಸರಿ</string>
+    <string name="sig_hi">ಹೆಚ್ಚು</string>
+    <string name="sig_good">ಒಳ್ಳೆಯದು</string>
+    <string name="sig_poor">ಸರಿಯಿಲ್ಲ</string>
+    <string name="sig_x_fall">ಬೀಳುವಿಕೆ</string>
+    <string name="sig_x_missed_ci">ಚೆಕ್-ಇನ್ ತಪ್ಪಿದೆ</string>
+    <string name="sig_x_missed_dose">ಔಷಧಿ ತಪ್ಪಿದೆ</string>
+    <string name="sig_x_redflag">ಸಹಾಯ ಕೇಳಿದರು</string>
+    <string name="sig_x_esc">ಎಚ್ಚರಿಕೆ ಕಳುಹಿಸಲಾಗಿದೆ</string>
+    <string name="sig_older">ಹಿಂದಿನ ವಾರಗಳು</string>
+</resources>

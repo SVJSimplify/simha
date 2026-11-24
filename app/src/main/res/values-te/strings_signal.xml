@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="sig_pain">నొప్పి: %1$s</string>
+    <string name="sig_sleep">నిద్ర: %1$s</string>
+    <string name="sig_water">నీరు: %1$s</string>
+    <string name="sig_activity">కార్యకలాపం: %1$s</string>
+    <string name="sig_visitors">సందర్శకులు: %1$d</string>
+    <string name="sig_exc">హెచ్చరికలు: %1$s</string>
+    <string name="sig_note">గమనిక: %1$s</string>
+    <string name="sig_week_falls">పడిపోవడం: %1$d</string>
+    <string name="sig_week_pain">ఈ వారం నొప్పి: %1$s</string>
+    <string name="sig_lo">తక్కువ</string>
+    <string name="sig_ok">సరే</string>
+    <string name="sig_hi">ఎక్కువ</string>
+    <string name="sig_good">మంచిది</string>
+    <string name="sig_poor">సరిగా లేదు</string>
+    <string name="sig_x_fall">పడిపోవడం</string>
+    <string name="sig_x_missed_ci">చెక్-ఇన్ మిస్సయింది</string>
+    <string name="sig_x_missed_dose">మందు మిస్సయింది</string>
+    <string name="sig_x_redflag">సహాయం కోరారు</string>
+    <string name="sig_x_esc">అలర్ట్ పంపారు</string>
+    <string name="sig_older">గత వారాలు</string>
+</resources>

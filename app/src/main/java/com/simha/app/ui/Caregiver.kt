@@ -8,7 +8,8 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.platform.LocalContext
 import com.simha.app.Actions
 import com.simha.app.data.Diary
-import com.simha.app.data.DoseLog
+import com.simha.app.data.Weekly
+import com.simha.app.logic.Sig
 import com.simha.app.data.FamilyMessage
 import com.simha.app.ui.home.MsgRecorder
 import com.simha.app.ui.home.dayStats
@@ -166,12 +167,37 @@ private fun VoiceMessageCard(vm: MainViewModel, s: Snap, sent: List<FamilyMessag
 }
 
 @Composable
+private fun SignalDetail(s: Sig) {
+    fun lvl(v: String) = when (v) {
+        "lo" -> R.string.sig_lo
+        "hi" -> R.string.sig_hi
+        "g" -> R.string.sig_good
+        "p" -> R.string.sig_poor
+        else -> R.string.sig_ok
+    }
+    fun xr(c: String) = when (c) {
+        "fall" -> R.string.sig_x_fall
+        "missed_ci" -> R.string.sig_x_missed_ci
+        "missed_dose" -> R.string.sig_x_missed_dose
+        "redflag" -> R.string.sig_x_redflag
+        else -> R.string.sig_x_esc
+    }
+    if (s.pain.isNotEmpty()) Caption(stringResource(R.string.sig_pain, s.pain.entries.joinToString(", ") { it.key + " " + it.value }))
+    s.sleep?.let { Caption(stringResource(R.string.sig_sleep, stringResource(lvl(it)))) }
+    s.water?.let { Caption(stringResource(R.string.sig_water, stringResource(lvl(it)))) }
+    s.activity?.let { Caption(stringResource(R.string.sig_activity, stringResource(lvl(it)))) }
+    s.visitors?.let { Caption(stringResource(R.string.sig_visitors, it)) }
+    if (s.exc.isNotEmpty()) Caption(stringResource(R.string.sig_exc, s.exc.joinToString(", ") { stringResource(xr(it)) }))
+    s.note?.let { Caption(stringResource(R.string.sig_note, it)) }
+}
+
+@Composable
 fun CaregiverHomeScreen(vm: MainViewModel, s: Snap, onSwitch: () -> Unit) {
     val scope = rememberCoroutineScope()
     var view by remember { mutableStateOf<PersonView?>(null) }
     var err by remember { mutableStateOf<String?>(null) }
-    var doses by remember { mutableStateOf<List<DoseLog>>(emptyList()) }
     var diaries by remember { mutableStateOf<List<Diary>>(emptyList()) }
+    var weeks by remember { mutableStateOf<List<Weekly>>(emptyList()) }
     var sent by remember { mutableStateOf<List<FamilyMessage>>(emptyList()) }
     val reload: () -> Unit = {
         val id = s.personId
@@ -183,9 +209,8 @@ fun CaregiverHomeScreen(vm: MainViewModel, s: Snap, onSwitch: () -> Unit) {
                 )
             }
             scope.launch {
-                val since = LocalDate.now().minusDays(6).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
-                vm.sl.guardian.dosesFor(id, since).fold({ doses = it }, { err = it.message ?: it.javaClass.simpleName })
                 vm.sl.guardian.diaryFor(id, 7).fold({ diaries = it }, { err = it.message ?: it.javaClass.simpleName })
+                vm.sl.guardian.weeklyFor(id).fold({ weeks = it }, { err = it.message ?: it.javaClass.simpleName })
                 vm.sl.guardian.sentFamilyMessages(id).fold({ sent = it }, { err = it.message ?: it.javaClass.simpleName })
             }
         }
@@ -202,18 +227,15 @@ fun CaregiverHomeScreen(vm: MainViewModel, s: Snap, onSwitch: () -> Unit) {
         if (v != null) {
             val zone = ZoneId.systemDefault()
             val today = LocalDate.now()
-            val d = dayStats(v.events, doses, diaries.firstOrNull { it.day == today }, today, zone)
-            val w = weekStats(v.events, doses, diaries, today, zone)
+            val d = dayStats(v.events, diaries.firstOrNull { it.day == today }, today, zone)
+            val w = weekStats(diaries, today)
             val noData = stringResource(R.string.r3_cg_none_data)
             Card {
                 Body(stringResource(R.string.r3_cg_summary))
                 Caption(stringResource(R.string.r3_cg_mood, d.mood ?: noData))
                 Caption(stringResource(R.string.r3_cg_checkins, d.fine, d.missed))
                 Caption(stringResource(R.string.r3_cg_doses, d.taken, d.dosesMissed))
-                if (d.summary.isNotBlank()) {
-                    Caption(stringResource(R.string.r3_cg_diary))
-                    Body(d.summary)
-                }
+                d.sig?.let { SignalDetail(it) }
             }
             Card {
                 Body(stringResource(R.string.r3_cg_week))
@@ -223,6 +245,21 @@ fun CaregiverHomeScreen(vm: MainViewModel, s: Snap, onSwitch: () -> Unit) {
                 Caption(stringResource(R.string.r3_cg_week_activity))
                 if (w.notes.isEmpty()) Caption(noData)
                 w.notes.forEach { Body(it) }
+                Caption(stringResource(R.string.sig_week_falls, w.falls))
+                if (w.pain.isNotEmpty()) Caption(stringResource(R.string.sig_week_pain, w.pain.joinToString(", ")))
+            }
+            if (weeks.isNotEmpty()) {
+                Card {
+                    Body(stringResource(R.string.sig_older))
+                    weeks.forEach { k ->
+                        Caption(k.week)
+                        Caption(k.roll.mdPct?.let { stringResource(R.string.r3_cg_week_doses, it) } ?: noData)
+                        Caption(stringResource(R.string.r3_cg_week_missed, k.roll.ciMiss))
+                        Caption(stringResource(R.string.r3_cg_week_mood, k.roll.mood?.let { String.format(java.util.Locale.US, "%.1f", it) } ?: noData))
+                        Caption(stringResource(R.string.sig_week_falls, k.roll.falls))
+                        if (k.roll.pain.isNotEmpty()) Caption(stringResource(R.string.sig_week_pain, k.roll.pain.joinToString(", ")))
+                    }
+                }
             }
             VoiceMessageCard(vm, s, sent, reload)
             val alerts = v.events.filter { it.type == "alert" || it.type == "checkin_missed" || it.type == "help" }

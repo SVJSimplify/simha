@@ -77,8 +77,12 @@ class Repo(
         r
     }
 
-    suspend fun logEvent(type: String, data: JsonObject = JsonObject(emptyMap())) =
+    var signalHook: (suspend (String) -> Unit)? = null
+
+    suspend fun logEvent(type: String, data: JsonObject = JsonObject(emptyMap())) {
         enqueue("insert", "events", jo("type" to type, "data" to data))
+        runCatching { signalHook?.invoke(type) }
+    }
 
     suspend fun audit(action: String, detail: JsonObject = JsonObject(emptyMap())) =
         enqueue("insert", "audit_log", jo("action" to action, "detail" to detail))

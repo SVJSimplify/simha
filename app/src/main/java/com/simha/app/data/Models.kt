@@ -81,10 +81,11 @@ data class DoseLog(
 
 data class Diary(
     val day: java.time.LocalDate,
-    val data: JsonObject,
-    val summary: String,
+    val sig: com.simha.app.logic.Sig,
     val updatedAt: Long,
 )
+
+data class Weekly(val week: String, val roll: com.simha.app.logic.Rollup)
 
 data class Memory(
     val id: String,
@@ -104,18 +105,14 @@ data class FamilyMessage(
 )
 
 @Serializable
-data class DoseRow(
-    val id: String,
-    @SerialName("medicine_id") val medicineId: String? = null,
-    @SerialName("scheduled_at") val scheduledAt: String,
-    val status: String,
-    @SerialName("created_at") val createdAt: String = "",
+data class DailySignalRow(
+    val day: String,
+    val t: String = "",
+    @SerialName("updated_at") val updatedAt: String = "",
 )
 
 @Serializable
-data class DiaryRow(
-    val day: String,
-    val data: JsonObject = JsonObject(emptyMap()),
-    val summary: String = "",
-    @SerialName("updated_at") val updatedAt: String = "",
+data class WeeklySignalRow(
+    val week: String,
+    val t: String = "",
 )

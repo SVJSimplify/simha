@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="sig_pain">வலி: %1$s</string>
+    <string name="sig_sleep">தூக்கம்: %1$s</string>
+    <string name="sig_water">தண்ணீர்: %1$s</string>
+    <string name="sig_activity">செயல்பாடு: %1$s</string>
+    <string name="sig_visitors">வருகையாளர்கள்: %1$d</string>
+    <string name="sig_exc">எச்சரிக்கைகள்: %1$s</string>
+    <string name="sig_note">குறிப்பு: %1$s</string>
+    <string name="sig_week_falls">கீழே விழுதல்: %1$d</string>
+    <string name="sig_week_pain">இந்த வாரம் வலி: %1$s</string>
+    <string name="sig_lo">குறைவு</string>
+    <string name="sig_ok">சரி</string>
+    <string name="sig_hi">அதிகம்</string>
+    <string name="sig_good">நன்று</string>
+    <string name="sig_poor">மோசம்</string>
+    <string name="sig_x_fall">கீழே விழுதல்</string>
+    <string name="sig_x_missed_ci">செக்-இன் தவறியது</string>
+    <string name="sig_x_missed_dose">மருந்து தவறியது</string>
+    <string name="sig_x_redflag">உதவி கேட்டார்</string>
+    <string name="sig_x_esc">எச்சரிக்கை அனுப்பப்பட்டது</string>
+    <string name="sig_older">முந்தைய வாரங்கள்</string>
+</resources>

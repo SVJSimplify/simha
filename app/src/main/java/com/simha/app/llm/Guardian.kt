@@ -3,12 +3,9 @@ package com.simha.app.llm
 import android.content.Context
 import com.simha.app.R
 import com.simha.app.logic.MedicalProfile
+import com.simha.app.logic.Sig
 import com.simha.app.voice.Langs
 import com.simha.app.wake.WakeReason
-import kotlinx.serialization.json.JsonArray
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.contentOrNull
 import java.time.LocalDate
 import java.time.LocalTime
 
@@ -21,8 +18,8 @@ data class GuardianContext(
     val doctor: String = "",
     val medicines: List<MedLine> = emptyList(),
     val memories: List<String> = emptyList(),
-    val todayDiary: String = "",
-    val yesterdayDiary: String = "",
+    val todaySig: String = "",
+    val yesterdaySig: String = "",
     val timeOfDay: String = "",
     val reason: WakeReason? = null,
     val extra: String? = null,
@@ -35,7 +32,7 @@ data class GuardianContext(
     fun known(): Known = Known(
         medicines = hasMedicines,
         newPerson = "intro" !in asked && !hasMedicines && profile.conditions.isBlank() && profile.allergies.isBlank() &&
-            doctor.isBlank() && memories.isEmpty() && todayDiary.isBlank() && yesterdayDiary.isBlank(),
+            doctor.isBlank() && memories.isEmpty() && todaySig.isBlank() && yesterdaySig.isBlank(),
         asked = asked,
     )
 }
@@ -59,8 +56,7 @@ object Guardian {
 
     fun seed(): Int = LocalDate.now().dayOfYear * 24 + LocalTime.now().hour
 
-    fun hookFrom(data: JsonObject?): String? =
-        (data?.get("pain") as? JsonPrimitive)?.contentOrNull?.trim()?.takeIf { it.isNotEmpty() && !it.equals("none", true) && !it.equals("no", true) }?.take(60)
+    fun hookFrom(s: Sig?): String? = s?.pain?.entries?.maxByOrNull { it.value }?.key
 
     fun openingKey(reason: WakeReason?, k: Known = Known(), medicine: String? = null, sender: String? = null): Open {
         val ask = !k.medicines && "medicines" !in k.asked
@@ -132,11 +128,12 @@ object Guardian {
             }
         }
         if (c.memories.isNotEmpty()) {
-            sb.append("What you remember:\n")
+            sb.append("Key facts you remember:\n")
             c.memories.take(15).forEach { sb.append("- ").append(it).append("\n") }
         }
-        if (c.todayDiary.isNotBlank()) sb.append("Today's diary so far: ").append(c.todayDiary).append("\n")
-        if (c.yesterdayDiary.isNotBlank()) sb.append("Yesterday's diary: ").append(c.yesterdayDiary).append("\n")
+        sb.append("Day lines are compact signals: m mood 1-5, md medicines taken/due, p pain area+level 1-3, s sleep g good ok p poor, w water lo ok, a activity lo ok hi, v visitors, ci check-ins ok/missed, x alerts (fall, missed_ci, missed_dose, redflag, esc), n short note. Never read them out; use them to ask naturally.\n")
+        if (c.todaySig.isNotBlank()) sb.append("Today: ").append(c.todaySig).append("\n")
+        if (c.yesterdaySig.isNotBlank()) sb.append("Yesterday: ").append(c.yesterdaySig).append("\n")
         c.reason?.let { sb.append("Why this conversation started: ").append(reasonText(it, c.extra)).append("\n") }
         if (c.unwell) sb.append("Why this conversation started: they opened the app because they feel unwell. You asked what is wrong. Listen, then use get_first_aid and guide them step by step.\n")
         return sb.toString()
@@ -172,11 +169,4 @@ object Guardian {
             Open.None -> ""
         }
     }
-
-    fun summaryMessages(transcript: String): JsonArray = JsonArray(
-        listOf(
-            Msg.system("You write memory notes for a caring companion. Summarise the conversation below in at most two short plain English sentences: how the person felt, any health issue or medicine, and anything to follow up. No names of tools. No greeting."),
-            Msg.user(transcript),
-        )
-    )
 }

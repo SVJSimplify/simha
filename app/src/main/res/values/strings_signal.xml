@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="sig_pain">Pain: %1$s</string>
+    <string name="sig_sleep">Sleep: %1$s</string>
+    <string name="sig_water">Water: %1$s</string>
+    <string name="sig_activity">Activity: %1$s</string>
+    <string name="sig_visitors">Visitors: %1$d</string>
+    <string name="sig_exc">Alerts: %1$s</string>
+    <string name="sig_note">Note: %1$s</string>
+    <string name="sig_week_falls">Falls: %1$d</string>
+    <string name="sig_week_pain">Pain this week: %1$s</string>
+    <string name="sig_lo">low</string>
+    <string name="sig_ok">OK</string>
+    <string name="sig_hi">high</string>
+    <string name="sig_good">good</string>
+    <string name="sig_poor">poor</string>
+    <string name="sig_x_fall">Fall</string>
+    <string name="sig_x_missed_ci">Missed check-in</string>
+    <string name="sig_x_missed_dose">Missed medicine</string>
+    <string name="sig_x_redflag">Asked for help</string>
+    <string name="sig_x_esc">Alert sent</string>
+    <string name="sig_older">Earlier weeks</string>
+</resources>

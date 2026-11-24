@@ -32,16 +32,20 @@ class Remote {
         return JsonObject(o + (key to JsonPrimitive(uid)))
     }
 
+    private val CONFLICT = mapOf("diary" to "user_id,day", "daily_signal" to "user_id,day", "weekly_signal" to "user_id,week", "facts" to "user_id,k")
+
     suspend fun apply(op: OutboxEntity, uid: String) {
         val o = Json.parseToJsonElement(op.payload).jsonObject
         when (op.kind) {
             "insert" -> sb.from(op.tbl).insert(withUid(o, op.tbl, uid))
-            "upsert" -> if (op.tbl == "diary") {
-                sb.from(op.tbl).upsert(withUid(o, op.tbl, uid)) { onConflict = "user_id,day" }
-            } else {
-                sb.from(op.tbl).upsert(withUid(o, op.tbl, uid))
+            "upsert" -> {
+                val c = CONFLICT[op.tbl]
+                if (c != null) sb.from(op.tbl).upsert(withUid(o, op.tbl, uid)) { onConflict = c } else sb.from(op.tbl).upsert(withUid(o, op.tbl, uid))
             }
-            "delete" -> {
+            "delete" -> if (op.tbl == "facts") {
+                val k = o.getValue("k").jsonPrimitive.content
+                sb.from(op.tbl).delete { filter { eq("user_id", uid); eq("k", k) } }
+            } else {
                 val id = o.getValue("id").jsonPrimitive.content
                 sb.from(op.tbl).delete { filter { eq("id", id) } }
             }

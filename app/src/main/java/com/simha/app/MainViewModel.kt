@@ -248,7 +248,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     fun refreshToday() {
         viewModelScope.launch {
             val diary = sl.guardian.diaryFor(LocalDate.now())
-            val mood = diary?.data?.get("mood")?.let { (it as? kotlinx.serialization.json.JsonPrimitive)?.content }?.takeIf { it.isNotBlank() }
+            val mood = diary?.sig?.mood?.toString()
             val start = LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
             val items = mutableListOf<TodayItem>()
             val uid = try {
@@ -266,7 +266,6 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                     if (t != null && t >= start) items += TodayItem(t, "call", c.number)
                 }
             }
-            if (diary != null && diary.summary.isNotBlank() && diary.updatedAt >= start) items += TodayItem(diary.updatedAt, "diary", diary.summary)
             today = TodayState(mood, items.sortedByDescending { it.at })
         }
     }

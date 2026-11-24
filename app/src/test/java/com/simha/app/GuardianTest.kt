@@ -123,28 +123,18 @@ class GuardianTest {
     }
 
     @Test
-    fun diaryMergeAppendsListsDedupesAndOverwritesScalars() {
-        val existing = JsonObject(
-            mapOf("meals" to JsonArray(listOf(JsonPrimitive("Idli"))), "mood" to JsonPrimitive("tired"), "visitors" to JsonArray(listOf(JsonPrimitive("Priya")))),
-        )
-        val u = DiaryMerge.update(mapOf("meals" to "idli, rice", "mood" to "better", "water" to "4 glasses"))
-        val m = DiaryMerge.merge(existing, u)
-        assertEquals(listOf("Idli", "rice"), m["meals"]!!.jsonArray.map { it.jsonPrimitive.content })
-        assertEquals("better", m["mood"]!!.jsonPrimitive.content)
-        assertEquals("4 glasses", m["water"]!!.jsonPrimitive.content)
-        assertEquals(listOf("Priya"), m["visitors"]!!.jsonArray.map { it.jsonPrimitive.content })
-        assertEquals(setOf("meals", "mood", "water", "visitors"), m.keys)
-    }
-
-    @Test
-    fun diaryMergeWithNothingExistingAndDerivedKeys() {
-        val m = DiaryMerge.merge(null, DiaryMerge.update(mapOf("activities" to "walk, prayer", "mood" to "calm")))
-        val d = DiaryMerge.withDerived(m)
-        assertEquals("walk, prayer", d["activity"]!!.jsonPrimitive.content)
-        assertTrue(d["summary"]!!.jsonPrimitive.content.contains("Mood: calm"))
-        val again = DiaryMerge.withDerived(DiaryMerge.merge(d, DiaryMerge.update(mapOf("activities" to "tv"))))
-        assertEquals("walk, prayer, tv", again["activity"]!!.jsonPrimitive.content)
-        assertEquals(DiaryMerge.summary(again), again["summary"]!!.jsonPrimitive.content)
+    fun diaryUpdateMapsToSignal() {
+        val u = DiaryMerge.update(mapOf("mood" to "happy", "pain" to "mild knee pain", "sleep" to "slept badly", "water" to "3 glasses", "activities" to "walk, prayer", "visitors" to "Priya, Ravi", "notes" to "liked the soup"))
+        val g = DiaryMerge.toSig(u)
+        assertEquals(4, g.mood)
+        assertEquals(mapOf("knee" to 1), g.pain)
+        assertEquals("p", g.sleep)
+        assertEquals("lo", g.water)
+        assertEquals("hi", g.activity)
+        assertEquals(2, g.visitors)
+        assertEquals("liked the soup", g.note)
+        assertEquals(mapOf("pain" to 2), DiaryMerge.toSig(DiaryMerge.update(mapOf("pain" to "hurts"))).pain)
+        assertTrue(DiaryMerge.toSig(DiaryMerge.update(mapOf("pain" to "none"))).pain.isEmpty())
     }
 
     private val zone = ZoneId.of("Asia/Kolkata")

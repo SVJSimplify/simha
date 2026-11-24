@@ -19,7 +19,9 @@ import java.util.concurrent.TimeUnit
 class ActivityWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx, params) {
     override suspend fun doWork(): Result {
         Monitor.tick(applicationContext)
-        (applicationContext as SimhaApp).sl.repo.flush()
+        val sl = (applicationContext as SimhaApp).sl
+        sl.repo.flush()
+        runCatching { sl.guardian.maintain() }
         return Result.success()
     }
 }

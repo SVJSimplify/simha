@@ -331,7 +331,6 @@ object Wake {
         val all = g.memories(200)
         val asked = all.filter { it.text.startsWith("asked:") }.map { it.text.removePrefix("asked:").trim().lowercase() }.toSet()
         val mem = all.filter { !it.text.startsWith("asked:") }.map { it.text }
-        fun diary(d: com.simha.app.data.Diary?) = d?.let { it.summary.ifBlank { com.simha.app.llm.DiaryMerge.summary(it.data) } }.orEmpty()
         val yesterday = g.diaryFor(today.minusDays(1))
         val c = GuardianContext(
             name = "",
@@ -340,13 +339,13 @@ object Wake {
             doctor = listOf(p.doctorName, p.doctorPhone).filter { it.isNotBlank() }.joinToString(" "),
             medicines = meds,
             memories = mem,
-            todayDiary = diary(g.diaryFor(today)),
-            yesterdayDiary = diary(yesterday),
+            todaySig = g.signalLine(today),
+            yesterdaySig = g.signalLine(today.minusDays(1)),
             asked = asked,
         )
         val configured = sl.llmStore.config().configured
         val k = if (configured) c.known() else c.known().copy(newPerson = false, medicines = true)
-        return k to Guardian.hookFrom(yesterday?.data)
+        return k to Guardian.hookFrom(yesterday?.sig)
     }
 
     suspend fun fire(ctx: Context, req: WakeRequest): Boolean {

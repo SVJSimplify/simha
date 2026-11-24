@@ -99,7 +99,6 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
     private var extra: String? = null
     private var unwell = false
     private var doseLogged = false
-    private var summarized = false
     private var startedAt = 0L
     private val fillers = FillerGate(4)
 
@@ -111,13 +110,11 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
 
     fun reset() {
         stop()
-        summarizeOnce()
         history.clear()
         lines.clear()
         started = false
         checkedIn = false
         doseLogged = false
-        summarized = false
         error = null
     }
 
@@ -295,7 +292,6 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun finishUp() {
         events.tryEmit(TalkEvent.Done)
-        summarizeOnce()
     }
 
     private suspend fun conversation(initial: String?, lang: String, lc: android.content.Context) {
@@ -416,8 +412,7 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
         val meds = g.medicines().first().filter { it.active }.map { MedLine(it.name, it.dose, it.times, DoseSlots.status(it, logs, now, zone)) }
         val all = g.memories(200)
         val asked = all.filter { it.text.startsWith("asked:") }.map { it.text.removePrefix("asked:").trim().lowercase() }.toSet()
-        val mem = all.filter { !it.text.startsWith("asked:") }.take(15).map { if (it.kind == "summary") "Earlier conversation: " + it.text else it.text }
-        fun diary(d: com.simha.app.data.Diary?) = d?.let { it.summary.ifBlank { DiaryMerge.summary(it.data) } }.orEmpty()
+        val mem = all.filter { !it.text.startsWith("asked:") }.take(15).map { it.text }
         val t = LocalTime.now()
         return GuardianContext(
             name = snap.name,
@@ -426,14 +421,14 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
             doctor = listOf(p.doctorName, p.doctorPhone).filter { it.isNotBlank() }.joinToString(" "),
             medicines = meds,
             memories = mem,
-            todayDiary = diary(g.diaryFor(today)),
-            yesterdayDiary = diary(g.diaryFor(today.minusDays(1))),
+            todaySig = g.signalLine(today),
+            yesterdaySig = g.signalLine(today.minusDays(1)),
             timeOfDay = Guardian.timeOfDay(t.hour, t.minute),
             reason = reason,
             extra = extra,
             unwell = unwell,
             asked = asked,
-            hook = Guardian.hookFrom(g.diaryFor(today.minusDays(1))?.data),
+            hook = Guardian.hookFrom(g.diaryFor(today.minusDays(1))?.sig),
         )
     }
 
@@ -486,25 +481,6 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    private fun summarizeOnce() {
-        if (summarized) return
-        summarized = true
-        if (!configured || lines.count { it.fromUser } < 2) return
-        val transcript = lines.joinToString("\n") { (if (it.fromUser) "Person: " else "Simha: ") + it.text }.take(6000)
-        val s = sl
-        appScope.launch {
-            try {
-                val r = s.llm.complete(s.llmStore.config(), Guardian.summaryMessages(transcript), null)
-                val t = r.content?.trim().orEmpty().take(300)
-                if (t.isNotEmpty()) s.guardian.addMemory("summary", t)
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                runCatching { s.repo.audit("summary_failed", jo("reason" to (e.message ?: ""))) }
-            }
-        }
-    }
-
     private suspend fun requestPhoto(): Bitmap? {
         val d = CompletableDeferred<Bitmap?>()
         cameraRequest.value = d
@@ -537,7 +513,6 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
     override fun onCleared() {
         sl.voice.stopSpeaking()
         sl.voice.cancelListening()
-        summarizeOnce()
         super.onCleared()
     }
 
@@ -684,8 +659,7 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
 
         override suspend fun logDiary(update: JsonObject): String {
             val day = LocalDate.now()
-            val merged = DiaryMerge.withDerived(DiaryMerge.merge(g.diaryFor(day)?.data, update))
-            g.upsertDiary(day, merged, DiaryMerge.summary(merged))
+            g.upsertDiary(day, DiaryMerge.toSig(update))
             return "Saved to today's diary."
         }
 
