@@ -1,5 +1,6 @@
 package com.simha.app.wake
 
+import android.content.Context
 import android.content.Intent
 import android.media.AudioManager
 import android.os.Build
@@ -18,6 +19,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.core.app.NotificationManagerCompat
+import com.simha.app.LocaleCtx
 import com.simha.app.SimhaApp
 import com.simha.app.ui.talk.ConversationPanel
 import com.simha.app.ui.theme.SimhaTheme
@@ -26,6 +28,10 @@ import kotlinx.coroutines.delay
 class WakeActivity : AppCompatActivity() {
     private var req by mutableStateOf<WakeRequest?>(null)
     private var done = false
+
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(LocaleCtx.wrapped(newBase))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -1,6 +1,7 @@
 package com.simha.app
 
 import com.simha.app.llm.FillerGate
+import com.simha.app.llm.ContactLine
 import com.simha.app.llm.Guardian
 import com.simha.app.llm.GuardianContext
 import com.simha.app.llm.MedLine
@@ -68,6 +69,21 @@ class OpeningFillerTest {
         assertFalse(full.contains("Do you take any medicines every day"))
         assertFalse(full.contains("asked:conditions"))
         assertFalse(full.contains("asked:doctor"))
+    }
+
+    @Test
+    fun promptListsContactsWithoutNumbers() {
+        val p = Guardian.systemPrompt(
+            GuardianContext(
+                "Ravi", "en", MedicalProfile(),
+                contacts = listOf(ContactLine("Meena", "neighbor", false), ContactLine("Priya", "family", true)),
+            )
+        )
+        assertTrue(p.contains("- Meena, neighbour, calls not approved"))
+        assertTrue(p.contains("- Priya, family, calls approved"))
+        assertTrue(p.contains("call_contact"))
+        assertFalse(p.contains("+91"))
+        assertTrue(Guardian.systemPrompt(GuardianContext("Ravi", "en", MedicalProfile())).contains("Contacts: none saved yet."))
     }
 
     @Test

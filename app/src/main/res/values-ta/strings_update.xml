@@ -14,4 +14,5 @@
     <string name="upd_err_perm">திறந்த திரையில் சிம்ஹா புதுப்பிப்புகளை நிறுவ அனுமதித்து, மீண்டும் இப்போதே புதுப்பிக்கவும் என்பதை அழுத்தவும்.</string>
     <string name="upd_err_empty">பதிவிறக்கிய புதுப்பிப்பு கோப்பு காலியாக உள்ளது.</string>
     <string name="upd_err_install">புதுப்பிப்பு தோல்வியடைந்தது: %1$s</string>
+    <string name="upd_current">நீங்கள் பில்ட் %1$d இல் உள்ளீர்கள்</string>
 </resources>

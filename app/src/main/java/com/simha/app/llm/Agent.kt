@@ -15,7 +15,7 @@ object Agent {
 
     suspend fun run(
         api: ChatApi,
-        system: String,
+        system: suspend () -> String,
         history: MutableList<JsonObject>,
         host: ToolHost,
         onSentence: (String) -> Unit,
@@ -26,7 +26,7 @@ object Agent {
         repeat(MAX_STEPS) {
             var buf = ""
             val sb = StringBuilder()
-            val msgs = JsonArray(listOf(Msg.system(system)) + History.trim(history))
+            val msgs = JsonArray(listOf(Msg.system(system())) + History.trim(history))
             val r = api.chat(msgs, SimhaTools.definitions) { d ->
                 sb.append(d)
                 val (done, rest) = SentenceSplitter.split(buf + d)

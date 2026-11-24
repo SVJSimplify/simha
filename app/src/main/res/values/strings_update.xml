@@ -14,4 +14,5 @@
     <string name="upd_err_perm">Allow Simha to install updates in the screen that opened, then tap Update now again.</string>
     <string name="upd_err_empty">The downloaded update file is empty.</string>
     <string name="upd_err_install">Update failed: %1$s</string>
+    <string name="upd_current">You\'re on build %1$d</string>
 </resources>

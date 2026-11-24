@@ -7,6 +7,7 @@ import android.content.pm.PackageInstaller
 import android.net.Uri
 import android.provider.Settings
 import com.simha.app.BuildConfig
+import com.simha.app.LocaleCtx
 import com.simha.app.R
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
@@ -52,7 +53,8 @@ object Updater {
         }
     }
 
-    suspend fun check(ctx: Context): Result<UpdateInfo?> = withContext(Dispatchers.IO) {
+    suspend fun check(base: Context): Result<UpdateInfo?> = withContext(Dispatchers.IO) {
+        val ctx = LocaleCtx.wrapped(base)
         try {
             val resp = http.get(RELEASES_URL) {
                 header("Accept", "application/vnd.github+json")
@@ -98,8 +100,9 @@ object Updater {
         return best?.takeIf { it.versionCode > current }
     }
 
-    suspend fun downloadAndInstall(ctx: Context, info: UpdateInfo, onProgress: (Float) -> Unit): Result<Unit> =
+    suspend fun downloadAndInstall(base: Context, info: UpdateInfo, onProgress: (Float) -> Unit): Result<Unit> =
         withContext(Dispatchers.IO) {
+            val ctx = LocaleCtx.wrapped(base)
             try {
                 if (!ctx.packageManager.canRequestPackageInstalls()) {
                     ctx.startActivity(

@@ -93,7 +93,7 @@ fun ConversationPanel(
     DisposableEffect(Unit) {
         WakeWord.stopWakeWord()
         onDispose {
-            if ((ctx as? Activity)?.isChangingConfigurations != true) vm.reset()
+            if (generateSequence(ctx) { (it as? android.content.ContextWrapper)?.baseContext }.filterIsInstance<Activity>().firstOrNull()?.isChangingConfigurations != true) vm.reset()
         }
     }
     val initLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { vm.begin(reason, extra, unwell) }

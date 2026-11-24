@@ -2,12 +2,10 @@ package com.simha.app
 
 import android.app.Application
 import android.content.Intent
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.simha.app.data.ContactEntity
@@ -94,9 +92,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     fun setLanguage(code: String) {
         viewModelScope.launch {
+            LocaleCtx.save(getApplication(), code)
             sl.prefs.edit { this[K.LANG] = code }
             if (sl.prefs.snap().setup) sl.repo.syncUser()
-            AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(code))
         }
     }
 

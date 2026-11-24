@@ -1,6 +1,10 @@
 package com.simha.app.update
 
 import android.content.Context
+import android.content.Intent
+import androidx.core.app.NotificationManagerCompat
+import com.simha.app.BuildConfig
+import com.simha.app.LocaleCtx
 import com.simha.app.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -18,6 +22,7 @@ data class UpdateUi(
     val progress: Float = 0f,
     val error: String? = null,
     val installed: Boolean = false,
+    val pendingConfirm: Intent? = null,
 )
 
 object UpdateState {
@@ -30,7 +35,15 @@ object UpdateState {
     private var app: Context? = null
 
     fun attach(ctx: Context) {
-        if (app == null) app = ctx.applicationContext
+        if (app == null) {
+            app = ctx.applicationContext
+            val c = ctx.applicationContext
+            if (c.getSharedPreferences("update", Context.MODE_PRIVATE).getInt("notified", 0) <= BuildConfig.VERSION_CODE) clearNotif(c)
+        }
+    }
+
+    private fun clearNotif(c: Context) {
+        NotificationManagerCompat.from(c).cancel(UpdateWorker.NOTIF_ID)
     }
 
     fun checkNow() {
@@ -40,6 +53,7 @@ object UpdateState {
         scope.launch {
             val r = Updater.check(c)
             c.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putLong(KEY_LAST, System.currentTimeMillis()).apply()
+            if (r.isSuccess && r.getOrNull() == null) clearNotif(c)
             _ui.update {
                 it.copy(
                     checking = false,
@@ -60,23 +74,29 @@ object UpdateState {
         val c = app ?: return
         val info = _ui.value.info ?: return
         if (_ui.value.busy) return
-        _ui.update { it.copy(busy = true, progress = 0f, error = null, installed = false) }
+        _ui.update { it.copy(busy = true, progress = 0f, error = null, installed = false, pendingConfirm = null) }
         scope.launch {
             val r = Updater.downloadAndInstall(c, info) { p -> _ui.update { it.copy(progress = p) } }
-            _ui.update {
-                it.copy(
-                    busy = false,
-                    error = r.exceptionOrNull()?.let { e -> e.message ?: c.getString(R.string.upd_err_install, "") },
-                )
+            val e = r.exceptionOrNull()
+            if (e != null) {
+                _ui.update { it.copy(busy = false, error = e.message ?: LocaleCtx.wrapped(c).getString(R.string.upd_err_install, "")) }
             }
         }
     }
 
+    fun confirm(intent: Intent) {
+        _ui.update { it.copy(pendingConfirm = intent) }
+    }
+
+    fun confirmStarted() {
+        _ui.update { it.copy(pendingConfirm = null) }
+    }
+
     fun fail(message: String) {
-        _ui.update { it.copy(busy = false, error = message) }
+        _ui.update { it.copy(busy = false, error = message, pendingConfirm = null) }
     }
 
     fun installed() {
-        _ui.update { it.copy(busy = false, installed = true, error = null) }
+        _ui.update { it.copy(busy = false, installed = true, error = null, pendingConfirm = null) }
     }
 }

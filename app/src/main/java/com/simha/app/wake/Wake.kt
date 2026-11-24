@@ -124,7 +124,7 @@ object Wake {
     private fun time(s: String, d: LocalTime): LocalTime = parseTime(s) ?: d
 
     fun inexactNote(ctx: Context): String? =
-        if (WakeStore.bool(ctx, "exact", true)) null else ctx.getString(R.string.wake_note_inexact)
+        if (WakeStore.bool(ctx, "exact", true)) null else com.simha.app.LocaleCtx.wrapped(ctx).getString(R.string.wake_note_inexact)
 
     fun audit(ctx: Context, action: String, detail: kotlinx.serialization.json.JsonObject = jo()) {
         val app = ctx.applicationContext

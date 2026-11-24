@@ -9,6 +9,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.add
+import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.intOrNull
@@ -18,18 +19,20 @@ import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import kotlinx.serialization.json.putJsonObject
 
-data class ContactInfo(val name: String, val phone: String, val role: String, val approved: Boolean)
+data class ContactInfo(val name: String, val phone: String, val role: String, val approved: Boolean, val id: String = "")
 
 interface ToolHost {
     suspend fun getProfile(): JsonObject
-    suspend fun getContacts(): JsonArray
     suspend fun getStatus(): JsonObject
     suspend fun logSymptom(text: String): String
     suspend fun markCheckinOk(): String
     suspend fun openEmergencyScreen(): String
     suspend fun dialEmergency(): String
-    suspend fun contactByName(name: String): ContactInfo?
+    suspend fun allContacts(): List<ContactInfo>
     suspend fun callContact(c: ContactInfo): String
+    suspend fun dialContact(c: ContactInfo): String
+    suspend fun addContact(label: String, role: String, phone: String): String
+    suspend fun setCallApproval(c: ContactInfo, allowed: Boolean): String
     suspend fun sendFamilyAlert(message: String): String
     suspend fun recordingApproved(): Boolean
     suspend fun startRecording(): String
@@ -42,7 +45,6 @@ interface ToolHost {
     suspend fun remember(kind: String, text: String): String
     suspend fun takeMedicine(name: String, status: String): String
     suspend fun listMedicines(): JsonArray
-    suspend fun familyContact(label: String?): ContactInfo?
     suspend fun playFamilyMessages(): String
     suspend fun addMedicine(name: String, dose: String, times: List<String>): String
     suspend fun audit(tool: String, args: String, result: String)
@@ -78,13 +80,12 @@ object SimhaTools {
     val definitions: JsonArray = JsonArray(
         listOf(
             tool("get_profile", "Get the person's medical profile and name."),
-            tool("get_contacts", "List the person's emergency contacts with role and whether calls are approved."),
+            tool("list_contacts", "List all of the person's contacts right now with label, role and whether calls are approved."),
             tool("get_status", "Get last check-in time and recent activity."),
             tool("log_symptom", "Save a symptom the person describes, for the doctor and family.", mapOf("text" to ("string" to "What the person said"))),
             tool("mark_checkin_ok", "Record that the person said they are fine during a check-in."),
             tool("open_emergency_screen", "Open the step-by-step emergency screen."),
             tool("dial_emergency", "Open the phone dialer with 112. The person must press call."),
-            tool("call_approved_contact", "Call an emergency contact by name. Only works for contacts the person approved.", mapOf("name" to ("string" to "Contact name"))),
             tool("send_family_alert", "Prepare a text message alert to family. The person presses send.", mapOf("message" to ("string" to "Message text"))),
             tool("start_recording", "Record a voice message. Only works if the person approved recording."),
             tool("look_with_camera", "Take a photo with the camera and describe it.", mapOf("question" to ("string" to "What to look for"))),
@@ -136,10 +137,29 @@ object SimhaTools {
                 mapOf("description" to ("string" to "What happened, in English")),
             ),
             tool(
-                "call_family",
-                "Call a family member. Only works for family contacts the person approved. Leave the label out to call the first approved family contact.",
-                mapOf("label" to ("string" to "Optional name or relation, for example daughter or Priya")),
-                required = emptyList(),
+                "call_contact",
+                "Call any contact. Match by label, name or role (family, neighbour, doctor, hospital) in any language. Only calls contacts the person approved. If several match, candidates are returned: ask which one.",
+                mapOf("who" to ("string" to "What the person said, for example my neighbour, Ravi, the doctor")),
+            ),
+            tool("dial_contact", "Open the phone dialer with a contact's number. The person presses call. Works for any contact.", mapOf("who" to ("string" to "Label, name or role"))),
+            tool(
+                "add_contact",
+                "Save a new contact. Only after reading the number back and the person clearly said yes.",
+                mapOf(
+                    "label" to ("string" to "Name or label, for example Ravi"),
+                    "role" to ("string" to "One of family, neighbour, doctor"),
+                    "phone" to ("string" to "10 digit Indian mobile number"),
+                    "confirmed" to ("boolean" to "true only if the person said yes after you read the number back"),
+                ),
+            ),
+            tool(
+                "set_call_approval",
+                "Allow or stop automatic calls to one contact. Only after the person explicitly said yes to a direct question.",
+                mapOf(
+                    "who" to ("string" to "Label, name or role"),
+                    "allowed" to ("boolean" to "true to allow calls, false to stop"),
+                    "confirmed" to ("boolean" to "true only if the person explicitly said yes"),
+                ),
             ),
             tool("play_family_messages", "Play the person's unplayed voice messages from their family."),
             tool(
@@ -166,6 +186,20 @@ object SimhaTools {
         if (h in 0..23 && mi in 0..59) "%02d:%02d".format(h, mi) else null
     }.distinct().sorted()
 
+    private fun JsonObject.flag(k: String): Boolean? = this[k]?.jsonPrimitive?.contentOrNull?.trim()?.lowercase()?.let { if (it == "true") true else if (it == "false") false else null }
+
+    fun contactsJson(all: List<ContactInfo>): JsonArray = buildJsonArray {
+        all.forEach { add(buildJsonObject { put("label", it.name); put("role", it.role); put("approved_to_call", it.approved) }) }
+    }
+
+    private suspend inline fun pick(who: String, host: ToolHost, fail: (String) -> Nothing): ContactInfo {
+        val all = host.allContacts()
+        val m = ContactMatch.find(who, all)
+        if (m.isEmpty()) fail(buildJsonObject { put("error", "No contact matches that"); put("contacts", contactsJson(all)) }.toString())
+        if (m.size > 1) fail(buildJsonObject { put("candidates", contactsJson(m)); put("instruction", "Several contacts match. Ask the person which one.") }.toString())
+        return m[0]
+    }
+
     private fun JsonObject.str(k: String): String? = this[k]?.jsonPrimitive?.contentOrNull?.trim()?.ifEmpty { null }
 
     suspend fun dispatch(name: String, argsJson: String, host: ToolHost): String {
@@ -190,7 +224,7 @@ object SimhaTools {
     private suspend fun execute(name: String, a: JsonObject, host: ToolHost): String {
         when (name) {
             "get_profile" -> return host.getProfile().toString()
-            "get_contacts" -> return host.getContacts().toString()
+            "list_contacts" -> return contactsJson(host.allContacts()).toString()
             "get_status" -> return host.getStatus().toString()
             "log_symptom" -> {
                 val t = a.str("text") ?: return err("text is required")
@@ -199,11 +233,32 @@ object SimhaTools {
             "mark_checkin_ok" -> return ok(host.markCheckinOk())
             "open_emergency_screen" -> return ok(host.openEmergencyScreen())
             "dial_emergency" -> return ok(host.dialEmergency())
-            "call_approved_contact" -> {
-                val n = a.str("name") ?: return err("name is required")
-                val c = host.contactByName(n) ?: return err("No contact with that name")
-                if (!c.approved) return refuse("This contact is not approved for calls. The person can approve calls in Settings.")
+            "call_contact" -> {
+                val c = pick(a.str("who") ?: return err("who is required"), host) { return it }
+                if (!c.approved) return refuse("This contact is not approved for calls. Tell the person kindly, and offer to open the dialer with dial_contact so they press call, or to prepare a text with send_family_alert. Offer to allow calls only by asking a direct yes or no question.")
                 return ok(host.callContact(c))
+            }
+            "dial_contact" -> {
+                val c = pick(a.str("who") ?: return err("who is required"), host) { return it }
+                return ok(host.dialContact(c))
+            }
+            "add_contact" -> {
+                val label = a.str("label")?.take(60) ?: return err("label is required")
+                val role = when (a.str("role")?.lowercase()) {
+                    "family" -> "family"
+                    "neighbour", "neighbor" -> "neighbor"
+                    "doctor" -> "doctor"
+                    else -> return err("role must be family, neighbour or doctor")
+                }
+                val phone = ContactMatch.normalizeIndian(a.str("phone") ?: return err("phone is required")) ?: return err("That is not a valid 10 digit Indian mobile number. Ask the person to say it again.")
+                if (a.flag("confirmed") != true) return refuse("Read the number back to the person and get a clear yes first, then call again with confirmed true.")
+                return ok(host.addContact(label, role, phone))
+            }
+            "set_call_approval" -> {
+                val allowed = a.flag("allowed") ?: return err("allowed is required")
+                val c = pick(a.str("who") ?: return err("who is required"), host) { return it }
+                if (a.flag("confirmed") != true) return refuse("Ask the person a direct yes or no question first, then call again with confirmed true only after they say yes.")
+                return ok(host.setCallApproval(c, allowed))
             }
             "send_family_alert" -> {
                 val m = a.str("message") ?: return err("message is required")
@@ -266,11 +321,6 @@ object SimhaTools {
             "scam_check" -> {
                 val d = a.str("description") ?: return err("description is required")
                 return scamJson(Scam.check(d))
-            }
-            "call_family" -> {
-                val c = host.familyContact(a.str("label")) ?: return err("No family contact found")
-                if (!c.approved) return refuse("This family member is not approved for calls. The person can approve calls in Settings.")
-                return ok(host.callContact(c))
             }
             "play_family_messages" -> return ok(host.playFamilyMessages())
             "add_medicine" -> {

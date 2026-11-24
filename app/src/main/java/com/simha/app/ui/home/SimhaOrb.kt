@@ -52,11 +52,13 @@ import kotlin.math.sin
 
 enum class OrbState { Idle, Listening, Speaking, Thinking }
 
-private val Rose = Color(0xFF7E2F3B)
-private val Blush = Color(0xFFE9A2AC)
-private val Peach = Color(0xFFF4C7B0)
-private val Gold = Color(0xFFE2B26A)
-private val Cream = Color(0xFFFFF1E2)
+private val Amber = Color(0xFFE39A3D)
+private val Rim = Color(0xFFC9822E)
+private val Honey = Color(0xFFFBE3B5)
+private val Apricot = Color(0xFFF2B661)
+private val Butter = Color(0xFFFFEBC8)
+private val Cream = Color(0xFFFFF8EA)
+private val Shadow = Color(0xFFA06414)
 
 @Composable
 fun SimhaOrb(state: OrbState, onTap: () -> Unit, modifier: Modifier = Modifier, level: Float = 0f) {
@@ -113,7 +115,7 @@ fun SimhaOrb(state: OrbState, onTap: () -> Unit, modifier: Modifier = Modifier, 
 
     fun breathe() = if (still) 0f else 0.5f - 0.5f * cos(clock.floatValue * 2f * PI.toFloat() / 4f)
     fun grow() = 1f + 0.025f * breathe() + 0.06f * lv.value * listenA + 0.05f * lv.value * speakA
-    fun wobble() = if (still) 0f else 0.035f * lv.value * speakA * (0.6f * sin(clock.floatValue * 6.1f) + 0.4f * sin(clock.floatValue * 9.7f + 1f))
+    fun wobble() = if (still) 0f else 0.0175f * lv.value * speakA * (0.6f * sin(clock.floatValue * 6.1f) + 0.4f * sin(clock.floatValue * 9.7f + 1f))
 
     Box(
         modifier
@@ -140,7 +142,7 @@ fun SimhaOrb(state: OrbState, onTap: () -> Unit, modifier: Modifier = Modifier, 
         scale(1f - 0.4f * (sc - 1f), 0.22f, Offset(cx, cy + rad + m * 0.06f)) {
             drawCircle(
                 Brush.radialGradient(
-                    listOf(Rose.copy(alpha = 0.38f), Color.Transparent),
+                    listOf(Shadow.copy(alpha = 0.25f), Color.Transparent),
                     Offset(cx, cy + rad + m * 0.06f),
                     rad * 0.9f,
                 ),
@@ -153,7 +155,7 @@ fun SimhaOrb(state: OrbState, onTap: () -> Unit, modifier: Modifier = Modifier, 
             val gr = rad * 1.35f
             drawCircle(
                 Brush.radialGradient(
-                    0.74f to Blush.copy(alpha = 0.45f * l * listenA),
+                    0.74f to Apricot.copy(alpha = 0.45f * l * listenA),
                     1f to Color.Transparent,
                     center = c,
                     radius = gr,
@@ -162,7 +164,7 @@ fun SimhaOrb(state: OrbState, onTap: () -> Unit, modifier: Modifier = Modifier, 
                 c,
             )
             drawCircle(
-                Blush.copy(alpha = (0.18f + 0.45f * l) * listenA),
+                Apricot.copy(alpha = (0.18f + 0.45f * l) * listenA),
                 rad * (1.08f + 0.1f * l),
                 c,
                 style = Stroke(3.dp.toPx()),
@@ -177,11 +179,11 @@ fun SimhaOrb(state: OrbState, onTap: () -> Unit, modifier: Modifier = Modifier, 
                 }
                 clipPath(clip) {
                     drawCircle(
-                        Brush.linearGradient(listOf(Peach, Blush), Offset(cx - rad, cy - rad), Offset(cx + rad, cy + rad)),
+                        Brush.linearGradient(listOf(Butter, Honey), Offset(cx - rad, cy - rad), Offset(cx + rad, cy + rad)),
                         rad,
                         c,
                     )
-                    val cols = listOf(Rose, Peach, Gold, Blush, Cream)
+                    val cols = listOf(Amber, Honey, Apricot, Butter, Cream)
                     val orb = floatArrayOf(0.45f, 0.55f, 0.4f, 0.6f, 0.35f)
                     val spd = floatArrayOf(0.9f, -0.7f, 1.3f, -1.1f, 0.6f)
                     val br = floatArrayOf(0.8f, 0.7f, 0.65f, 0.75f, 0.55f)
@@ -190,7 +192,7 @@ fun SimhaOrb(state: OrbState, onTap: () -> Unit, modifier: Modifier = Modifier, 
                         val pos = Offset(cx + rad * orb[i] * cos(a), cy + rad * orb[i] * sin(a * 0.9f + i))
                         val r = rad * br[i] * (1f + 0.15f * l)
                         drawCircle(
-                            Brush.radialGradient(listOf(cols[i].copy(alpha = if (i == 0) 0.75f else 0.85f), Color.Transparent), pos, r),
+                            Brush.radialGradient(listOf(cols[i].copy(alpha = if (i == 0) 0.5f else 0.8f), Color.Transparent), pos, r),
                             r,
                             pos,
                         )
@@ -199,7 +201,7 @@ fun SimhaOrb(state: OrbState, onTap: () -> Unit, modifier: Modifier = Modifier, 
                         Brush.radialGradient(
                             0f to Color.White.copy(alpha = 0.28f),
                             0.5f to Color.Transparent,
-                            1f to Rose.copy(alpha = 0.5f),
+                            1f to Rim.copy(alpha = 0.35f),
                             center = Offset(cx - rad * 0.35f, cy - rad * 0.4f),
                             radius = rad * 1.7f,
                         ),
@@ -207,11 +209,11 @@ fun SimhaOrb(state: OrbState, onTap: () -> Unit, modifier: Modifier = Modifier, 
                         c,
                     )
                     drawCircle(
-                        Brush.radialGradient(0.72f to Color.Transparent, 1f to Rose.copy(alpha = 0.4f), center = c, radius = rad),
+                        Brush.radialGradient(0.72f to Color.Transparent, 1f to Rim.copy(alpha = 0.3f), center = c, radius = rad),
                         rad,
                         c,
                     )
-                    if (dimA > 0f) drawCircle(Color(0xFF3A1A20).copy(alpha = 0.18f * dimA), rad, c)
+                    if (dimA > 0f) drawCircle(Color(0xFF8A5A1A).copy(alpha = 0.18f * dimA), rad, c)
                 }
                 val sp = Offset(cx - rad * 0.38f, cy - rad * 0.48f)
                 withTransform({

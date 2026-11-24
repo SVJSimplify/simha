@@ -14,4 +14,5 @@
     <string name="upd_err_perm">తెరుచుకున్న స్క్రీన్‌లో సింహకు అప్‌డేట్‌లు ఇన్‌స్టాల్ చేయడానికి అనుమతించి, మళ్లీ ఇప్పుడే అప్‌డేట్ చేయండి నొక్కండి.</string>
     <string name="upd_err_empty">డౌన్‌లోడ్ చేసిన అప్‌డేట్ ఫైల్ ఖాళీగా ఉంది.</string>
     <string name="upd_err_install">అప్‌డేట్ విఫలమైంది: %1$s</string>
+    <string name="upd_current">మీరు బిల్డ్ %1$d లో ఉన్నారు</string>
 </resources>

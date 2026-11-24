@@ -83,8 +83,8 @@ void main() {
     }
     float z = sqrt(1.0 - r2);
     vec3 n = vec3(p.x, p.y, z);
-    float a = t * 0.35;
-    vec3 q = n * 1.3;
+    float a = t * 1.0;
+    vec3 q = n * 0.9;
     q = vec3(q.x * cos(a) + q.z * sin(a), q.y, -q.x * sin(a) + q.z * cos(a));
     float amp = 1.0 + level * 1.2;
     vec3 w = vec3(
@@ -92,21 +92,21 @@ void main() {
         fbm(q + vec3(5.2, 1.3, -t * 0.17)),
         fbm(q + vec3(2.4, 7.1, t * 0.13))
     );
-    float f = fbm(q + (w - 0.5) * 3.2 * amp + vec3(0.0, t * 0.1, 0.0));
+    float f = fbm(q + (w - 0.5) * 2.0 * amp + vec3(0.0, t * 0.1, 0.0));
     float f2 = fbm(q * 1.5 - w * 1.5 + 3.0);
     vec3 col = mix(c1, c2, smoothstep(0.25, 0.75, f));
-    col = mix(col, c0, (1.0 - smoothstep(0.30, 0.58, f2)) * 0.8);
-    col = mix(col, c3, smoothstep(0.55, 0.85, w.x) * 0.55);
-    col = mix(col, c4, smoothstep(0.60, 0.90, w.y) * 0.7);
+    col = mix(col, c0, (1.0 - smoothstep(0.25, 0.65, f2)) * 0.4);
+    col = mix(col, c3, smoothstep(0.50, 0.85, w.x) * 0.5);
+    col = mix(col, c4, smoothstep(0.55, 0.90, w.y) * 0.6);
     vec3 l = normalize(vec3(-0.5, -0.6, 0.65));
     float diff = clamp(dot(n, l), 0.0, 1.0);
-    col *= 0.62 + 0.5 * diff;
+    col *= 0.84 + 0.22 * diff;
     float rim = pow(1.0 - z, 2.2);
     vec2 dir = p / (sqrt(r2) + 0.0001);
-    col *= 1.0 - rim * (0.25 + 0.45 * max(dot(dir, vec2(0.7071, 0.7071)), 0.0));
+    col = mix(col, vec3(0.788, 0.510, 0.180), rim * (0.15 + 0.5 * max(dot(dir, vec2(0.7071, 0.7071)), 0.0)));
     vec3 h = normalize(l + vec3(0.0, 0.0, 1.0));
     float nh = max(dot(n, h), 0.0);
-    col += c4 * (pow(nh, 60.0) * 0.7 + pow(nh, 8.0) * 0.12);
+    col += vec3(1.0, 0.99, 0.96) * (pow(nh, 40.0) * 0.55 + pow(nh, 6.0) * 0.14);
     col *= 1.0 - 0.18 * dim;
     col += level * 0.05;
     float al = 1.0 - smoothstep(0.985, 1.0, sqrt(r2));
@@ -174,11 +174,11 @@ private class Gl(private val st: SurfaceTexture, private var w: Int, private var
         uT = GLES20.glGetUniformLocation(prog, "t")
         uLevel = GLES20.glGetUniformLocation(prog, "level")
         uDim = GLES20.glGetUniformLocation(prog, "dim")
-        GLES20.glUniform3f(GLES20.glGetUniformLocation(prog, "c0"), 0.494f, 0.184f, 0.231f)
-        GLES20.glUniform3f(GLES20.glGetUniformLocation(prog, "c1"), 0.914f, 0.635f, 0.675f)
-        GLES20.glUniform3f(GLES20.glGetUniformLocation(prog, "c2"), 0.957f, 0.780f, 0.690f)
-        GLES20.glUniform3f(GLES20.glGetUniformLocation(prog, "c3"), 0.886f, 0.698f, 0.416f)
-        GLES20.glUniform3f(GLES20.glGetUniformLocation(prog, "c4"), 1.000f, 0.945f, 0.886f)
+        GLES20.glUniform3f(GLES20.glGetUniformLocation(prog, "c0"), 0.890f, 0.604f, 0.239f)
+        GLES20.glUniform3f(GLES20.glGetUniformLocation(prog, "c1"), 0.984f, 0.890f, 0.710f)
+        GLES20.glUniform3f(GLES20.glGetUniformLocation(prog, "c2"), 1.000f, 0.973f, 0.918f)
+        GLES20.glUniform3f(GLES20.glGetUniformLocation(prog, "c3"), 0.949f, 0.714f, 0.380f)
+        GLES20.glUniform3f(GLES20.glGetUniformLocation(prog, "c4"), 1.000f, 0.922f, 0.784f)
         GLES20.glDisable(GLES20.GL_BLEND)
         GLES20.glDisable(GLES20.GL_DEPTH_TEST)
         GLES20.glClearColor(0f, 0f, 0f, 0f)

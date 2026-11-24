@@ -26,7 +26,8 @@ object Notifier {
     const val ID_ALERT = 4
     private const val FLAGS = PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
 
-    fun ensureChannels(ctx: Context) {
+    fun ensureChannels(base: Context) {
+        val ctx = com.simha.app.LocaleCtx.wrapped(base)
         val nm = ctx.getSystemService(NotificationManager::class.java)
         nm.createNotificationChannels(
             listOf(

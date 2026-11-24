@@ -23,8 +23,12 @@ import java.util.concurrent.TimeUnit
 class UpdateWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx, params) {
     @SuppressLint("MissingPermission")
     override suspend fun doWork(): Result {
-        val ctx = applicationContext
-        val info = Updater.check(ctx).getOrElse { return Result.retry() } ?: return Result.success()
+        val ctx = com.simha.app.LocaleCtx.wrapped(applicationContext)
+        val info = Updater.check(ctx).getOrElse { return Result.retry() }
+        if (info == null) {
+            NotificationManagerCompat.from(ctx).cancel(NOTIF_ID)
+            return Result.success()
+        }
         val prefs = ctx.getSharedPreferences("update", Context.MODE_PRIVATE)
         if (prefs.getInt("notified", 0) >= info.versionCode) return Result.success()
         if (Build.VERSION.SDK_INT >= 33 &&

@@ -3,6 +3,7 @@ package com.simha.app
 import com.simha.app.llm.Agent
 import com.simha.app.llm.ChatApi
 import com.simha.app.llm.ContactInfo
+import com.simha.app.llm.ContactMatch
 import com.simha.app.llm.History
 import com.simha.app.llm.LlmException
 import com.simha.app.llm.LlmParse
@@ -34,13 +35,15 @@ private class FakeHost(
     val audits = mutableListOf<Triple<String, String, String>>()
 
     override suspend fun getProfile() = JsonObject(emptyMap())
-    override suspend fun getContacts() = JsonArray(emptyList())
     override suspend fun getStatus() = JsonObject(emptyMap())
     override suspend fun logSymptom(text: String): String { calls += "symptom:$text"; return "saved" }
     override suspend fun markCheckinOk(): String { calls += "checkin_ok"; return "ok" }
     override suspend fun openEmergencyScreen(): String { calls += "emergency_screen"; return "ok" }
     override suspend fun dialEmergency(): String { calls += "dial_emergency"; return "ok" }
-    override suspend fun contactByName(name: String) = contacts.firstOrNull { it.name.equals(name, true) }
+    override suspend fun allContacts() = contacts
+    override suspend fun dialContact(c: ContactInfo): String { calls += "dial:${c.name}"; return "dialer" }
+    override suspend fun addContact(label: String, role: String, phone: String): String { calls += "add:$label:$role:$phone"; return "saved" }
+    override suspend fun setCallApproval(c: ContactInfo, allowed: Boolean): String { calls += "approve:${c.name}:$allowed"; return "ok" }
     override suspend fun callContact(c: ContactInfo): String { calls += "call:${c.name}"; return "calling" }
     override suspend fun sendFamilyAlert(message: String): String { calls += "alert:$message"; return "ready" }
     override suspend fun recordingApproved() = recordApproved
@@ -54,7 +57,6 @@ private class FakeHost(
     override suspend fun remember(kind: String, text: String): String { calls += "remember:$kind:$text"; return "ok" }
     override suspend fun takeMedicine(name: String, status: String): String { calls += "dose:$name:$status"; return "ok" }
     override suspend fun listMedicines() = JsonArray(emptyList())
-    override suspend fun familyContact(label: String?) = contacts.firstOrNull { it.role == "family" && (label == null || it.name.equals(label, true)) }
     override suspend fun playFamilyMessages(): String { calls += "play"; return "ok" }
     override suspend fun addMedicine(name: String, dose: String, times: List<String>): String { calls += "med:$name:$dose:" + times.joinToString("+"); return "ok" }
     override suspend fun audit(tool: String, args: String, result: String) { audits += Triple(tool, args, result) }
@@ -74,12 +76,12 @@ class LlmToolsTest {
     @Test
     fun parsesToolCalls() {
         val body = """{"choices":[{"message":{"role":"assistant","content":null,"tool_calls":[
-            {"id":"c1","type":"function","function":{"name":"call_approved_contact","arguments":"{\"name\":\"Priya\"}"}},
+            {"id":"c1","type":"function","function":{"name":"call_contact","arguments":"{\"who\":\"Priya\"}"}},
             {"id":"c2","type":"function","function":{"name":"get_profile","arguments":""}}]}}]}"""
         val r = LlmParse.parse(body)
         assertNull(r.content)
         assertEquals(2, r.toolCalls.size)
-        assertEquals(ToolCall("c1", "call_approved_contact", """{"name":"Priya"}"""), r.toolCalls[0])
+        assertEquals(ToolCall("c1", "call_contact", """{"who":"Priya"}"""), r.toolCalls[0])
         assertEquals("get_profile", r.toolCalls[1].name)
     }
 
@@ -172,17 +174,17 @@ class LlmToolsTest {
     @Test
     fun unapprovedContactCallIsRefused() {
         val host = FakeHost(contacts = listOf(ContactInfo("Priya", "999", "family", approved = false)))
-        val out = dispatch(host, "call_approved_contact", """{"name":"Priya"}""")
+        val out = dispatch(host, "call_contact", """{"who":"Priya"}""")
         assertTrue(out.contains("refused"))
         assertFalse(host.calls.any { it.startsWith("call:") })
         assertEquals(1, host.audits.size)
-        assertEquals("call_approved_contact", host.audits[0].first)
+        assertEquals("call_contact", host.audits[0].first)
     }
 
     @Test
     fun approvedContactCallGoesThrough() {
         val host = FakeHost(contacts = listOf(ContactInfo("Priya", "999", "family", approved = true)))
-        val out = dispatch(host, "call_approved_contact", """{"name":"priya"}""")
+        val out = dispatch(host, "call_contact", """{"who":"priya"}""")
         assertTrue(out.contains("result"))
         assertEquals(listOf("call:Priya"), host.calls)
     }
@@ -190,7 +192,7 @@ class LlmToolsTest {
     @Test
     fun unknownContactIsAnErrorNotACall() {
         val host = FakeHost()
-        val out = dispatch(host, "call_approved_contact", """{"name":"Nobody"}""")
+        val out = dispatch(host, "call_contact", """{"who":"Nobody"}""")
         assertTrue(out.contains("error"))
         assertTrue(host.calls.isEmpty())
     }
@@ -279,15 +281,74 @@ class LlmToolsTest {
         assertTrue(host.calls.isEmpty())
     }
 
+    private val book = listOf(
+        ContactInfo("Priya", "999", "family", approved = true, id = "1"),
+        ContactInfo("Ravi", "888", "neighbor", approved = false, id = "2"),
+        ContactInfo("Dr Rao", "777", "doctor", approved = true, id = "3"),
+        ContactInfo("Meena", "666", "neighbor", approved = true, id = "4"),
+    )
+
+    private fun names(who: String) = ContactMatch.find(who, book).map { it.name }
+
     @Test
-    fun callFamilyOnlyWhenApproved() {
-        val no = FakeHost(contacts = listOf(ContactInfo("Priya", "999", "family", approved = false)))
-        assertTrue(dispatch(no, "call_family", "{}").contains("refused"))
-        assertTrue(no.calls.isEmpty())
-        val yes = FakeHost(contacts = listOf(ContactInfo("Priya", "999", "family", approved = true)))
-        dispatch(yes, "call_family", """{"label":"priya"}""")
-        assertEquals(listOf("call:Priya"), yes.calls)
-        assertTrue(dispatch(FakeHost(), "call_family", "{}").contains("error"))
+    fun fuzzyMatchesLabelNameAndRole() {
+        assertEquals(listOf("Priya"), names("priya"))
+        assertEquals(listOf("Ravi"), names("my neighbour Ravi"))
+        assertEquals(listOf("Priya"), names("my family"))
+        assertEquals(listOf("Dr Rao"), names("the doctor"))
+        assertEquals(listOf("Dr Rao"), names("डॉक्टर"))
+        assertEquals(listOf("Ravi", "Meena"), names("पड़ोसी"))
+        assertEquals(listOf("Ravi", "Meena"), names("பக்கத்து வீட்டு"))
+        assertTrue(names("plumber").isEmpty())
+    }
+
+    @Test
+    fun multipleMatchesReturnCandidatesWithoutCalling() {
+        val h = FakeHost(contacts = book)
+        val out = dispatch(h, "call_contact", """{"who":"my neighbour"}""")
+        assertTrue(out.contains("candidates"))
+        assertTrue(out.contains("Ravi") && out.contains("Meena"))
+        assertFalse(out.contains("888"))
+        assertTrue(h.calls.isEmpty())
+    }
+
+    @Test
+    fun unapprovedMatchIsRefusedAndDialerWorks() {
+        val h = FakeHost(contacts = book)
+        assertTrue(dispatch(h, "call_contact", """{"who":"Ravi"}""").contains("refused"))
+        assertTrue(h.calls.isEmpty())
+        dispatch(h, "dial_contact", """{"who":"Ravi"}""")
+        assertEquals(listOf("dial:Ravi"), h.calls)
+        assertTrue(dispatch(h, "call_contact", """{"who":"the doctor"}""").contains("result"))
+        assertEquals(listOf("dial:Ravi", "call:Dr Rao"), h.calls)
+    }
+
+    @Test
+    fun listContactsHasNoNumbers() {
+        val out = dispatch(FakeHost(contacts = book), "list_contacts", "{}")
+        assertTrue(out.contains("Ravi") && out.contains("approved_to_call"))
+        assertFalse(out.contains("888"))
+    }
+
+    @Test
+    fun addContactValidatesAndNeedsConfirmation() {
+        val h = FakeHost()
+        assertTrue(dispatch(h, "add_contact", """{"label":"Ravi","role":"neighbour","phone":"12345"}""").contains("error"))
+        assertTrue(dispatch(h, "add_contact", """{"label":"Ravi","role":"boss","phone":"9876543210"}""").contains("error"))
+        assertTrue(dispatch(h, "add_contact", """{"label":"Ravi","role":"neighbour","phone":"9876543210"}""").contains("refused"))
+        assertTrue(h.calls.isEmpty())
+        dispatch(h, "add_contact", """{"label":"Ravi","role":"neighbour","phone":"98765 43210","confirmed":true}""")
+        assertEquals(listOf("add:Ravi:neighbor:+919876543210"), h.calls)
+    }
+
+    @Test
+    fun setCallApprovalNeedsExplicitYes() {
+        val h = FakeHost(contacts = book)
+        assertTrue(dispatch(h, "set_call_approval", """{"who":"Ravi","allowed":true}""").contains("refused"))
+        assertTrue(h.calls.isEmpty())
+        dispatch(h, "set_call_approval", """{"who":"Ravi","allowed":true,"confirmed":true}""")
+        assertEquals(listOf("approve:Ravi:true"), h.calls)
+        assertEquals("set_call_approval", h.audits.last().first)
     }
 
     @Test
@@ -304,10 +365,10 @@ class LlmToolsTest {
     fun definitionsCoverAllTools() {
         val names = SimhaTools.definitions.map { it.jsonObject["function"]!!.jsonObject["name"]!!.jsonPrimitive.content }.toSet()
         val expected = setOf(
-            "get_profile", "get_contacts", "get_status", "log_symptom", "mark_checkin_ok", "open_emergency_screen",
-            "dial_emergency", "call_approved_contact", "send_family_alert", "start_recording", "look_with_camera",
+            "get_profile", "list_contacts", "get_status", "log_symptom", "mark_checkin_ok", "open_emergency_screen",
+            "dial_emergency", "call_contact", "dial_contact", "add_contact", "set_call_approval", "send_family_alert", "start_recording", "look_with_camera",
             "set_reminder", "update_profile_field", "remember_health_detail", "get_first_aid", "log_diary", "remember",
-            "take_medicine", "list_medicines", "scam_check", "call_family", "play_family_messages", "add_medicine",
+            "take_medicine", "list_medicines", "scam_check", "play_family_messages", "add_medicine",
         )
         assertEquals(expected, names)
     }
@@ -331,7 +392,7 @@ class LlmToolsTest {
         val history = mutableListOf(Msg.user("I am fine"))
         val spoken = mutableListOf<String>()
         var fillers = 0
-        val out = runBlocking { Agent.run(api, "sys", history, host, { spoken += it }, { fillers++ }) }
+        val out = runBlocking { Agent.run(api, { "sys" }, history, host, { spoken += it }, { fillers++ }) }
         assertEquals("Glad you are fine.", out)
         assertEquals(listOf("checkin_ok"), host.calls)
         assertEquals(listOf("Glad you are fine."), spoken)
@@ -350,10 +411,26 @@ class LlmToolsTest {
             }
         }
         try {
-            runBlocking { Agent.run(api, "sys", mutableListOf(Msg.user("hi")), host, {}, {}) }
+            runBlocking { Agent.run(api, { "sys" }, mutableListOf(Msg.user("hi")), host, {}, {}) }
             fail()
         } catch (e: LlmException) {
             assertEquals(Agent.MAX_STEPS, n)
         }
+    }
+
+    @Test
+    fun agentRebuildsSystemPromptBeforeEveryRequest() {
+        val host = FakeHost()
+        var built = 0
+        val seen = mutableListOf<String>()
+        val replies = ArrayDeque(listOf(ParsedReply(null, listOf(ToolCall("c1", "get_profile", "{}"))), ParsedReply("ok", emptyList())))
+        val api = object : ChatApi {
+            override suspend fun chat(messages: JsonArray, tools: JsonArray, onDelta: (String) -> Unit): ParsedReply {
+                seen += messages[0].jsonObject["content"]!!.jsonPrimitive.content
+                return replies.removeFirst()
+            }
+        }
+        runBlocking { Agent.run(api, { "sys" + (++built) }, mutableListOf(Msg.user("hi")), host, {}, {}) }
+        assertEquals(listOf("sys1", "sys2"), seen)
     }
 }

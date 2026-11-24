@@ -29,13 +29,15 @@ private class HealthHost(private val approved: Boolean = false) : ToolHost {
     val calls = mutableListOf<String>()
     val audits = mutableListOf<String>()
     override suspend fun getProfile() = JsonObject(emptyMap())
-    override suspend fun getContacts() = JsonArray(emptyList())
     override suspend fun getStatus() = JsonObject(emptyMap())
     override suspend fun logSymptom(text: String) = "ok"
     override suspend fun markCheckinOk() = "ok"
     override suspend fun openEmergencyScreen() = "ok"
     override suspend fun dialEmergency() = "ok"
-    override suspend fun contactByName(name: String) = ContactInfo("Priya", "9876543210", "family", approved)
+    override suspend fun allContacts() = listOf(ContactInfo("Priya", "9876543210", "family", approved))
+    override suspend fun dialContact(c: ContactInfo) = "ok"
+    override suspend fun addContact(label: String, role: String, phone: String) = "ok"
+    override suspend fun setCallApproval(c: ContactInfo, allowed: Boolean) = "ok"
     override suspend fun callContact(c: ContactInfo): String { calls += "call"; return "calling" }
     override suspend fun sendFamilyAlert(message: String) = "ok"
     override suspend fun recordingApproved() = false
@@ -49,7 +51,6 @@ private class HealthHost(private val approved: Boolean = false) : ToolHost {
     override suspend fun remember(kind: String, text: String) = "ok"
     override suspend fun takeMedicine(name: String, status: String) = "ok"
     override suspend fun listMedicines() = JsonArray(emptyList())
-    override suspend fun familyContact(label: String?): ContactInfo? = null
     override suspend fun playFamilyMessages() = "ok"
     override suspend fun addMedicine(name: String, dose: String, times: List<String>) = "ok"
     override suspend fun audit(tool: String, args: String, result: String) { audits += tool }
@@ -88,7 +89,7 @@ class SarvamHealthTest {
     @Test
     fun refusalStillWorks() {
         val h = HealthHost(approved = false)
-        assertTrue(run(h, "call_approved_contact", """{"name":"Priya"}""").contains("refused"))
+        assertTrue(run(h, "call_contact", """{"who":"Priya"}""").contains("refused"))
         assertTrue(run(h, "start_recording", "{}").contains("refused"))
         assertTrue(h.calls.isEmpty())
     }

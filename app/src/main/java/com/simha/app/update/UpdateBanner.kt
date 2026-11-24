@@ -11,6 +11,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
+import com.simha.app.BuildConfig
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import com.simha.app.R
 import com.simha.app.ui.Body
 import com.simha.app.ui.Caption
@@ -24,12 +30,28 @@ fun UpdateBanner() {
     val ctx = LocalContext.current
     UpdateState.attach(ctx)
     LaunchedEffect(Unit) { UpdateState.checkIfDue() }
+    val owner = LocalLifecycleOwner.current
+    LaunchedEffect(owner) {
+        owner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            UpdateState.ui.map { it.pendingConfirm }.distinctUntilChanged().collect { i ->
+                if (i != null) {
+                    UpdateState.confirmStarted()
+                    try {
+                        ctx.startActivity(i)
+                    } catch (e: Exception) {
+                        UpdateState.fail(ctx.getString(R.string.upd_err_install, e.message ?: e.javaClass.simpleName))
+                    }
+                }
+            }
+        }
+    }
     val s by UpdateState.ui.collectAsState()
     val info = s.info
     if (info == null && s.error == null) return
     Card(Modifier.fillMaxWidth()) {
         if (info != null) {
             Body(stringResource(R.string.upd_available, info.versionCode))
+            Caption(stringResource(R.string.upd_current, BuildConfig.VERSION_CODE), Modifier.padding(top = 4.dp))
             if (info.notes.isNotBlank()) Caption(info.notes.take(300), Modifier.padding(top = 4.dp))
             if (s.busy) {
                 LinearProgressIndicator(

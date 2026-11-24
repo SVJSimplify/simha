@@ -21,6 +21,7 @@ import com.simha.app.forLang
 import com.simha.app.llm.Agent
 import com.simha.app.llm.ChatApi
 import com.simha.app.llm.ContactInfo
+import com.simha.app.llm.ContactLine
 import com.simha.app.llm.DiaryMerge
 import com.simha.app.llm.DoseSlots
 import com.simha.app.llm.FillerGate
@@ -429,6 +430,7 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
             unwell = unwell,
             asked = asked,
             hook = Guardian.hookFrom(g.diaryFor(today.minusDays(1))?.sig),
+            contacts = sl.repo.contactsNow().map { ContactLine(it.name, it.role, it.approved) },
         )
     }
 
@@ -436,7 +438,7 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
         mode = TalkMode.Thinking
         val cfg = sl.llmStore.config()
         val snap = sl.prefs.snap()
-        val system = Guardian.systemPrompt(guardianContext(snap, lang))
+        val system: suspend () -> String = { Guardian.systemPrompt(guardianContext(sl.prefs.snap(), lang)) }
         val api = object : ChatApi {
             override suspend fun chat(messages: JsonArray, tools: JsonArray, onDelta: (String) -> Unit): ParsedReply =
                 sl.llm.chat(cfg, messages, tools, onDelta)
@@ -532,10 +534,6 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
             )
         }
 
-        override suspend fun getContacts(): JsonArray = buildJsonArray {
-            repo.contactsNow().forEach { add(jo("name" to it.name, "role" to it.role, "approved_to_call" to it.approved)) }
-        }
-
         override suspend fun getStatus(): JsonObject {
             val s = sl.prefs.snap()
             val now = System.currentTimeMillis()
@@ -568,17 +566,31 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
         override suspend fun dialEmergency(): String =
             if (repo.dialEmergency("assistant")) "The dialer is open with 112. The person must press call." else "Could not open the dialer."
 
-        override suspend fun contactByName(name: String): ContactInfo? {
-            val n = name.trim().lowercase()
-            val all = repo.contactsNow()
-            val c = all.firstOrNull { it.name.lowercase() == n } ?: all.firstOrNull { it.name.lowercase().contains(n) || n.contains(it.name.lowercase()) }
-            return c?.let { ContactInfo(it.name, it.phone, it.role, it.approved) }
-        }
+        override suspend fun allContacts(): List<ContactInfo> =
+            repo.contactsNow().map { ContactInfo(it.name, it.phone, it.role, it.approved, it.id) }
 
         override suspend fun callContact(c: ContactInfo): String = when (repo.placeCall(c.phone, c.approved, "assistant")) {
             CallResult.Called -> "Calling " + c.name + " now."
             CallResult.Dialer -> "The dialer is open for " + c.name + ". The person must press call."
             CallResult.Failed -> "Could not start the call."
+        }
+
+        override suspend fun dialContact(c: ContactInfo): String = when (repo.placeCall(c.phone, false, "assistant")) {
+            CallResult.Failed -> "Could not open the dialer."
+            else -> "The dialer is open for " + c.name + ". The person must press call."
+        }
+
+        override suspend fun addContact(label: String, role: String, phone: String): String {
+            repo.addContact(label, phone, role)
+            return "Saved " + label + " as " + (if (role == "neighbor") "neighbour" else role) + "."
+        }
+
+        override suspend fun setCallApproval(c: ContactInfo, allowed: Boolean): String {
+            val e = repo.contactsNow().firstOrNull { it.id == c.id } ?: throw IllegalArgumentException("Contact not found")
+            sl.db.dao().upsertContact(e.copy(approved = allowed))
+            repo.enqueue("upsert", "emergency_contacts", jo("id" to e.id, "name" to e.name, "phone" to e.phone, "role" to e.role, "approved_to_call" to allowed))
+            repo.audit("contact_approval_changed", jo("role" to e.role, "granted" to allowed, "by" to "user_voice"))
+            return if (allowed) "Calls to " + e.name + " are now allowed." else "Calls to " + e.name + " are no longer automatic."
         }
 
         override suspend fun sendFamilyAlert(message: String): String {
@@ -696,13 +708,6 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
                     )
                 }
             }
-        }
-
-        override suspend fun familyContact(label: String?): ContactInfo? {
-            val fam = repo.contactsNow().filter { it.role in Repo.FAMILY_ROLES }.sortedByDescending { it.approved }
-            val l = label?.trim()?.lowercase().orEmpty()
-            val c = if (l.isEmpty()) fam.firstOrNull() else fam.firstOrNull { it.name.lowercase().contains(l) || l.contains(it.name.lowercase()) || it.role.lowercase() == l }
-            return c?.let { ContactInfo(it.name, it.phone, it.role, it.approved) }
         }
 
         override suspend fun playFamilyMessages(): String {

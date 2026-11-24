@@ -14,4 +14,5 @@
     <string name="upd_err_perm">खुली स्क्रीन में सिंहा को अपडेट इंस्टॉल करने दें, फिर दोबारा अभी अपडेट करें दबाएँ।</string>
     <string name="upd_err_empty">डाउनलोड की गई अपडेट फ़ाइल खाली है।</string>
     <string name="upd_err_install">अपडेट विफल: %1$s</string>
+    <string name="upd_current">आप बिल्ड %1$d पर हैं</string>
 </resources>

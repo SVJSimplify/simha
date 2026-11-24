@@ -35,6 +35,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
+import android.content.res.Configuration
+import java.util.Locale
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -42,6 +45,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -55,6 +60,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.simha.app.LocaleCtx
+import com.simha.app.LocalizedContext
 import com.simha.app.MainViewModel
 import com.simha.app.R
 import com.simha.app.data.Snap
@@ -74,9 +81,22 @@ private fun AnimatedContentTransitionScope<NavBackStackEntry>.tabSwitch(): Boole
 fun SimhaRoot(vm: MainViewModel, wsc: WindowWidthSizeClass) {
     val snap by vm.snap.collectAsState()
     val s = snap ?: return
-    SimhaTheme(dark = s.night || isSystemInDarkTheme()) {
-        ProvideLayout(wsc, s.lang) {
-            AppNav(vm, s)
+    val base = LocalContext.current
+    val cfg = LocalConfiguration.current
+    LaunchedEffect(s.lang) { LocaleCtx.save(base, s.lang) }
+    val lctx = remember(base, s.lang) { LocalizedContext(base, LocaleCtx.wrap(base, s.lang).resources) }
+    val lcfg = remember(cfg, s.lang) {
+        Configuration(cfg).also {
+            val l = Locale.forLanguageTag(s.lang)
+            it.setLocale(l)
+            it.setLayoutDirection(l)
+        }
+    }
+    CompositionLocalProvider(LocalContext provides lctx, LocalConfiguration provides lcfg) {
+        SimhaTheme(dark = s.night || isSystemInDarkTheme()) {
+            ProvideLayout(wsc, s.lang) {
+                AppNav(vm, s)
+            }
         }
     }
 }

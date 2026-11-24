@@ -14,4 +14,5 @@
     <string name="upd_err_perm">ತೆರೆದ ಪರದೆಯಲ್ಲಿ ಸಿಂಹಕ್ಕೆ ಅಪ್‌ಡೇಟ್‌ಗಳನ್ನು ಇನ್‌ಸ್ಟಾಲ್ ಮಾಡಲು ಅನುಮತಿಸಿ, ನಂತರ ಮತ್ತೆ ಈಗ ಅಪ್‌ಡೇಟ್ ಮಾಡಿ ಒತ್ತಿ.</string>
     <string name="upd_err_empty">ಡೌನ್‌ಲೋಡ್ ಮಾಡಿದ ಅಪ್‌ಡೇಟ್ ಫೈಲ್ ಖಾಲಿಯಾಗಿದೆ.</string>
     <string name="upd_err_install">ಅಪ್‌ಡೇಟ್ ವಿಫಲವಾಗಿದೆ: %1$s</string>
+    <string name="upd_current">ನೀವು ಬಿಲ್ಡ್ %1$d ನಲ್ಲಿದ್ದೀರಿ</string>
 </resources>
