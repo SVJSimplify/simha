@@ -1,6 +1,6 @@
 package com.simha.app.ui.home
 
-import android.os.Build
+import android.util.Log
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.snap
@@ -10,11 +10,15 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
@@ -26,6 +30,7 @@ import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.withTransform
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -35,11 +40,12 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import com.simha.app.R
 import com.simha.app.ui.animMs
-import com.simha.app.ui.home.orb.OrbShader
+import com.simha.app.ui.home.orb.OrbGlView
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -72,11 +78,12 @@ fun SimhaOrb(state: OrbState, onTap: () -> Unit, modifier: Modifier = Modifier, 
     )
     val listenA by animateFloatAsState(if (state == OrbState.Listening) 1f else 0f, tween(if (still) 0 else 300), label = "listenA")
     val speakA by animateFloatAsState(if (state == OrbState.Speaking) 1f else 0f, tween(if (still) 0 else 300), label = "speakA")
-    val dimA by animateFloatAsState(if (state == OrbState.Thinking) 1f else 0f, tween(if (still) 0 else 400), label = "dimA")
+    val dimS = animateFloatAsState(if (state == OrbState.Thinking) 1f else 0f, tween(if (still) 0 else 400), label = "dimA")
+    val dimA by dimS
     val phase = remember { mutableFloatStateOf(3f) }
     val clock = remember { mutableFloatStateOf(0f) }
     val st by rememberUpdatedState(state)
-    val shader = remember { if (Build.VERSION.SDK_INT >= 33) OrbShader() else null }
+    var glFailed by remember { mutableStateOf(false) }
 
     LaunchedEffect(pressed) { if (pressed) haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove) }
 
@@ -104,7 +111,11 @@ fun SimhaOrb(state: OrbState, onTap: () -> Unit, modifier: Modifier = Modifier, 
         }
     }
 
-    Canvas(
+    fun breathe() = if (still) 0f else 0.5f - 0.5f * cos(clock.floatValue * 2f * PI.toFloat() / 4f)
+    fun grow() = 1f + 0.025f * breathe() + 0.06f * lv.value * listenA + 0.05f * lv.value * speakA
+    fun wobble() = if (still) 0f else 0.035f * lv.value * speakA * (0.6f * sin(clock.floatValue * 6.1f) + 0.4f * sin(clock.floatValue * 9.7f + 1f))
+
+    Box(
         modifier
             .size(200.dp)
             .graphicsLayer {
@@ -114,16 +125,15 @@ fun SimhaOrb(state: OrbState, onTap: () -> Unit, modifier: Modifier = Modifier, 
             .semantics(mergeDescendants = true) { contentDescription = desc }
             .clickable(interactionSource = src, indication = null, role = Role.Button, onClick = onTap),
     ) {
+    Canvas(Modifier.fillMaxSize()) {
         val m = size.minDimension
         val rad = m * 0.34f
         val cx = size.width / 2f
         val cy = size.height / 2f - m * 0.06f
         val c = Offset(cx, cy)
-        val ck = clock.floatValue
         val l = lv.value
-        val breathe = if (still) 0f else 0.5f - 0.5f * cos(ck * 2f * PI.toFloat() / 4f)
-        val sc = 1f + 0.025f * breathe + 0.06f * l * listenA + 0.05f * l * speakA
-        val wob = if (still) 0f else 0.035f * l * speakA * (0.6f * sin(ck * 6.1f) + 0.4f * sin(ck * 9.7f + 1f))
+        val sc = grow()
+        val wob = wobble()
         val sx = sc * (1f + wob)
         val sy = sc * (1f - wob * 0.8f)
 
@@ -159,11 +169,8 @@ fun SimhaOrb(state: OrbState, onTap: () -> Unit, modifier: Modifier = Modifier, 
             )
         }
 
-        scale(sx, sy, c) {
-            if (shader != null && Build.VERSION.SDK_INT >= 33) {
-                shader.set(cx, cy, rad, phase.floatValue, l, dimA)
-                drawCircle(shader.brush, rad, c)
-            } else {
+        if (glFailed) scale(sx, sy, c) {
+            run {
                 val p = phase.floatValue
                 val clip = Path().apply {
                     addOval(androidx.compose.ui.geometry.Rect(c, rad))
@@ -219,5 +226,28 @@ fun SimhaOrb(state: OrbState, onTap: () -> Unit, modifier: Modifier = Modifier, 
                 }
             }
         }
+    }
+    if (!glFailed) AndroidView(
+        factory = { c ->
+            OrbGlView(c) { e ->
+                Log.e("SimhaOrb", "GL init failed, using canvas", e)
+                glFailed = true
+            }.also {
+                it.phase = { phase.floatValue }
+                it.level = { lv.value }
+                it.dim = { dimS.value }
+                it.bind(owner)
+            }
+        },
+        modifier = Modifier
+            .fillMaxSize()
+            .graphicsLayer {
+                val w = wobble()
+                val g = grow()
+                scaleX = g * (1f + w)
+                scaleY = g * (1f - w * 0.8f)
+                transformOrigin = TransformOrigin(0.5f, 0.44f)
+            },
+    )
     }
 }

@@ -41,11 +41,9 @@ object MedicalIdNotif {
     fun show(ctx: Context, title: String, text: String) {
         if (Build.VERSION.SDK_INT >= 33 && !Actions.has(ctx, Manifest.permission.POST_NOTIFICATIONS)) return
         val nm = ctx.getSystemService(NotificationManager::class.java) ?: return
-        if (Build.VERSION.SDK_INT >= 26) {
-            val ch = NotificationChannel(CH, title, NotificationManager.IMPORTANCE_LOW)
-            ch.lockscreenVisibility = Notification.VISIBILITY_PUBLIC
-            nm.createNotificationChannel(ch)
-        }
+        val ch = NotificationChannel(CH, title, NotificationManager.IMPORTANCE_LOW)
+        ch.lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+        nm.createNotificationChannel(ch)
         val n = NotificationCompat.Builder(ctx, CH)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(title)
