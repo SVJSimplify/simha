@@ -80,7 +80,7 @@
             android:showWhenLocked="true"
             android:turnScreenOn="true"
             android:windowSoftInputMode="adjustResize"
-            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden">
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden|locale|layoutDirection|uiMode">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -95,7 +95,7 @@
             android:showWhenLocked="true"
             android:turnScreenOn="true"
             android:windowSoftInputMode="adjustResize"
-            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden" />
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden|locale|layoutDirection|uiMode" />
 
         <receiver
             android:name=".wake.AlarmReceiver"
