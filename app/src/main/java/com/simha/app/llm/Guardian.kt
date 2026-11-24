@@ -124,6 +124,13 @@ object Guardian {
         sb.append(". Allergies: ").append(c.profile.allergies.ifBlank { "none given" })
         sb.append(". Medicines noted: ").append(c.profile.medicines.ifBlank { "none given" })
         sb.append(". Doctor: ").append(c.doctor.ifBlank { "none given" }).append(".\n")
+        if (c.contacts.isEmpty()) sb.append("Contacts: none saved yet.\n") else {
+            sb.append("Contacts:\n")
+            c.contacts.forEach { k ->
+                val role = if (k.role == "neighbor") "neighbour" else k.role
+                sb.append("- ").append(k.label).append(", ").append(role).append(if (k.approved) ", calls approved\n" else ", calls not approved\n")
+            }
+        }
         if (c.medicines.isNotEmpty()) {
             sb.append("Medicine schedule today:\n")
             c.medicines.forEach { m ->
