@@ -187,7 +187,10 @@ private fun SignalDetail(s: Sig) {
     s.water?.let { Caption(stringResource(R.string.sig_water, stringResource(lvl(it)))) }
     s.activity?.let { Caption(stringResource(R.string.sig_activity, stringResource(lvl(it)))) }
     s.visitors?.let { Caption(stringResource(R.string.sig_visitors, it)) }
-    if (s.exc.isNotEmpty()) Caption(stringResource(R.string.sig_exc, s.exc.joinToString(", ") { stringResource(xr(it)) }))
+    if (s.exc.isNotEmpty()) {
+        val res = androidx.compose.ui.platform.LocalContext.current.resources
+        Caption(stringResource(R.string.sig_exc, s.exc.joinToString(", ") { res.getString(xr(it)) }))
+    }
     s.note?.let { Caption(stringResource(R.string.sig_note, it)) }
 }
 
