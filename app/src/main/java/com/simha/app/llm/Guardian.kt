@@ -29,6 +29,8 @@ data class GuardianContext(
     val asked: Set<String> = emptySet(),
     val hook: String? = null,
     val contacts: List<ContactLine> = emptyList(),
+    val brief: List<String> = emptyList(),
+    val graph: List<String> = emptyList(),
 ) {
     val hasMedicines: Boolean get() = medicines.isNotEmpty() || profile.medicines.isNotBlank()
 
@@ -119,7 +121,17 @@ object Guardian {
         sb.append("- To add a person by voice, ask for their name or label, their role (family, neighbour or doctor) and their 10 digit mobile number. Read the number back digit by digit and wait for a clear yes before calling add_contact with confirmed true.\n")
         sb.append("- When they want to hear family messages, use play_family_messages. Other abilities: list_contacts, send_family_alert, start_recording, look_with_camera, set_reminder.\n")
         sb.append("- After acting, say in plain words what you did, and only say you did it if the tool result confirms. If a tool says refused or error, say so simply and kindly.\n")
+        sb.append("Tasks: whenever the person mentions a medicine and its time, a reminder, a symptom, or how much water, food, sleep, mood or pain, call note_task once per item with what they said. The app checks it, asks any missing question and replies itself, so never ask those follow-up questions yourself and never just accept a worrying amount.\n")
+        sb.append("Think like a caring family member who lives with them: connect what you know (time of day, heat, how they slept, their conditions and medicines, what they said earlier) and say the one most caring, practical thing. Do not run through a list of questions.\n")
         sb.append("Now: ").append(c.timeOfDay.ifBlank { "unknown time" }).append(".\n")
+        if (c.brief.isNotEmpty()) {
+            sb.append("Situation right now:\n")
+            c.brief.forEach { sb.append("- ").append(it).append("\n") }
+        }
+        if (c.graph.isNotEmpty()) {
+            sb.append("What you know about their life (linked notes):\n")
+            c.graph.forEach { sb.append("- ").append(it).append("\n") }
+        }
         sb.append("Person: ").append(c.name).append(". Conditions: ").append(c.profile.conditions.ifBlank { "none given" })
         sb.append(". Allergies: ").append(c.profile.allergies.ifBlank { "none given" })
         sb.append(". Medicines noted: ").append(c.profile.medicines.ifBlank { "none given" })

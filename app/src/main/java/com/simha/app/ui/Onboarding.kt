@@ -252,7 +252,7 @@ private fun StepWho(onChoose: (Boolean) -> Unit, onInvite: () -> Unit) {
         Up(0) { Column(verticalArrangement = Arrangement.spacedBy(8.dp)) { Progress(0) } }
         Up(1) { ChoiceCard(stringResource(R.string.o_who_self), stringResource(R.string.o_who_self_d)) { onChoose(false) } }
         Up(2) { ChoiceCard(stringResource(R.string.o_who_other), stringResource(R.string.o_who_other_d)) { onChoose(true) } }
-        Up(3) { TextLink(stringResource(R.string.o_who_invite), onInvite) }
+        if (com.simha.app.data.Repo.CAREGIVER_ENABLED) Up(3) { TextLink(stringResource(R.string.o_who_invite), onInvite) }
     }
 }
 

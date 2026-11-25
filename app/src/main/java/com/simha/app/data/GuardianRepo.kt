@@ -195,6 +195,7 @@ class GuardianRepo(
         val n = dao.deleteSignalsBefore(keepDay) + dao.deleteWeeklyBefore(keepWeek)
         if (n > 0 || cleaned != today) {
             cleaned = today
+            if (Repo.LOCAL_ONLY) return
             val uid = runCatching { remote.uid() }.getOrNull() ?: return
             runCatching { remote.sb.from("daily_signal").delete { filter { eq("user_id", uid); lt("day", keepDay) } } }
             runCatching { remote.sb.from("weekly_signal").delete { filter { eq("user_id", uid); lt("week", keepWeek) } } }
@@ -211,7 +212,7 @@ class GuardianRepo(
         }
     }
 
-    suspend fun fetchFamilyMessages(): Result<List<FamilyMessage>> = safe {
+    suspend fun fetchFamilyMessages(): Result<List<FamilyMessage>> = if (!Repo.CAREGIVER_ENABLED) Result.success(emptyList()) else safe {
         val uid = remote.uid()
         remote.sb.from("family_messages").select {
             filter { eq("user_id", uid) }

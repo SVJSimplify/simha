@@ -400,6 +400,7 @@ class Voice(private val app: Context) {
             }
             val r = SpeechRecognizer.createSpeechRecognizer(app)
             rec = r
+            var heard = ""
             r.setRecognitionListener(object : RecognitionListener {
                 override fun onReadyForSpeech(params: Bundle?) {}
                 override fun onBeginningOfSpeech() {}
@@ -416,26 +417,32 @@ class Voice(private val app: Context) {
                     levelFlow.value = 0f
                     r.destroy()
                     val kind = if (error == SpeechRecognizer.ERROR_NO_MATCH || error == SpeechRecognizer.ERROR_SPEECH_TIMEOUT) VoiceKind.NoSpeech else VoiceKind.Failed
-                    if (cont.isActive) cont.resume(Result.failure(VoiceFail(kind)))
+                    if (cont.isActive) cont.resume(if (heard.isNotBlank()) Result.success(heard) else Result.failure(VoiceFail(kind)))
                 }
 
                 override fun onResults(results: Bundle?) {
                     levelFlow.value = 0f
                     r.destroy()
-                    val t = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull()
+                    val t = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull()?.takeIf { it.isNotBlank() } ?: heard
                     if (cont.isActive) {
                         cont.resume(if (t.isNullOrBlank()) Result.failure(VoiceFail(VoiceKind.NoSpeech)) else Result.success(t))
                     }
                 }
 
                 override fun onPartialResults(partialResults: Bundle?) {
-                    partialResults?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull()?.let(onPartial)
+                    partialResults?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull()?.takeIf { it.isNotBlank() }?.let {
+                        heard = it
+                        onPartial(it)
+                    }
                 }
             })
             val i = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
                 .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
                 .putExtra(RecognizerIntent.EXTRA_LANGUAGE, Langs.tag(lang))
                 .putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
+                .putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 2500L)
+                .putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 2000L)
+                .putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS, 2000L)
             r.startListening(i)
             cont.invokeOnCancellation { main.post { r.destroy() } }
         }

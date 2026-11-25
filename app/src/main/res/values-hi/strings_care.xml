@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cf_ask_med_name">कौन सी दवा है?</string>
+    <string name="cf_ask_med_time">मैं आपको किस समय याद दिलाऊँ?</string>
+    <string name="cf_ask_rem_what">मैं आपको किस बात की याद दिलाऊँ?</string>
+    <string name="cf_ask_rem_time">मैं आपको किस समय याद दिलाऊँ?</string>
+    <string name="cf_ask_sym_since">आपको ऐसा कब से लग रहा है?</string>
+    <string name="cf_ask_sym_sev">कितना ज़्यादा है, थोड़ा या बहुत?</string>
+    <string name="cf_ask_amount">लगभग कितना?</string>
+    <string name="cf_done_med">ठीक है। मैं आपको %2$s बजे %1$s लेने की याद दिलाऊँगी।</string>
+    <string name="cf_done_rem">ठीक है। मैं आपको %2$s बजे याद दिलाऊँगी: %1$s।</string>
+    <string name="cf_done_sym">बताने के लिए धन्यवाद। मैंने लिख लिया है और थोड़ी देर बाद फिर आपका हाल पूछूँगी।</string>
+    <string name="cf_done_intake">ठीक है, धन्यवाद।</string>
+    <string name="cf_water_low">आज के लिए यह पानी काफ़ी कम है। क्या आप अभी एक गिलास पी सकते हैं? मैं बाद में फिर याद दिलाऊँगी।</string>
+    <string name="cf_water_high">यह आपके लिए शायद ज़्यादा पानी है। थोड़ा ध्यान रखिए।</string>
+    <string name="cf_sleep">यह नींद काफ़ी कम है। हो सके तो आज थोड़ा आराम कर लीजिए।</string>
+    <string name="cf_pain">यह कल से ज़्यादा लग रहा है। मैं ध्यान रखूँगी और जल्दी फिर पूछूँगी।</string>
+    <string name="cf_mood">मुझे दुख है कि आप उदास हैं। मैं आपके साथ हूँ। क्या आप किसी से बात करना चाहेंगे?</string>
+    <string name="cf_meal">थोड़ा सा ही सही, कुछ खा लीजिए। दवाइयों के लिए भी अच्छा है।</string>
+    <string name="cf_allergy">ध्यान दीजिए, %1$s आपकी %2$s की एलर्जी के साथ सुरक्षित नहीं हो सकती। लेने से पहले डॉक्टर से पूछ लीजिए।</string>
+    <string name="cf_followup">आपने पहले %1$s के बारे में बताया था। अब कैसा है?</string>
+    <string name="cf_knows_title">सिम्हा क्या जानती है</string>
+    <string name="cf_knows_hint">सिम्हा आपकी बातों से ये बातें याद रखती है। ये सिर्फ़ इसी फ़ोन पर रहती हैं। जो गलत हो उसे हटा दीजिए।</string>
+    <string name="cf_knows_empty">अभी कुछ नहीं। सिम्हा बात करते-करते सीखती है।</string>
+    <string name="cf_knows_forget">इसे भूल जाओ</string>
+</resources>

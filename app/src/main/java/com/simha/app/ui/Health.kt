@@ -34,6 +34,7 @@ fun HealthScreen(
     onMeds: () -> Unit,
     onProfile: () -> Unit,
     onMedicalId: () -> Unit,
+    onKnows: () -> Unit,
     onUnwell: () -> Unit,
     onHelp: () -> Unit,
 ) {
@@ -85,6 +86,7 @@ fun HealthScreen(
         }
         AnimatedEntrance(2, Modifier.fillMaxWidth()) { NavRow(stringResource(R.string.profile_title), onProfile) }
         AnimatedEntrance(3, Modifier.fillMaxWidth()) { NavRow(stringResource(R.string.r3_mid_title), onMedicalId) }
+        AnimatedEntrance(3, Modifier.fillMaxWidth()) { NavRow(stringResource(R.string.cf_knows_title), onKnows) }
         AnimatedEntrance(4, Modifier.fillMaxWidth()) {
             NavRow(stringResource(R.string.r3_unwell), onUnwell, icon = R.drawable.ic_heart, tint = c.emergency)
         }

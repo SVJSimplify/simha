@@ -368,7 +368,7 @@ class LlmToolsTest {
             "get_profile", "list_contacts", "get_status", "log_symptom", "mark_checkin_ok", "open_emergency_screen",
             "dial_emergency", "call_contact", "dial_contact", "add_contact", "set_call_approval", "send_family_alert", "start_recording", "look_with_camera",
             "set_reminder", "update_profile_field", "remember_health_detail", "get_first_aid", "log_diary", "remember",
-            "take_medicine", "list_medicines", "scam_check", "play_family_messages", "add_medicine",
+            "take_medicine", "list_medicines", "scam_check", "play_family_messages", "add_medicine", "note_task", "find_tool",
         )
         assertEquals(expected, names)
     }

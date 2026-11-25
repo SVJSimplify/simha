@@ -187,15 +187,25 @@ val MIGRATION_2_3 = object : Migration(2, 3) {
     }
 }
 
+val MIGRATION_3_4 = object : Migration(3, 4) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("CREATE TABLE IF NOT EXISTS `g_node` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `type` INTEGER NOT NULL, `k` TEXT NOT NULL, `label` TEXT NOT NULL, `weight` INTEGER NOT NULL, `pinned` INTEGER NOT NULL, `ts` INTEGER NOT NULL)")
+        db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_g_node_type_k` ON `g_node` (`type`, `k`)")
+        db.execSQL("CREATE TABLE IF NOT EXISTS `g_edge` (`src` INTEGER NOT NULL, `dst` INTEGER NOT NULL, `rel` TEXT NOT NULL, `strength` REAL NOT NULL, `ts` INTEGER NOT NULL, PRIMARY KEY(`src`, `dst`, `rel`))")
+    }
+}
+
 @Database(
     entities = [
         ContactEntity::class, ProfileEntity::class, OutboxEntity::class,
         MedicineEntity::class, DailySignalEntity::class, WeeklySignalEntity::class, FactEntity::class,
+        com.simha.app.care.GNode::class, com.simha.app.care.GEdge::class,
     ],
-    version = 3,
+    version = 4,
     exportSchema = false,
 )
 abstract class SimhaDb : RoomDatabase() {
     abstract fun dao(): SimhaDao
     abstract fun guardianDao(): GuardianDao
+    abstract fun graphDao(): com.simha.app.care.GraphDao
 }

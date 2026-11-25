@@ -136,11 +136,12 @@ private fun PeoplePage(vm: MainViewModel, onContacts: (String) -> Unit) {
             sl.repo.caregivers().fold({ cgs = it.filter { c -> c.status != "removed" }; cgErr = null }, { cgErr = it.message ?: it.javaClass.simpleName })
         }
     }
-    LaunchedEffect(Unit) { reload() }
+    LaunchedEffect(Unit) { if (Repo.CAREGIVER_ENABLED) reload() }
     val noFamily = contacts.none { it.role in Repo.FAMILY_ROLES }
     if (noFamily) Body(stringResource(R.string.m_contacts_missing), color = LocalSimha.current.emergency)
     NavRow(stringResource(R.string.fam_title), { onContacts("family") })
     NavRow(stringResource(R.string.doc_title), { onContacts("doctor") })
+    if (!Repo.CAREGIVER_ENABLED) return
     SectionTitle(stringResource(R.string.set_caregivers))
     cgErr?.let { Body(stringResource(R.string.sync_error, it), color = LocalSimha.current.emergency) }
     if (cgs.isEmpty()) Body(stringResource(R.string.cg_none))

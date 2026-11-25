@@ -99,6 +99,22 @@ object Wake {
     @Volatile
     private var replied = false
 
+    const val SAY = "say|"
+
+    fun spoken(extra: String?): String? = extra?.takeIf { it.startsWith(SAY) }?.removePrefix(SAY)?.ifBlank { null }
+
+    fun scheduleFollowUp(ctx: Context, at: Long, text: String) {
+        val app = ctx.applicationContext
+        val am = app.getSystemService(AlarmManager::class.java) ?: return
+        val code = 7000 + ((at / 60_000) % 900).toInt()
+        setAt(app, am, code, at) {
+            putExtra(X_KIND, "followup")
+            putExtra(X_TAG, text)
+            putExtra(X_AT, at)
+        }
+        audit(app, "followup_scheduled", jo("in_minutes" to ((at - System.currentTimeMillis()) / 60_000)))
+    }
+
     fun noteReply() {
         replied = true
     }
@@ -222,6 +238,7 @@ object Wake {
         if (p.role == "self" && p.setup && p.running) {
             when (kind) {
                 "retry" -> WakeRequest.parse(req)?.let { onRetry(ctx, it) }
+                "followup" -> fire(ctx, WakeRequest(WakeReason.Evening, SAY + tag))
                 SlotKind.Checkin.name -> Monitor.tick(ctx)
                 SlotKind.Morning.name -> fire(ctx, WakeRequest(WakeReason.Morning, morningExtra(ctx)))
                 SlotKind.Evening.name -> fire(ctx, WakeRequest(WakeReason.Evening))
@@ -363,7 +380,7 @@ object Wake {
         try {
             val snap = sl.prefs.snap()
             val (known, hook) = knownAndHook(sl)
-            var text = Guardian.openingLine(lc, r.reason, snap.name, if (r.reason == WakeReason.Medicine) r.extra else null, known = known, hook = hook)
+            var text = spoken(r.extra)?.let { snap.name + ", " + it } ?: Guardian.openingLine(lc, r.reason, snap.name, if (r.reason == WakeReason.Medicine) r.extra else null, known = known, hook = hook)
             if (!canOverlay) text += " " + lc.getString(R.string.wake_tap_say)
             sl.voice.speak(text, snap.lang)
         } catch (e: Exception) {

@@ -1,23 +1,24 @@
-# Graph Report - Simha  (2026-11-24)
+# Graph Report - Simha  (2026-11-25)
 
 ## Corpus Check
-- 95 files · ~62,320 words
+- 94 files · ~60,691 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 79 file(s) not represented in the graph (top: .xml 75, (none) 1, .ttf 1)
-- WARNING: 79 of 182 files seen (43%) have no supported extractor and are missing from this graph entirely. It may look complete while representing only part of the codebase.
+- WARNING: 79 of 181 files seen (44%) have no supported extractor and are missing from this graph entirely. It may look complete while representing only part of the codebase.
 
 ## Summary
-- 1936 nodes · 5609 edges · 111 communities (46 shown, 65 thin omitted)
-- Extraction: 94% EXTRACTED · 6% INFERRED · 0% AMBIGUOUS · INFERRED: 325 edges (avg confidence: 0.8)
+- 1917 nodes · 5524 edges · 127 communities (47 shown, 80 thin omitted)
+- Extraction: 94% EXTRACTED · 6% INFERRED · 0% AMBIGUOUS · INFERRED: 305 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `ca0b64a6`
+- Built from commit: `25f14153`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
-- Body
+- HomeScreen
+- ContactInfo
 - Db.kt
 - TalkViewModel
 - Actions
@@ -27,17 +28,17 @@
 - .decide
 - with
 - UpdateWorker.kt
-- Wake
+- Wake.kt
 - GuardianRepo
 - Onboarding.kt
-- WakeMathTest
+- Weather.kt
 - Query
 - Theme.kt
-- build
+- Screens.kt
 - WakeWord.kt
 - SarvamConfig
 - Sig
-- LlmToolsTest.kt
+- .run
 - .stream
 - .execute
 - .execute
@@ -52,34 +53,40 @@
 - FakeHost
 - Escalation.kt
 - MsgRecorder
+- WakeRequest
+- GuardianTest
 - Voice.kt
 - .finish
 - TalkViewModel.kt
-- VoiceIssue
+- Voice.kt
 - LlmStore
 - UpdateInstallReceiver.kt
 - .check
 - SarvamHealthTest.kt
+- coroutinescope
 - SafeArea.kt
 - Open
 - WakeReq
 - .envelope
 - SimhaApp.kt
 - UpdateState.kt
+- dispatchers
 - .uid
 - .addMemory
 - Components.kt
 - WakeReason
-- DoseLog
-- .respond
+- zoneid
+- MedicalId.kt
 - Oem
-- Wake.kt
-- nextOccurrence
+- MedicinesScreen
+- .pollFamily
+- FirstAid
+- .resolve
+- UsageReader.kt
+- .toSig
+- RecPhase
 - SarvamHealthTest
-- Caregiver.kt
-- HealthMemory
-- LocaleCtx.kt
-- SlotKind
+- StepName
 - Kind
 
 ## God Nodes (most connected - your core abstractions)
@@ -88,7 +95,7 @@
 3. `FakeHost` - 51 edges
 4. `Repo` - 50 edges
 5. `Wake` - 41 edges
-6. `Body()` - 38 edges
+6. `Body()` - 37 edges
 7. `ToolHost` - 37 edges
 8. `LlmToolsTest` - 37 edges
 9. `TalkViewModel` - 33 edges
@@ -97,46 +104,46 @@
 ## Surprising Connections (you probably didn't know these)
 - `SimhaRoot()` --calls--> `ProvideLayout()`  [INFERRED]
   app/src/main/java/com/simha/app/ui/App.kt → app/src/main/java/com/simha/app/ui/Components.kt
-- `AppNav()` --calls--> `HealthScreen()`  [INFERRED]
-  app/src/main/java/com/simha/app/ui/App.kt → app/src/main/java/com/simha/app/ui/Health.kt
-- `AppNav()` --calls--> `HomeScreen()`  [INFERRED]
-  app/src/main/java/com/simha/app/ui/App.kt → app/src/main/java/com/simha/app/ui/Home.kt
-- `AppNav()` --calls--> `ContactsScreen()`  [INFERRED]
-  app/src/main/java/com/simha/app/ui/App.kt → app/src/main/java/com/simha/app/ui/Screens.kt
-- `AppNav()` --calls--> `EmergencyScreen()`  [INFERRED]
-  app/src/main/java/com/simha/app/ui/App.kt → app/src/main/java/com/simha/app/ui/Screens.kt
+- `AppNav()` --calls--> `AuditScreen()`  [INFERRED]
+  app/src/main/java/com/simha/app/ui/App.kt → app/src/main/java/com/simha/app/ui/Caregiver.kt
+- `AppNav()` --calls--> `CaregiverHomeScreen()`  [INFERRED]
+  app/src/main/java/com/simha/app/ui/App.kt → app/src/main/java/com/simha/app/ui/Caregiver.kt
+- `AppNav()` --calls--> `CaregiverSetupScreen()`  [INFERRED]
+  app/src/main/java/com/simha/app/ui/App.kt → app/src/main/java/com/simha/app/ui/Caregiver.kt
+- `AppNav()` --calls--> `animMs()`  [INFERRED]
+  app/src/main/java/com/simha/app/ui/App.kt → app/src/main/java/com/simha/app/ui/Components.kt
 
 ## Import Cycles
 - None detected.
 
-## Communities (111 total, 65 thin omitted)
+## Communities (127 total, 80 thin omitted)
 
-### Community 0 - "Body"
-Cohesion: 0.12
-Nodes (42): BigButton(), Body(), ButtonCore(), Caption(), Card(), Chip(), ChipGroup(), EmergencyButton() (+34 more)
+### Community 0 - "HomeScreen"
+Cohesion: 0.15
+Nodes (27): TodayItem, TodayState, agoText(), AnimatedEntrance(), animMs(), BigButton(), ButtonCore(), Chip() (+19 more)
 
 ### Community 2 - "Db.kt"
-Cohesion: 0.14
-Nodes (7): ContactEntity, FactEntity, MedicineEntity, OutboxEntity, ProfileEntity, SimhaDb, ServiceLocator
+Cohesion: 0.11
+Nodes (8): ContactEntity, FactEntity, MedicineEntity, OutboxEntity, ProfileEntity, SimhaDao, SimhaDb, ServiceLocator
 
 ### Community 3 - "TalkViewModel"
-Cohesion: 0.20
-Nodes (4): ConversationPanel(), TalkScreen(), TalkViewModel, UiMsg
+Cohesion: 0.16
+Nodes (5): ConversationPanel(), TalkScreen(), ChatLine, TalkViewModel, UiMsg
 
 ### Community 5 - "MedicalProfile"
-Cohesion: 0.18
+Cohesion: 0.17
 Nodes (7): ContactLine, Guardian, GuardianContext, Known, MedLine, MedicalProfile, OpeningFillerTest
 
 ### Community 6 - "PlansTest"
 Cohesion: 0.07
-Nodes (25): Ago, Days, Hours, Minutes, Never, Now, Answer, Fine (+17 more)
+Nodes (26): Ago, Days, Hours, Minutes, Never, Now, Answer, Fine (+18 more)
 
 ### Community 7 - "jo"
-Cohesion: 0.26
+Cohesion: 0.25
 Nodes (3): jo(), Prefs, Repo
 
 ### Community 8 - ".decide"
-Cohesion: 0.17
+Cohesion: 0.16
 Nodes (9): Approvals, Decision, AlertFamily, EscalateCallFamily, None, PromptCheckin, Rules, RulesEngine (+1 more)
 
 ### Community 9 - "with"
@@ -147,57 +154,57 @@ Nodes (33): runs-on, steps, concurrency, cancel-in-progress, group, env, KEYSTOR
 Cohesion: 0.06
 Nodes (6): Notifier, ActivityWorker, ReminderWorker, SyncWorker, Work, UpdateWorker
 
-### Community 12 - "Wake"
-Cohesion: 0.06
-Nodes (10): Monitor, UsageReader, AlarmReceiver, BootReceiver, Wake, WakeAudio, WakeActivity, RoutineStore (+2 more)
+### Community 12 - "Wake.kt"
+Cohesion: 0.14
+Nodes (4): toUi(), UiSettings, Wake, WakeAudio
 
 ### Community 15 - "Onboarding.kt"
 Cohesion: 0.04
-Nodes (10): OBK, tabSwitch(), agoText(), Layout, ActionTile(), HomeScreen(), TodayRow(), todayText() (+2 more)
-
-### Community 16 - "WakeMathTest"
-Cohesion: 0.14
-Nodes (5): Weather, WeatherReport, Slot, WakeMath, WakeMathTest
+Nodes (3): OBK, Layout, FadeWords()
 
 ### Community 17 - "Query"
-Cohesion: 0.16
-Nodes (4): DailySignalEntity, GuardianDao, SimhaDao, WeeklySignalEntity
+Cohesion: 0.21
+Nodes (3): DailySignalEntity, GuardianDao, WeeklySignalEntity
 
 ### Community 18 - "Theme.kt"
 Cohesion: 0.05
 Nodes (5): MainActivity, SimhaColors, nunito(), scheme(), SimhaTheme()
 
+### Community 19 - "Screens.kt"
+Cohesion: 0.16
+Nodes (12): AppNav(), BottomBar(), tabSwitch(), normalizeContactPhone(), ContactCard(), ContactsScreen(), EmergencyScreen(), openMaps() (+4 more)
+
 ### Community 20 - "WakeWord.kt"
-Cohesion: 0.05
-Nodes (7): Gl, OrbGlView, WakeWord, WakeWordEngine, RecognitionListener, WakeWordMatcher, WakeWordPrefs
+Cohesion: 0.06
+Nodes (7): K, UiKeys, WakeWord, WakeWordEngine, RecognitionListener, WakeWordMatcher, WakeWordPrefs
 
 ### Community 21 - "SarvamConfig"
-Cohesion: 0.20
+Cohesion: 0.19
 Nodes (4): SarvamConfig, Sarvam, SarvamException, SarvamClient
 
 ### Community 22 - "Sig"
 Cohesion: 0.09
-Nodes (23): AuditRow, CallRow, CaregiverRow, DailySignalRow, Diary, EventRow, FamilyMessage, RecordingRow (+15 more)
+Nodes (22): AuditRow, CallRow, CaregiverRow, DailySignalRow, Diary, EventRow, FamilyMessage, RecordingRow (+14 more)
 
-### Community 23 - "LlmToolsTest.kt"
-Cohesion: 0.09
-Nodes (14): Agent, ChatApi, History, LlmException, Msg, ParsedReply, SentenceSplitter, StreamAcc (+6 more)
+### Community 23 - ".run"
+Cohesion: 0.15
+Nodes (4): Agent, History, Msg, SentenceSplitter
 
 ### Community 25 - ".stream"
-Cohesion: 0.31
-Nodes (3): LlmClient, LlmConfig, LlmParse
+Cohesion: 0.20
+Nodes (8): LlmClient, LlmConfig, LlmException, LlmParse, ParsedReply, StreamAcc, CallAcc, ToolCall
 
 ### Community 29 - ".execute"
 Cohesion: 0.04
-Nodes (4): ContactInfo, ToolHost, Host, HealthHost
+Nodes (3): ToolHost, Host, HealthHost
 
 ### Community 31 - "Situation"
-Cohesion: 0.06
-Nodes (23): DiaryMerge, Scam, Sig, ScamReport, FirstAid, Guide, Situation, Allergy (+15 more)
+Cohesion: 0.11
+Nodes (18): Guide, Situation, Allergy, Anaphylaxis, Bleeding, Breathless, Burn, ChestPain (+10 more)
 
 ### Community 32 - "MainViewModel"
-Cohesion: 0.10
-Nodes (12): MainViewModel, TodayItem, TodayState, SectionTitle(), showTime(), AboutPage(), CheckinsPage(), hoursText() (+4 more)
+Cohesion: 0.12
+Nodes (26): Snap, MainViewModel, AuditScreen(), CaregiverHomeScreen(), CaregiverSetupScreen(), eventLabel(), shortTime(), SignalDetail() (+18 more)
 
 ### Community 33 - "ActivityService.kt"
 Cohesion: 0.08
@@ -208,48 +215,48 @@ Cohesion: 0.20
 Nodes (3): NightState, Routine, RoutineTest
 
 ### Community 35 - "Perm"
-Cohesion: 0.16
-Nodes (13): Perm, Battery, CallPhone, Camera, FullScreen, Mic, Notifications, Overlay (+5 more)
+Cohesion: 0.18
+Nodes (12): Perm, Battery, CallPhone, Camera, FullScreen, Mic, Notifications, Overlay (+4 more)
 
 ### Community 36 - "Voice.kt"
-Cohesion: 0.09
-Nodes (4): Langs, Recorder, SpeakItem, Voice
+Cohesion: 0.16
+Nodes (3): Recorder, SpeakItem, Voice
 
 ### Community 37 - ".wrapped"
-Cohesion: 0.24
-Nodes (3): LocaleCtx, BottomBar(), SimhaRoot()
+Cohesion: 0.25
+Nodes (3): LocaleCtx, LocalizedContext, SimhaRoot()
 
 ### Community 39 - "Updater.kt"
-Cohesion: 0.22
+Cohesion: 0.33
 Nodes (3): UpdateException, UpdateInfo, Updater
 
 ### Community 41 - "Escalation.kt"
-Cohesion: 0.22
-Nodes (5): CallResult, Called, Dialer, Failed, Escalation
+Cohesion: 0.18
+Nodes (6): CallResult, Called, Dialer, Failed, Escalation, Langs
+
+### Community 45 - "GuardianTest"
+Cohesion: 0.19
+Nodes (4): Scam, Sig, ScamReport, GuardianTest
 
 ### Community 46 - "Voice.kt"
-Cohesion: 0.17
+Cohesion: 0.14
 Nodes (6): RecognitionListener, VoiceFail, VoiceKind, Failed, NoSpeech, Unavailable
 
 ### Community 48 - "TalkViewModel.kt"
-Cohesion: 0.13
-Nodes (8): TalkEvent, Done, OpenEmergency, TalkMode, Idle, Listening, Speaking, Thinking
+Cohesion: 0.12
+Nodes (9): FillerGate, TalkEvent, Done, OpenEmergency, TalkMode, Idle, Listening, Speaking (+1 more)
 
-### Community 49 - "VoiceIssue"
-Cohesion: 0.50
+### Community 49 - "Voice.kt"
+Cohesion: 0.12
 Nodes (4): VoiceIssue, LangMissing, None, Unavailable
 
 ### Community 50 - "LlmStore"
-Cohesion: 0.17
+Cohesion: 0.18
 Nodes (5): LlmStore, AgentCall, AgentNotConfiguredException, SarvamVoiceAgent, VoiceAgent
 
-### Community 52 - ".check"
-Cohesion: 0.24
-Nodes (3): Location, SafeArea, SafeMath
-
-### Community 54 - "SarvamHealthTest.kt"
-Cohesion: 0.12
-Nodes (5): EpState, Done, Timeout, Waiting, Wav
+### Community 55 - "coroutinescope"
+Cohesion: 0.20
+Nodes (5): ChatApi, ChatApi, ChatApi, ChatApi, ChatApi
 
 ### Community 57 - "Open"
 Cohesion: 0.15
@@ -257,63 +264,67 @@ Nodes (13): Open, AskMedicines, Checkin, Evening, Fall, Family, FamilyGeneric, H
 
 ### Community 59 - "WakeReq"
 Cohesion: 0.16
-Nodes (9): WakeReady, WakeReq, Autostart, Battery, Exact, FullScreen, Mic, Notifications (+1 more)
+Nodes (10): forLang(), WakeReady, WakeReq, Autostart, Battery, Exact, FullScreen, Mic (+2 more)
 
 ### Community 67 - ".addMemory"
-Cohesion: 0.23
-Nodes (4): Memory, Fact, Facts, FactsResult
+Cohesion: 0.36
+Nodes (3): Fact, Facts, FactsResult
 
 ### Community 68 - "Components.kt"
-Cohesion: 0.04
-Nodes (9): Stroke, ProvideLayout(), rememberLayout(), OrbState, Idle, Listening, Speaking, Thinking (+1 more)
+Cohesion: 0.05
+Nodes (9): ProvideLayout(), rememberLayout(), Cloud, OrbState, Idle, Listening, Speaking, Thinking (+1 more)
 
 ### Community 70 - "WakeReason"
 Cohesion: 0.22
 Nodes (9): WakeReason, Checkin, Evening, Fall, FamilyMessage, Heat, Medicine, Morning (+1 more)
 
-### Community 71 - "DoseLog"
-Cohesion: 0.23
-Nodes (7): DoseLog, Medicine, DoseSlots, DueDose, nextDose(), todayDoses(), MedScheduleTest
+### Community 71 - "zoneid"
+Cohesion: 0.07
+Nodes (20): DoseLog, Medicine, DoseSlots, isDuplicateMemory(), nextOccurrence(), parseTime(), DueDose, nextDose() (+12 more)
 
-### Community 77 - "Wake.kt"
-Cohesion: 0.11
-Nodes (5): forLang(), K, toUi(), UiKeys, UiSettings
+### Community 72 - "MedicalId.kt"
+Cohesion: 0.27
+Nodes (6): LabeledField(), roleLabel(), line(), MedicalIdNotif, MedicalIdScreen(), medLine()
 
-### Community 86 - "nextOccurrence"
-Cohesion: 0.32
-Nodes (4): isDuplicateMemory(), nextOccurrence(), parseTime(), ScheduleTest
+### Community 77 - "MedicinesScreen"
+Cohesion: 0.26
+Nodes (6): doseStatusText(), MedicineForm(), MedicinesScreen(), showTime(), TimeDialog(), TimeTag()
 
-### Community 97 - "Caregiver.kt"
-Cohesion: 0.14
-Nodes (23): Snap, AppNav(), AuditScreen(), CaregiverHomeScreen(), CaregiverSetupScreen(), eventLabel(), RecPhase, Idle (+15 more)
+### Community 92 - "RecPhase"
+Cohesion: 0.50
+Nodes (4): RecPhase, Idle, Ready, Recording
 
-### Community 119 - "SlotKind"
-Cohesion: 0.33
-Nodes (6): SlotKind, Checkin, Evening, Heat, Medicine, Morning
+### Community 96 - "SarvamHealthTest"
+Cohesion: 0.12
+Nodes (7): HealthMemory, Endpointer, EpState, Done, Timeout, Waiting, SarvamHealthTest
+
+### Community 97 - "StepName"
+Cohesion: 0.42
+Nodes (7): ChoiceCard(), fadeUp(), OnboardingScreen(), Progress(), StepName(), StepWho(), Up()
 
 ### Community 120 - "Kind"
 Cohesion: 0.40
 Nodes (5): Kind, Emergency, Primary, Secondary, Success
 
 ## Knowledge Gaps
-- **106 isolated node(s):** `Checkin`, `Medicine`, `Morning`, `Evening`, `Fall` (+101 more)
-  These have ≤1 connection - possible missing edges. (Counts symbols only; 363 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **65 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **107 isolated node(s):** `Checkin`, `Medicine`, `Morning`, `Evening`, `Fall` (+102 more)
+  These have ≤1 connection - possible missing edges. (Counts symbols only; 369 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **80 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `jo()` connect `jo` to `Body`, `.getProfile`, `Db.kt`, `TalkViewModel`, `UpdateWorker.kt`, `Wake`, `GuardianRepo`, `Onboarding.kt`, `Query`, `Sig`, `.execute`, `MainViewModel`, `ActivityService.kt`, `Escalation.kt`, `TalkViewModel.kt`, `.check`, `SafeArea.kt`, `.uid`, `.addMemory`, `.respond`, `Wake.kt`?**
-  _High betweenness centrality (0.075) - this node is a cross-community bridge._
+- **Why does `jo()` connect `jo` to `ContactInfo`, `TalkViewModel`, `Actions`, `.decide`, `UpdateWorker.kt`, `Wake.kt`, `GuardianRepo`, `Onboarding.kt`, `Query`, `Screens.kt`, `WakeWord.kt`, `Sig`, `.execute`, `MainViewModel`, `ActivityService.kt`, `Escalation.kt`, `WakeRequest`, `TalkViewModel.kt`, `.check`, `SafeArea.kt`, `.uid`, `.addMemory`?**
+  _High betweenness centrality (0.083) - this node is a cross-community bridge._
 - **Are the 26 inferred relationships involving `jo()` (e.g. with `.addMemory()` and `.deleteMedicine()`) actually correct?**
   _`jo()` has 26 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `Checkin`, `Medicine`, `Morning` to the rest of the system?**
-  _106 weakly-connected nodes found - possible missing edges._
-- **Should `Body` be split into smaller, more focused modules?**
-  _Cohesion score 0.11948051948051948 - nodes in this community are weakly interconnected._
-- **Why does `Repo` connect `jo` to `MainViewModel`, `Db.kt`, `.uid`, `Voice.kt`, `Repo.kt`, `GuardianRepo`, `Wake.kt`, `Onboarding.kt`, `TalkViewModel.kt`, `Query`, `SafeArea.kt`, `SimhaApp.kt`?**
-  _High betweenness centrality (0.050) - this node is a cross-community bridge._
-- **Should `.getProfile` be split into smaller, more focused modules?**
-  _Cohesion score 0.14166666666666666 - nodes in this community are weakly interconnected._
-- **Why does `MainViewModel` connect `MainViewModel` to `Body`, `Caregiver.kt`, `Db.kt`, `.wrapped`, `DoseLog`, `Wake.kt`, `Onboarding.kt`, `Theme.kt`?**
-  _High betweenness centrality (0.049) - this node is a cross-community bridge._
+  _107 weakly-connected nodes found - possible missing edges._
+- **Should `HomeScreen` be split into smaller, more focused modules?**
+  _Cohesion score 0.14962121212121213 - nodes in this community are weakly interconnected._
+- **Why does `Repo` connect `jo` to `MainViewModel`, `.uid`, `Db.kt`, `Voice.kt`, `.decide`, `Repo.kt`, `GuardianRepo`, `Onboarding.kt`, `TalkViewModel.kt`, `Voice.kt`, `Screens.kt`, `SafeArea.kt`, `SimhaApp.kt`?**
+  _High betweenness centrality (0.054) - this node is a cross-community bridge._
+- **Should `ContactInfo` be split into smaller, more focused modules?**
+  _Cohesion score 0.14761904761904762 - nodes in this community are weakly interconnected._
+- **Why does `ToolHost` connect `.execute` to `SarvamHealthTest`, `ContactInfo`, `FakeHost`, `MedicinesScreen`, `TalkViewModel.kt`, `SarvamHealthTest.kt`, `.run`, `.execute`?**
+  _High betweenness centrality (0.044) - this node is a cross-community bridge._

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cf_ask_med_name">ಅದು ಯಾವ ಔಷಧಿ?</string>
+    <string name="cf_ask_med_time">ನಿಮಗೆ ಯಾವ ಸಮಯಕ್ಕೆ ನೆನಪಿಸಲಿ?</string>
+    <string name="cf_ask_rem_what">ಯಾವುದರ ಬಗ್ಗೆ ನೆನಪಿಸಲಿ?</string>
+    <string name="cf_ask_rem_time">ನಿಮಗೆ ಯಾವ ಸಮಯಕ್ಕೆ ನೆನಪಿಸಲಿ?</string>
+    <string name="cf_ask_sym_since">ಇದು ಯಾವಾಗಿನಿಂದ ಅನಿಸುತ್ತಿದೆ?</string>
+    <string name="cf_ask_sym_sev">ಎಷ್ಟು ಜಾಸ್ತಿ ಇದೆ, ಸ್ವಲ್ಪವೋ ತುಂಬಾನೋ?</string>
+    <string name="cf_ask_amount">ಸುಮಾರು ಎಷ್ಟು?</string>
+    <string name="cf_done_med">ಸರಿ. %2$s ಕ್ಕೆ %1$s ತೆಗೆದುಕೊಳ್ಳಲು ನೆನಪಿಸುತ್ತೇನೆ.</string>
+    <string name="cf_done_rem">ಸರಿ. %2$s ಕ್ಕೆ ನೆನಪಿಸುತ್ತೇನೆ: %1$s.</string>
+    <string name="cf_done_sym">ಹೇಳಿದ್ದಕ್ಕೆ ಧನ್ಯವಾದಗಳು. ನಾನು ಬರೆದುಕೊಂಡಿದ್ದೇನೆ, ಸ್ವಲ್ಪ ಸಮಯದ ನಂತರ ಮತ್ತೆ ಕೇಳುತ್ತೇನೆ.</string>
+    <string name="cf_done_intake">ಸರಿ, ಧನ್ಯವಾದಗಳು.</string>
+    <string name="cf_water_low">ಇಂದಿಗೆ ಇದು ತುಂಬಾ ಕಡಿಮೆ ನೀರು. ಈಗ ಒಂದು ಲೋಟ ಕುಡಿಯಬಹುದೇ? ನಂತರ ಮತ್ತೆ ನೆನಪಿಸುತ್ತೇನೆ.</string>
+    <string name="cf_water_high">ಇದು ನಿಮಗೆ ಹೆಚ್ಚು ನೀರು ಇರಬಹುದು. ಸ್ವಲ್ಪ ಜಾಗ್ರತೆ ವಹಿಸಿ.</string>
+    <string name="cf_sleep">ಇದು ತುಂಬಾ ಕಡಿಮೆ ನಿದ್ರೆ. ಸಾಧ್ಯವಾದರೆ ಇಂದು ಸ್ವಲ್ಪ ವಿಶ್ರಾಂತಿ ಪಡೆಯಿರಿ.</string>
+    <string name="cf_pain">ಇದು ನಿನ್ನೆಗಿಂತ ಹೆಚ್ಚಾಗಿದೆ. ನಾನು ಗಮನಿಸುತ್ತೇನೆ, ಬೇಗ ಮತ್ತೆ ಕೇಳುತ್ತೇನೆ.</string>
+    <string name="cf_mood">ನೀವು ಬೇಸರದಲ್ಲಿರುವುದಕ್ಕೆ ನನಗೆ ದುಃಖವಾಗಿದೆ. ನಾನು ನಿಮ್ಮ ಜೊತೆ ಇದ್ದೇನೆ. ಯಾರಿಗಾದರೂ ಕರೆ ಮಾಡಬೇಕೇ?</string>
+    <string name="cf_meal">ಸ್ವಲ್ಪವಾದರೂ ಏನಾದರೂ ತಿನ್ನಿ. ಔಷಧಿಗಳಿಗೂ ಒಳ್ಳೆಯದು.</string>
+    <string name="cf_allergy">ಜಾಗ್ರತೆ, ನಿಮಗೆ %2$s ಅಲರ್ಜಿ ಇರುವುದರಿಂದ %1$s ಸುರಕ್ಷಿತವಲ್ಲದಿರಬಹುದು. ತೆಗೆದುಕೊಳ್ಳುವ ಮೊದಲು ವೈದ್ಯರನ್ನು ಕೇಳಿ.</string>
+    <string name="cf_followup">ನೀವು ಹಿಂದೆ %1$s ಬಗ್ಗೆ ಹೇಳಿದ್ದಿರಿ. ಈಗ ಹೇಗಿದೆ?</string>
+    <string name="cf_knows_title">ಸಿಂಹಗೆ ಏನು ಗೊತ್ತು</string>
+    <string name="cf_knows_hint">ನಿಮ್ಮ ಮಾತುಗಳಿಂದ ಸಿಂಹ ಇವನ್ನು ನೆನಪಿಟ್ಟುಕೊಳ್ಳುತ್ತದೆ. ಇವು ಈ ಫೋನ್‌ನಲ್ಲೇ ಇರುತ್ತವೆ. ತಪ್ಪಾಗಿರುವುದನ್ನು ತೆಗೆದುಹಾಕಿ.</string>
+    <string name="cf_knows_empty">ಇನ್ನೂ ಏನೂ ಇಲ್ಲ. ಮಾತನಾಡುತ್ತಾ ಸಿಂಹ ಕಲಿಯುತ್ತದೆ.</string>
+    <string name="cf_knows_forget">ಇದನ್ನು ಮರೆತುಬಿಡು</string>
+</resources>

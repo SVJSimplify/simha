@@ -102,6 +102,9 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
     private var doseLogged = false
     private var startedAt = 0L
     private val fillers = FillerGate(4)
+    private val care = com.simha.app.care.CareEngine(app, sl)
+    private var lastUser = ""
+    private var reviewed = 0
 
     private val closesOnFine: Boolean get() = reason == WakeReason.Checkin || reason == WakeReason.Fall
 
@@ -109,8 +112,19 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch { sl.recorder.recording.collect { recording = it } }
     }
 
+    private fun reviewNow() {
+        val t = lines.drop(reviewed).map { it.fromUser to it.text }
+        reviewed = lines.size
+        if (t.none { it.first }) return
+        val ctx = getApplication<Application>()
+        appScope.launch { runCatching { com.simha.app.care.Reviewer.review(ctx, sl, t) } }
+    }
+
     fun reset() {
+        reviewNow()
         stop()
+        care.reset()
+        reviewed = 0
         history.clear()
         lines.clear()
         started = false
@@ -248,7 +262,9 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
         val c = guardianContext(snap, snap.lang)
         val k = if (configured) c.known() else c.known().copy(newPerson = false, medicines = true)
         val med = if (r == WakeReason.Medicine) extra else null
+        val say = com.simha.app.wake.Wake.spoken(extra)
         val text = when {
+            say != null -> snap.name + ", " + say
             r != null -> {
                 val plan = if (r == WakeReason.Morning) planText() else null
                 val unplayed = if (r == WakeReason.Morning) unplayedCount() else 0
@@ -292,6 +308,7 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
     private fun canListen(): Boolean = Actions.has(getApplication<Application>(), android.Manifest.permission.RECORD_AUDIO)
 
     private fun finishUp() {
+        reviewNow()
         events.tryEmit(TalkEvent.Done)
     }
 
@@ -302,6 +319,7 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
         }
         var next = initial
         var silent = 0
+        var failed = 0
         while (currentCoroutineContext().isActive) {
             if (sl.recorder.recording.value) return
             val text: String
@@ -338,12 +356,18 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
                             return
                         }
                         else -> {
+                            failed++
+                            if (failed <= 2) {
+                                kotlinx.coroutines.delay(700)
+                                continue
+                            }
                             error = UiMsg(R.string.talk_voice_failed)
                             return
                         }
                     }
                 }
                 silent = 0
+                failed = 0
                 text = heard
             }
             Wake.noteReply()
@@ -398,6 +422,13 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
             sl.repo.checkinOk()
             checkedIn = true
         }
+        lastUser = text
+        com.simha.app.care.CareStore.talked(getApplication())
+        val sit = FirstAid.match(text)
+        if (sit != null && FirstAid.dangerous(sit, text)) {
+            sl.repo.logEvent("help", jo("source" to "danger_gate", "situation" to sit.name))
+            events.emit(TalkEvent.OpenEmergency)
+        }
         history += Msg.user(text)
         return respond(lang, lc)
     }
@@ -413,7 +444,8 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
         val meds = g.medicines().first().filter { it.active }.map { MedLine(it.name, it.dose, it.times, DoseSlots.status(it, logs, now, zone)) }
         val all = g.memories(200)
         val asked = all.filter { it.text.startsWith("asked:") }.map { it.text.removePrefix("asked:").trim().lowercase() }.toSet()
-        val mem = all.filter { !it.text.startsWith("asked:") }.take(15).map { it.text }
+        val names = sl.repo.contactsNow().map { it.name }
+        val mem = runCatching { sl.graph.retrieve(lastUser, names + listOfNotNull(extra), 16) }.getOrDefault(emptyList())
         val t = LocalTime.now()
         return GuardianContext(
             name = snap.name,
@@ -431,6 +463,7 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
             asked = asked,
             hook = Guardian.hookFrom(g.diaryFor(today.minusDays(1))?.sig),
             contacts = sl.repo.contactsNow().map { ContactLine(it.name, it.role, it.approved) },
+            brief = runCatching { care.brief() }.getOrDefault(emptyList()),
         )
     }
 
@@ -445,6 +478,11 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
         }
         live = ""
         fillers.newTurn()
+        care.newTurn()
+        val graphLines = runCatching { sl.graph.retrieve(lastUser) }.getOrDefault(emptyList())
+        val graphTypes = runCatching { sl.graph.types() }.getOrDefault(emptySet())
+        val toolSet = com.simha.app.care.ToolIndex.select(lastUser, care.openFormTypes(), com.simha.app.care.ToolIndex.forGraph(graphLines, graphTypes)) +
+            (if (closesOnFine) listOf("mark_checkin_ok") else emptyList()) + (if (reason == WakeReason.Medicine) listOf("take_medicine", "list_medicines") else emptyList())
         val fillerText = lc.resources.getStringArray(R.array.r4b_fillers)
         try {
             val reply = Agent.run(
@@ -460,7 +498,10 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
                     val i = fillers.pick(lines.any { !it.fromUser } || live.isNotEmpty(), kotlin.random.Random.nextInt(1000))
                     if (i != null && fillerText.isNotEmpty()) sl.voice.speak(fillerText[i % fillerText.size], lang)
                 },
+                tools = toolSet,
+                codeReply = { care.reply() },
             )
+            if (care.urgent) events.emit(TalkEvent.OpenEmergency)
             if (reply.isNotBlank()) lines += ChatLine(false, reply)
             trimHistory()
             mode = TalkMode.Speaking
@@ -513,6 +554,7 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     override fun onCleared() {
+        reviewNow()
         sl.voice.stopSpeaking()
         sl.voice.cancelListening()
         super.onCleared()
@@ -731,6 +773,8 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
             Wake.scheduleAll(app)
             return "Saved " + name.trim() + (if (dose.isBlank()) "" else " $dose") + " at " + times.joinToString(", ") + ". Reminders are set."
         }
+
+        override suspend fun noteTask(args: JsonObject): String = care.note(args, lc)
 
         override suspend fun audit(tool: String, args: String, result: String) {
             repo.audit("tool_$tool", jo("args" to args.take(500), "result" to result.take(300)))

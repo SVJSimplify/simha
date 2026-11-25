@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cf_ask_med_name">அது எந்த மருந்து?</string>
+    <string name="cf_ask_med_time">உங்களுக்கு எந்த நேரத்தில் நினைவூட்டட்டும்?</string>
+    <string name="cf_ask_rem_what">எதைப் பற்றி நினைவூட்டட்டும்?</string>
+    <string name="cf_ask_rem_time">உங்களுக்கு எந்த நேரத்தில் நினைவூட்டட்டும்?</string>
+    <string name="cf_ask_sym_since">இது எப்போதிலிருந்து இருக்கிறது?</string>
+    <string name="cf_ask_sym_sev">எவ்வளவு அதிகம், கொஞ்சமா அல்லது நிறையவா?</string>
+    <string name="cf_ask_amount">சுமார் எவ்வளவு?</string>
+    <string name="cf_done_med">சரி. %2$s மணிக்கு %1$s எடுத்துக்கொள்ள நினைவூட்டுகிறேன்.</string>
+    <string name="cf_done_rem">சரி. %2$s மணிக்கு நினைவூட்டுகிறேன்: %1$s.</string>
+    <string name="cf_done_sym">சொன்னதற்கு நன்றி. நான் குறித்துக்கொண்டேன், சிறிது நேரம் கழித்து மீண்டும் கேட்கிறேன்.</string>
+    <string name="cf_done_intake">சரி, நன்றி.</string>
+    <string name="cf_water_low">இன்றைக்கு இது மிகக் குறைவான தண்ணீர். இப்போது ஒரு டம்ளர் குடிக்க முடியுமா? பிறகு மீண்டும் நினைவூட்டுகிறேன்.</string>
+    <string name="cf_water_high">இது உங்களுக்கு அதிகமான தண்ணீராக இருக்கலாம். கொஞ்சம் கவனமாக இருங்கள்.</string>
+    <string name="cf_sleep">இது மிகக் குறைவான தூக்கம். முடிந்தால் இன்று கொஞ்சம் ஓய்வெடுங்கள்.</string>
+    <string name="cf_pain">இது நேற்றை விட அதிகமாக இருக்கிறது. நான் கவனித்துக்கொள்கிறேன், விரைவில் மீண்டும் கேட்கிறேன்.</string>
+    <string name="cf_mood">நீங்கள் சோர்வாக இருப்பதற்கு வருந்துகிறேன். நான் உங்களுடன் இருக்கிறேன். யாரையாவது அழைக்க விரும்புகிறீர்களா?</string>
+    <string name="cf_meal">கொஞ்சமாவது ஏதாவது சாப்பிடுங்கள். மருந்துகளுக்கும் நல்லது.</string>
+    <string name="cf_allergy">கவனம், உங்களுக்கு %2$s ஒவ்வாமை இருப்பதால் %1$s பாதுகாப்பாக இல்லாமல் இருக்கலாம். எடுப்பதற்கு முன் மருத்துவரிடம் கேளுங்கள்.</string>
+    <string name="cf_followup">நீங்கள் முன்பு %1$s பற்றி சொன்னீர்கள். இப்போது எப்படி இருக்கிறது?</string>
+    <string name="cf_knows_title">சிம்ஹாவுக்கு என்ன தெரியும்</string>
+    <string name="cf_knows_hint">உங்கள் பேச்சிலிருந்து சிம்ஹா இவற்றை நினைவில் வைத்துக்கொள்கிறது. இவை இந்த போனில் மட்டுமே இருக்கும். தவறானவற்றை நீக்குங்கள்.</string>
+    <string name="cf_knows_empty">இன்னும் எதுவும் இல்லை. பேசப் பேச சிம்ஹா கற்றுக்கொள்கிறது.</string>
+    <string name="cf_knows_forget">இதை மறந்துவிடு</string>
+</resources>

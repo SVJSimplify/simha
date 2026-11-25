@@ -22,6 +22,10 @@ class ActivityWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(c
         val sl = (applicationContext as SimhaApp).sl
         sl.repo.flush()
         runCatching { sl.guardian.maintain() }
+        if (System.currentTimeMillis() - com.simha.app.care.CareStore.lastMaint(applicationContext) > 86_400_000L) {
+            runCatching { sl.graph.maintain() }
+            com.simha.app.care.CareStore.maintained(applicationContext)
+        }
         return Result.success()
     }
 }
@@ -37,6 +41,7 @@ class ReminderWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(c
         val lc = applicationContext.forLang(sl.prefs.snap().lang)
         val text = inputData.getString("text") ?: return Result.failure()
         if (!Notifier.reminder(lc, text)) sl.repo.audit("notification_blocked", com.simha.app.data.jo("kind" to "reminder"))
+        com.simha.app.wake.Wake.fire(applicationContext, com.simha.app.wake.WakeRequest(com.simha.app.wake.WakeReason.Evening, com.simha.app.wake.Wake.SAY + text))
         return Result.success()
     }
 }

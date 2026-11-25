@@ -56,11 +56,17 @@ class Repo(
     suspend fun profileNow(): ProfileEntity = dao.profileNow() ?: ProfileEntity()
 
     suspend fun enqueue(kind: String, tbl: String, payload: JsonObject) {
+        if (LOCAL_ONLY) return
         dao.addOp(OutboxEntity(kind = kind, tbl = tbl, payload = payload.toString(), createdAt = System.currentTimeMillis()))
         flush()
     }
 
     suspend fun flush(): Result<Unit> = lock.withLock {
+        if (LOCAL_ONLY) {
+            dao.ops().forEach { dao.delOp(it.id) }
+            syncError.value = null
+            return@withLock Result.success(Unit)
+        }
         val r = safe {
             val uid = remote.uid()
             while (true) {
@@ -188,7 +194,13 @@ class Repo(
         return ok
     }
 
-    suspend fun uploadRecording(f: File): Result<String> = safe {
+    suspend fun uploadRecording(f: File): Result<String> = if (LOCAL_ONLY) safe {
+        val dir = File(ctx.filesDir, "recordings").apply { mkdirs() }
+        val dest = File(dir, f.name)
+        withContext(Dispatchers.IO) { f.copyTo(dest, overwrite = true) }
+        audit("recording_saved", jo("ref" to "local/" + f.name))
+        "local/" + f.name
+    } else safe {
         val uid = remote.uid()
         val path = uid + "/" + f.name
         val bytes = withContext(Dispatchers.IO) { f.readBytes() }
@@ -262,6 +274,8 @@ class Repo(
     }
 
     companion object {
+        const val LOCAL_ONLY = true
+        const val CAREGIVER_ENABLED = false
         val FAMILY_ROLES = listOf("family", "neighbor")
         val CLINIC_ROLES = listOf("doctor", "hospital")
     }

@@ -47,6 +47,7 @@ interface ToolHost {
     suspend fun listMedicines(): JsonArray
     suspend fun playFamilyMessages(): String
     suspend fun addMedicine(name: String, dose: String, times: List<String>): String
+    suspend fun noteTask(args: JsonObject): String = "{\"error\":\"not supported\"}"
     suspend fun audit(tool: String, args: String, result: String)
 }
 
@@ -79,6 +80,30 @@ object SimhaTools {
 
     val definitions: JsonArray = JsonArray(
         listOf(
+            buildJsonObject {
+                put("type", "function")
+                putJsonObject("function") {
+                    put("name", "note_task")
+                    put("description", "Use this whenever the person mentions something to do or a health amount: a medicine and its time, a reminder, a symptom, or how much water, food, sleep, mood or pain. Call it once per item, even with only part of the details. The app asks any missing question itself and tells the person, so do not ask it yourself.")
+                    putJsonObject("parameters") {
+                        put("type", "object")
+                        putJsonObject("properties") {
+                            fun p(k: String, d: String) = putJsonObject(k) { put("type", "string"); put("description", d) }
+                            p("type", "One of medicine, reminder, symptom, intake")
+                            p("name", "Medicine name, only if said")
+                            p("dose", "Medicine dose, only if said")
+                            p("time", "Time as the person said it, for example 5, 5 pm, 17:00, 8.30")
+                            p("what", "For a reminder: what to do. For a symptom: what they feel")
+                            p("since", "For a symptom: since when")
+                            p("severity", "For a symptom: how bad, in their words")
+                            p("kind", "For intake: water, meal, sleep, mood or pain")
+                            p("amount", "For intake: the amount in their words, for example 1 litre, 2 glasses, 4 hours, very sad")
+                        }
+                        putJsonArray("required") { add("type") }
+                    }
+                }
+            },
+            tool("find_tool", "Search for another ability you need that is not in your tool list. Returns tools that become available on your next step.", mapOf("query" to ("string" to "What you want to do, in English"))),
             tool("get_profile", "Get the person's medical profile and name."),
             tool("list_contacts", "List all of the person's contacts right now with label, role and whether calls are approved."),
             tool("get_status", "Get last check-in time and recent activity."),
@@ -175,6 +200,10 @@ object SimhaTools {
         )
     )
 
+    private val byName: Map<String, JsonObject> by lazy { definitions.associateBy { it.jsonObject["function"]!!.jsonObject["name"]!!.jsonPrimitive.content }.mapValues { it.value.jsonObject } }
+
+    fun definitionsFor(names: Collection<String>): JsonArray = JsonArray(names.distinct().mapNotNull { byName[it] })
+
     private fun err(m: String) = buildJsonObject { put("error", m) }.toString()
     private fun refuse(m: String) = buildJsonObject { put("refused", m) }.toString()
     private fun ok(m: String) = buildJsonObject { put("result", m) }.toString()
@@ -223,6 +252,11 @@ object SimhaTools {
 
     private suspend fun execute(name: String, a: JsonObject, host: ToolHost): String {
         when (name) {
+            "note_task" -> return host.noteTask(a)
+            "find_tool" -> {
+                val names = com.simha.app.care.ToolIndex.search(a.str("query") ?: return err("query is required"))
+                return buildJsonObject { putJsonArray("loaded") { names.forEach { add(it) } }; put("result", if (names.isEmpty()) "No matching ability." else "These tools are now available.") }.toString()
+            }
             "get_profile" -> return host.getProfile().toString()
             "list_contacts" -> return contactsJson(host.allContacts()).toString()
             "get_status" -> return host.getStatus().toString()

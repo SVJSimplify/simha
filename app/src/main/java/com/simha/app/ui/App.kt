@@ -230,6 +230,7 @@ private fun AppNav(vm: MainViewModel, s: Snap) {
                         onMeds = { nav.navigate("meds") },
                         onProfile = { nav.navigate("profile") },
                         onMedicalId = { nav.navigate("medid") },
+                        onKnows = { nav.navigate("knows") },
                         onUnwell = { nav.navigate("talk/unwell") },
                         onHelp = { nav.navigate("emergency") },
                     )
@@ -254,6 +255,7 @@ private fun AppNav(vm: MainViewModel, s: Snap) {
                 }
                 composable("emergency") { EmergencyScreen(vm, s, { nav.popBackStack() }, { nav.navigate("medid") }) }
                 composable("meds") { MedicinesScreen(vm) { nav.popBackStack() } }
+                composable("knows") { KnowsScreen(vm) { nav.popBackStack() } }
                 composable("medid") { MedicalIdScreen(vm) { nav.popBackStack() } }
                 composable("contacts/{group}") { e ->
                     ContactsScreen(vm, s, e.arguments?.getString("group") ?: "family") { nav.popBackStack() }

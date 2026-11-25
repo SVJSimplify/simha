@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cf_ask_med_name">Which medicine is it?</string>
+    <string name="cf_ask_med_time">What time should I remind you?</string>
+    <string name="cf_ask_rem_what">What should I remind you about?</string>
+    <string name="cf_ask_rem_time">What time should I remind you?</string>
+    <string name="cf_ask_sym_since">Since when have you felt this?</string>
+    <string name="cf_ask_sym_sev">How bad is it, a little or a lot?</string>
+    <string name="cf_ask_amount">About how much?</string>
+    <string name="cf_done_med">Got it. I will remind you to take %1$s at %2$s.</string>
+    <string name="cf_done_rem">Got it. I will remind you to %1$s at %2$s.</string>
+    <string name="cf_done_sym">Thank you for telling me. I have noted it and I will check on you again in a while.</string>
+    <string name="cf_done_intake">Noted, thank you.</string>
+    <string name="cf_water_low">That is quite little water for today. Could you drink a glass now? I will remind you again later.</string>
+    <string name="cf_water_high">That is more water than may be good for you. Please go easy on it.</string>
+    <string name="cf_sleep">That is not much sleep. Try to rest a little today if you can.</string>
+    <string name="cf_pain">That sounds worse than yesterday. I will keep an eye on it and ask you again soon.</string>
+    <string name="cf_mood">I am sorry you are feeling low. I am here with you. Would you like to call someone?</string>
+    <string name="cf_meal">Please eat something, even a little. It helps with your medicines too.</string>
+    <string name="cf_allergy">Careful, %1$s may not be safe with your allergy to %2$s. Please check with your doctor before taking it.</string>
+    <string name="cf_followup">You mentioned %1$s earlier. How is it now?</string>
+    <string name="cf_knows_title">What Simha knows</string>
+    <string name="cf_knows_hint">Simha remembers these things from your talks. They stay only on this phone. Remove anything that is wrong.</string>
+    <string name="cf_knows_empty">Nothing yet. Simha learns as you talk.</string>
+    <string name="cf_knows_forget">Forget this</string>
+</resources>

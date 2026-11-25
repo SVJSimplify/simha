@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cf_ask_med_name">అది ఏ మందు?</string>
+    <string name="cf_ask_med_time">మీకు ఏ సమయానికి గుర్తు చేయాలి?</string>
+    <string name="cf_ask_rem_what">దేని గురించి గుర్తు చేయాలి?</string>
+    <string name="cf_ask_rem_time">మీకు ఏ సమయానికి గుర్తు చేయాలి?</string>
+    <string name="cf_ask_sym_since">ఇది ఎప్పటి నుండి అనిపిస్తోంది?</string>
+    <string name="cf_ask_sym_sev">ఎంత ఎక్కువగా ఉంది, కొంచెమా లేక చాలానా?</string>
+    <string name="cf_ask_amount">సుమారు ఎంత?</string>
+    <string name="cf_done_med">సరే. %2$sకి %1$s వేసుకోమని గుర్తు చేస్తాను.</string>
+    <string name="cf_done_rem">సరే. %2$sకి గుర్తు చేస్తాను: %1$s.</string>
+    <string name="cf_done_sym">చెప్పినందుకు ధన్యవాదాలు. నేను రాసుకున్నాను, కాసేపటి తర్వాత మళ్లీ అడుగుతాను.</string>
+    <string name="cf_done_intake">సరే, ధన్యవాదాలు.</string>
+    <string name="cf_water_low">ఈ రోజుకు ఇది చాలా తక్కువ నీళ్లు. ఇప్పుడు ఒక గ్లాసు తాగగలరా? తర్వాత మళ్లీ గుర్తు చేస్తాను.</string>
+    <string name="cf_water_high">ఇది మీకు ఎక్కువ నీళ్లు కావచ్చు. కొంచెం జాగ్రత్తగా ఉండండి.</string>
+    <string name="cf_sleep">ఇది చాలా తక్కువ నిద్ర. వీలైతే ఈ రోజు కొంచెం విశ్రాంతి తీసుకోండి.</string>
+    <string name="cf_pain">ఇది నిన్నటి కంటే ఎక్కువగా ఉంది. నేను గమనిస్తాను, త్వరలో మళ్లీ అడుగుతాను.</string>
+    <string name="cf_mood">మీరు బాధగా ఉన్నందుకు నాకు బాధగా ఉంది. నేను మీతో ఉన్నాను. ఎవరికైనా ఫోన్ చేయాలనుకుంటున్నారా?</string>
+    <string name="cf_meal">కొంచెమైనా ఏదైనా తినండి. మందులకు కూడా మంచిది.</string>
+    <string name="cf_allergy">జాగ్రత్త, మీకు %2$s అలర్జీ ఉన్నందున %1$s సురక్షితం కాకపోవచ్చు. వేసుకునే ముందు డాక్టర్‌ను అడగండి.</string>
+    <string name="cf_followup">మీరు ఇంతకు ముందు %1$s గురించి చెప్పారు. ఇప్పుడు ఎలా ఉంది?</string>
+    <string name="cf_knows_title">సింహకు ఏమి తెలుసు</string>
+    <string name="cf_knows_hint">మీ మాటల నుండి సింహ ఇవి గుర్తుంచుకుంటుంది. ఇవి ఈ ఫోన్‌లోనే ఉంటాయి. తప్పుగా ఉన్నవాటిని తీసేయండి.</string>
+    <string name="cf_knows_empty">ఇంకా ఏమీ లేదు. మాట్లాడుతూ సింహ నేర్చుకుంటుంది.</string>
+    <string name="cf_knows_forget">దీన్ని మర్చిపో</string>
+</resources>
