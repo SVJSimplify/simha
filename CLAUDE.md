@@ -1,36 +1,47 @@
 # Simha (Guardian Angel Assistant)
 
-Android app for seniors: inactivity watch → check-in → escalation. Specs in `docs/` are the source of truth.
+Android voice companion for seniors living alone (India first): it watches over them, talks with them like a caring family member, and escalates to family when needed. Specs in `docs/`; current round plans in `.claude/software-looper/specs/`.
 
 ## Stack
 - Kotlin + Jetpack Compose, single `app` module, package `com.simha.app`, minSdk 26, target/compile 35.
-- Room (local), DataStore (settings), supabase-kt (auth/postgrest/storage) → Supabase project `Simha` (`hvqqagwtkvfpsmammbtb`, ap-south-1).
-- Auth: anonymous sign-in (no passwords, per onboarding spec).
+- Local-first: Room (all personal data, memory graph), DataStore + SharedPreferences (settings). Voice = Android's own STT/TTS.
+- LLM: user-configured, OpenAI-compatible (Settings → AI and voice: base URL, key, model; stored encrypted). Recommended: Sarvam 105B Chat.
 - No Accessibility Service. No automating other apps.
 
+## Architecture (care brain, round 5)
+- `care/Forms.kt`: task forms (medicine, reminder, symptom, intake) with required slots; `Clock` turns spoken times ("5") into HH:MM.
+- `care/Checks.kt`: fixed, profile-aware checks (water, sleep, pain, mood, meals; fluid-restricted conditions reverse water advice). The AI can't override them.
+- `care/CareEngine.kt`: runs `note_task` calls → fills forms → asks the one missing question (string templates) or executes; builds the situation brief (exact time, time-since facts, heat, flags, open tasks).
+- `care/Graph.kt`: local memory graph (`g_node`, `g_edge`), cap 200 nodes, decay/prune daily; conditions, allergies and people never decay. Never synced.
+- `care/ToolIndex.kt`: tools linked to trigger words (5 languages), forms and graph types; per turn = core tools + matched ones; `find_tool` loads more.
+- `care/Reviewer.kt`: after each conversation, one AI call updates the graph, opens/closes concerns and schedules spoken follow-ups (`Wake.scheduleFollowUp`). Transcripts are not stored.
+- `llm/Agent.kt`: if every tool call in a step is `note_task`, the code-composed reply is spoken and no second AI call is made.
+- Health → "What Simha knows" lets the person see and delete memory.
+
 ## Rules
-- REQUIREMENT: every feature works once the user only configures an LLM provider (Settings → AI assistant: base URL, key, model; OpenAI-compatible, stored encrypted on device). Abilities (profile, contacts, status, symptoms, emergency, approved calls, alerts, recording, camera vision) are exposed as tools in `llm/SimhaTools`; every tool call is audited and respects approvals.
-- Talk to Simha is a hands-free, human-like voice conversation (auto-listen after speaking, streaming replies, history kept, user's language); it acts via tools and confirms in plain words.
-- Onboarding requests every permission with the real system dialog, one per screen.
-- Once a language is chosen, every screen (incl. Settings, notifications, TTS, LLM replies) is in that language. No hardcoded strings.
-- Simha learns health details (conditions, medicines, allergies) from conversation and saves them to the profile via a tool; the user can review/edit them in Profile. Works only after an LLM provider is configured.
-- Contacts: "Add family/neighbour/doctor" = label + phone number typed in; "Choose from contacts" = pick, then label.
 - Escalation is decided by `RulesEngine` (pure Kotlin, unit-tested). Never by an LLM.
-- Emergency (112) always via `ACTION_DIAL`. `ACTION_CALL` only for contacts the user approved.
-- Every alert/call/permission/recording → `audit_log`.
-- Theme: Soft Sand tokens in `ui/theme/Color.kt`. Body ≥ 20sp, targets ≥ 56dp (64dp at fontScale > 1.3). 200ms fades only.
-- Strings in `res/values*/strings.xml` for en, hi, te, kn, ta.
+- Danger-word check in code runs before the AI every turn → emergency screen.
+- Emergency (112) always via `ACTION_DIAL`. `ACTION_CALL` only for contacts the user approved. Adding contacts or approving calls by voice needs read-back + an explicit yes (`confirmed: true`).
+- Reminders and follow-ups speak through Wake (alarm volume over the lock screen), not just notifications. Follow-ups use `WakeReason.Evening` with a `Wake.SAY` extra so they never escalate.
+- Every alert, call, permission and recording is audited (local).
+- Once a language is chosen, every screen, notification, spoken line and LLM reply is in it. No hardcoded strings; every string in en, hi, te, kn, ta.
+- Theme: Rose clay (`ui/theme`), Nunito; flat 2D Sunrise-gold orb (`ui/home/SimhaOrb.kt`). Body ≥ 20sp, targets ≥ 56dp (64dp at fontScale > 1.3), 4dp spacing grid, no exclamation marks.
+- Navigation: 3 tabs (Home, Health, Settings); Settings = Me, People, Check-ins, AI and voice, Privacy, About.
+- Contacts: "Add family/neighbour/doctor" = label + phone typed in; "Choose from contacts" = pick, then label.
 
-## Database
-- Migrations live in Supabase (applied via MCP); mirrored in `supabase/migrations/`.
-- RLS on every table; owner or active caregiver via `private.can_access(uuid)`. Caregiver invite via `rpc/accept_invite(code)`.
+## Backend (Supabase `Simha`, `hvqqagwtkvfpsmammbtb`, ap-south-1)
+- `Repo.LOCAL_ONLY = true`: nothing personal is synced. Personal-data tables were dropped.
+- Remaining: `caregivers`, `family_messages` (empty, RLS) and storage buckets, kept for the encrypted caregiver relay. `Repo.CAREGIVER_ENABLED = false` (caregiver mode paused).
+- Planned backend only: phone-OTP login, payments (Razorpay/Cashfree subscriptions + UPI Autopay), encrypted caregiver relay (~25 KB/user), object storage for client-encrypted audio (R2/B2) with auto-delete.
+- Run `get_advisors` after every DDL change.
 
-## CI
-- `.github/workflows/android.yml`: lint → unit tests → `assembleRelease` → APK artifact (+ release on `main`).
-- Secrets: `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`. Optional: `SARVAM_API_KEY`.
+## CI and releases
+- `.github/workflows/android.yml`: typecheck → lint → unit tests → `assembleRelease`; on `main` publishes release `build-N` (versionCode = run number).
+- In-app updater (`update/`) installs new `build-N` releases (foreground PackageInstaller; same signing key).
+- Secrets: `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`.
 
 ## Branches
-- Work on `dev`; `main` receives merges. Push with the SVJSimplify account (repo git config uses `gh auth git-credential`).
+- Work on `dev`; push `dev:main` only when CI is green. Push with the SVJSimplify account (repo git config uses `gh auth git-credential`).
 
 ## Tools
 | Tool | Use for Simha |
@@ -40,7 +51,7 @@ Android app for seniors: inactivity watch → check-in → escalation. Specs in 
 | graphify (`~/.local/bin/graphify.exe`) | Code questions before grep/read; `graphify update .` after code changes (see below) |
 | Reticle (`reticle`, global) | Not usable here: it only verifies web/Electron/Tauri apps. Do not run `reticle init` in this repo |
 | No local Android SDK | Compile/lint/test only in GitHub Actions; the APK is tested by the user on a phone |
-- Subagents: Sonnet, told to be minimal and do exactly the brief.
+- The user prefers the main session to write the core code itself (no subagents) for engine work; subagents, when used, must be minimal and do exactly the brief.
 
 ## graphify
 
