@@ -10,4 +10,6 @@
     <string name="r4c_s_checkins">చెక్-ఇన్‌లు</string>
     <string name="r4c_s_privacy">గోప్యత</string>
     <string name="r4c_s_about">గురించి</string>
+    <string name="h_with_you">సింహ మీతో ఉంది</string>
+    <string name="h_with_you_ago">సింహ మీతో ఉంది · చివరి మాటలు %1$s</string>
 </resources>

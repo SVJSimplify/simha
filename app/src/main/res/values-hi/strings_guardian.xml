@@ -3,7 +3,7 @@
     <string name="gd_open_checkin">नमस्ते %1$s, आप अभी कैसा महसूस कर रहे हैं?</string>
     <string name="gd_open_medicine">%1$s, आपकी %2$s लेने का समय हो गया है। क्या आपने ले ली?</string>
     <string name="gd_open_medicine_generic">%1$s, आपकी दवा लेने का समय हो गया है। क्या आपने ले ली?</string>
-    <string name="gd_open_morning">सुप्रभात, %1$s! उम्मीद है आप अच्छी तरह सोए।</string>
+    <string name="gd_open_morning">सुप्रभात, %1$s. उम्मीद है आप अच्छी तरह सोए।</string>
     <string name="gd_open_plan">आज आपके लिए: %1$s।</string>
     <plurals name="gd_open_msgs">
         <item quantity="one">आपके परिवार की ओर से %1$d नया संदेश है। क्या मैं इसे सुनाऊँ?</item>

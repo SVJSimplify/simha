@@ -10,4 +10,6 @@
     <string name="r4c_s_checkins">ಚೆಕ್-ಇನ್‌ಗಳು</string>
     <string name="r4c_s_privacy">ಗೌಪ್ಯತೆ</string>
     <string name="r4c_s_about">ಬಗ್ಗೆ</string>
+    <string name="h_with_you">ಸಿಂಹ ನಿಮ್ಮೊಂದಿಗೆ ಇದೆ</string>
+    <string name="h_with_you_ago">ಸಿಂಹ ನಿಮ್ಮೊಂದಿಗೆ ಇದೆ · ಕೊನೆಯ ಮಾತು %1$s</string>
 </resources>

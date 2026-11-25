@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.simha.app.R
 
-val SimhaRadius = 22.dp
+val SimhaRadius = 24.dp
 
 val LocalSimha = staticCompositionLocalOf { LightSimha }
 
@@ -84,13 +84,13 @@ private fun scheme(c: SimhaColors, dark: Boolean) = if (dark) {
 }
 
 private val SimhaTypography = Typography(
-    titleLarge = TextStyle(fontFamily = NunitoFamily, fontSize = 28.sp, fontWeight = FontWeight.Medium, lineHeight = 36.sp),
-    titleMedium = TextStyle(fontFamily = NunitoFamily, fontSize = 22.sp, fontWeight = FontWeight.Medium, lineHeight = 30.sp),
-    bodyLarge = TextStyle(fontFamily = NunitoFamily, fontSize = 20.sp, fontWeight = FontWeight.Normal, lineHeight = 28.sp),
-    bodyMedium = TextStyle(fontFamily = NunitoFamily, fontSize = 20.sp, fontWeight = FontWeight.Normal, lineHeight = 28.sp),
-    labelLarge = TextStyle(fontFamily = NunitoFamily, fontSize = 22.sp, fontWeight = FontWeight.Medium, lineHeight = 28.sp),
-    bodySmall = TextStyle(fontFamily = NunitoFamily, fontSize = 16.sp, fontWeight = FontWeight.Normal, lineHeight = 22.sp),
-    labelSmall = TextStyle(fontFamily = NunitoFamily, fontSize = 16.sp, fontWeight = FontWeight.Normal, lineHeight = 22.sp),
+    titleLarge = TextStyle(fontFamily = NunitoFamily, fontFeatureSettings = "tnum", fontSize = 28.sp, fontWeight = FontWeight.Medium, lineHeight = 36.sp),
+    titleMedium = TextStyle(fontFamily = NunitoFamily, fontFeatureSettings = "tnum", fontSize = 22.sp, fontWeight = FontWeight.Medium, lineHeight = 30.sp),
+    bodyLarge = TextStyle(fontFamily = NunitoFamily, fontFeatureSettings = "tnum", fontSize = 20.sp, fontWeight = FontWeight.Normal, lineHeight = 28.sp),
+    bodyMedium = TextStyle(fontFamily = NunitoFamily, fontFeatureSettings = "tnum", fontSize = 20.sp, fontWeight = FontWeight.Normal, lineHeight = 28.sp),
+    labelLarge = TextStyle(fontFamily = NunitoFamily, fontFeatureSettings = "tnum", fontSize = 22.sp, fontWeight = FontWeight.Medium, lineHeight = 28.sp),
+    bodySmall = TextStyle(fontFamily = NunitoFamily, fontFeatureSettings = "tnum", fontSize = 16.sp, fontWeight = FontWeight.Normal, lineHeight = 22.sp),
+    labelSmall = TextStyle(fontFamily = NunitoFamily, fontFeatureSettings = "tnum", fontSize = 16.sp, fontWeight = FontWeight.Normal, lineHeight = 22.sp),
 )
 
 @OptIn(ExperimentalMaterial3Api::class)

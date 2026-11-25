@@ -1,6 +1,5 @@
 package com.simha.app.ui.home
 
-import android.util.Log
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.snap
@@ -17,48 +16,61 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.clipPath
-import androidx.compose.ui.graphics.drawscope.scale
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.withTransform
-import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import com.simha.app.R
 import com.simha.app.ui.animMs
-import com.simha.app.ui.home.orb.OrbGlView
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 
 enum class OrbState { Idle, Listening, Speaking, Thinking }
 
+private val Base = Color(0xFFFFF3DC)
 private val Amber = Color(0xFFE39A3D)
-private val Rim = Color(0xFFC9822E)
 private val Honey = Color(0xFFFBE3B5)
 private val Apricot = Color(0xFFF2B661)
 private val Butter = Color(0xFFFFEBC8)
 private val Cream = Color(0xFFFFF8EA)
-private val Shadow = Color(0xFFA06414)
+
+private class Cloud(
+    val color: Color,
+    val alpha: Float,
+    val orbit: Float,
+    val fx: Float,
+    val fy: Float,
+    val ox: Float,
+    val oy: Float,
+    val size: Float,
+)
+
+private val Clouds = listOf(
+    Cloud(Apricot, 0.85f, 0.38f, 1f, 0.7f, 0f, 1f, 0.75f),
+    Cloud(Cream, 0.95f, 0.42f, -0.8f, 1f, 2.1f, 0.3f, 0.7f),
+    Cloud(Amber, 0.5f, 0.36f, 0.6f, -0.9f, 4.2f, 2.2f, 0.65f),
+    Cloud(Honey, 0.9f, 0.4f, -1.1f, -0.6f, 1.2f, 3.9f, 0.8f),
+    Cloud(Butter, 0.7f, 0.3f, 0.9f, 1.2f, 3.3f, 5.1f, 0.6f),
+)
 
 @Composable
 fun SimhaOrb(state: OrbState, onTap: () -> Unit, modifier: Modifier = Modifier, level: Float = 0f) {
@@ -75,47 +87,46 @@ fun SimhaOrb(state: OrbState, onTap: () -> Unit, modifier: Modifier = Modifier, 
     )
     val lv = animateFloatAsState(
         if (still) 0f else level.coerceIn(0f, 1f),
-        if (still) snap() else spring(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessLow),
+        if (still) snap() else spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessMediumLow),
         label = "level",
     )
     val listenA by animateFloatAsState(if (state == OrbState.Listening) 1f else 0f, tween(if (still) 0 else 300), label = "listenA")
     val speakA by animateFloatAsState(if (state == OrbState.Speaking) 1f else 0f, tween(if (still) 0 else 300), label = "speakA")
-    val dimS = animateFloatAsState(if (state == OrbState.Thinking) 1f else 0f, tween(if (still) 0 else 400), label = "dimA")
-    val dimA by dimS
     val phase = remember { mutableFloatStateOf(3f) }
+    val rot = remember { mutableFloatStateOf(0f) }
     val clock = remember { mutableFloatStateOf(0f) }
     val st by rememberUpdatedState(state)
-    var glFailed by remember { mutableStateOf(false) }
 
     LaunchedEffect(pressed) { if (pressed) haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove) }
 
     LaunchedEffect(still) {
         if (still) return@LaunchedEffect
-        owner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+        owner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
             var last = 0L
-            var sp = 0.45f
-            androidx.compose.runtime.withFrameNanos { last = it }
+            var sp = 0.52f
+            var rs = 0f
+            withFrameNanos { last = it }
             while (true) {
-                androidx.compose.runtime.withFrameNanos { n ->
+                withFrameNanos { n ->
                     val dt = ((n - last) / 1_000_000_000f).coerceIn(0f, 0.05f)
                     last = n
                     val target = when (st) {
-                        OrbState.Idle -> 0.45f
-                        OrbState.Listening -> 0.7f
+                        OrbState.Idle -> 0.52f
+                        OrbState.Listening -> 0.8f
                         OrbState.Speaking -> 0.8f + 2.4f * lv.value
-                        OrbState.Thinking -> 1.2f
+                        OrbState.Thinking -> 0.3f
                     }
-                    sp += (target - sp) * minOf(1f, dt * 4f)
+                    val rt = if (st == OrbState.Thinking) 20f else 0f
+                    val k = minOf(1f, dt * 4f)
+                    sp += (target - sp) * k
+                    rs += (rt - rs) * k
                     phase.floatValue += dt * sp
+                    rot.floatValue = (rot.floatValue + dt * rs) % 360f
                     clock.floatValue += dt
                 }
             }
         }
     }
-
-    fun breathe() = if (still) 0f else 0.5f - 0.5f * cos(clock.floatValue * 2f * PI.toFloat() / 4f)
-    fun grow() = 1f + 0.025f * breathe() + 0.06f * lv.value * listenA + 0.05f * lv.value * speakA
-    fun wobble() = if (still) 0f else 0.0175f * lv.value * speakA * (0.6f * sin(clock.floatValue * 6.1f) + 0.4f * sin(clock.floatValue * 9.7f + 1f))
 
     Box(
         modifier
@@ -127,129 +138,29 @@ fun SimhaOrb(state: OrbState, onTap: () -> Unit, modifier: Modifier = Modifier, 
             .semantics(mergeDescendants = true) { contentDescription = desc }
             .clickable(interactionSource = src, indication = null, role = Role.Button, onClick = onTap),
     ) {
-    Canvas(Modifier.fillMaxSize()) {
-        val m = size.minDimension
-        val rad = m * 0.34f
-        val cx = size.width / 2f
-        val cy = size.height / 2f - m * 0.06f
-        val c = Offset(cx, cy)
-        val l = lv.value
-        val sc = grow()
-        val wob = wobble()
-        val sx = sc * (1f + wob)
-        val sy = sc * (1f - wob * 0.8f)
-
-        scale(1f - 0.4f * (sc - 1f), 0.22f, Offset(cx, cy + rad + m * 0.06f)) {
-            drawCircle(
-                Brush.radialGradient(
-                    listOf(Shadow.copy(alpha = 0.25f), Color.Transparent),
-                    Offset(cx, cy + rad + m * 0.06f),
-                    rad * 0.9f,
-                ),
-                rad * 0.9f,
-                Offset(cx, cy + rad + m * 0.06f),
-            )
-        }
-
-        if (listenA > 0.01f) {
-            val gr = rad * 1.35f
-            drawCircle(
-                Brush.radialGradient(
-                    0.74f to Apricot.copy(alpha = 0.45f * l * listenA),
-                    1f to Color.Transparent,
-                    center = c,
-                    radius = gr,
-                ),
-                gr,
-                c,
-            )
-            drawCircle(
-                Apricot.copy(alpha = (0.18f + 0.45f * l) * listenA),
-                rad * (1.08f + 0.1f * l),
-                c,
-                style = Stroke(3.dp.toPx()),
-            )
-        }
-
-        if (glFailed) scale(sx, sy, c) {
-            run {
-                val p = phase.floatValue
-                val clip = Path().apply {
-                    addOval(androidx.compose.ui.geometry.Rect(c, rad))
-                }
-                clipPath(clip) {
-                    drawCircle(
-                        Brush.linearGradient(listOf(Butter, Honey), Offset(cx - rad, cy - rad), Offset(cx + rad, cy + rad)),
-                        rad,
-                        c,
-                    )
-                    val cols = listOf(Amber, Honey, Apricot, Butter, Cream)
-                    val orb = floatArrayOf(0.45f, 0.55f, 0.4f, 0.6f, 0.35f)
-                    val spd = floatArrayOf(0.9f, -0.7f, 1.3f, -1.1f, 0.6f)
-                    val br = floatArrayOf(0.8f, 0.7f, 0.65f, 0.75f, 0.55f)
-                    for (i in 0 until 5) {
-                        val a = p * spd[i] + i * 1.3f
-                        val pos = Offset(cx + rad * orb[i] * cos(a), cy + rad * orb[i] * sin(a * 0.9f + i))
-                        val r = rad * br[i] * (1f + 0.15f * l)
+        Canvas(Modifier.fillMaxSize()) {
+            val breath = if (still) 0f else 0.5f - 0.5f * cos(clock.floatValue * 2f * PI.toFloat() / 6f)
+            val grow = 1f + 0.02f * breath + 0.08f * lv.value * listenA + 0.06f * lv.value * speakA
+            val rad = size.minDimension * 0.45f * grow / 1.08f
+            val c = Offset(size.width / 2f, size.height / 2f)
+            val p = phase.floatValue
+            drawCircle(Base, rad, c)
+            clipPath(Path().apply { addOval(Rect(c, rad)) }) {
+                rotate(rot.floatValue, c) {
+                    Clouds.forEach { k ->
+                        val pos = Offset(
+                            c.x + rad * k.orbit * cos(p * k.fx + k.ox),
+                            c.y + rad * k.orbit * sin(p * k.fy + k.oy),
+                        )
+                        val r = rad * k.size
                         drawCircle(
-                            Brush.radialGradient(listOf(cols[i].copy(alpha = if (i == 0) 0.5f else 0.8f), Color.Transparent), pos, r),
+                            Brush.radialGradient(listOf(k.color.copy(alpha = k.alpha), k.color.copy(alpha = 0f)), pos, r),
                             r,
                             pos,
                         )
                     }
-                    drawCircle(
-                        Brush.radialGradient(
-                            0f to Color.White.copy(alpha = 0.28f),
-                            0.5f to Color.Transparent,
-                            1f to Rim.copy(alpha = 0.35f),
-                            center = Offset(cx - rad * 0.35f, cy - rad * 0.4f),
-                            radius = rad * 1.7f,
-                        ),
-                        rad,
-                        c,
-                    )
-                    drawCircle(
-                        Brush.radialGradient(0.72f to Color.Transparent, 1f to Rim.copy(alpha = 0.3f), center = c, radius = rad),
-                        rad,
-                        c,
-                    )
-                    if (dimA > 0f) drawCircle(Color(0xFF8A5A1A).copy(alpha = 0.18f * dimA), rad, c)
-                }
-                val sp = Offset(cx - rad * 0.38f, cy - rad * 0.48f)
-                withTransform({
-                    rotate(-35f, sp)
-                    scale(1f, 0.5f, sp)
-                }) {
-                    drawCircle(
-                        Brush.radialGradient(listOf(Color.White.copy(alpha = 0.75f), Color.Transparent), sp, rad * 0.3f),
-                        rad * 0.3f,
-                        sp,
-                    )
                 }
             }
         }
-    }
-    if (!glFailed) AndroidView(
-        factory = { c ->
-            OrbGlView(c) { e ->
-                Log.e("SimhaOrb", "GL init failed, using canvas", e)
-                glFailed = true
-            }.also {
-                it.phase = { phase.floatValue }
-                it.level = { lv.value }
-                it.dim = { dimS.value }
-                it.bind(owner)
-            }
-        },
-        modifier = Modifier
-            .fillMaxSize()
-            .graphicsLayer {
-                val w = wobble()
-                val g = grow()
-                scaleX = g * (1f + w)
-                scaleY = g * (1f - w * 0.8f)
-                transformOrigin = TransformOrigin(0.5f, 0.44f)
-            },
-    )
     }
 }

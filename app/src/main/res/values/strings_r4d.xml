@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="r4d_perm_title">Let Simha look after you</string>
-    <string name="r4d_perm_sub">Allow these so Simha can check on you and help fast.</string>
+    <string name="r4d_perm_sub">Allow these so Simha can check on you and help fast</string>
     <string name="r4d_perm_progress">%1$d of %2$d done</string>
     <string name="r4d_health_title">Your health</string>
 </resources>

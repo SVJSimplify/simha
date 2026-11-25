@@ -3,8 +3,8 @@
     <string name="gd_open_checkin">ನಮಸ್ಕಾರ %1$s, ನೀವು ಈಗ ಹೇಗಿದ್ದೀರಿ?</string>
     <string name="gd_open_medicine">%1$s, ನಿಮ್ಮ %2$s ತೆಗೆದುಕೊಳ್ಳುವ ಸಮಯವಾಯಿತು. ನೀವು ತೆಗೆದುಕೊಂಡಿದ್ದೀರಾ?</string>
     <string name="gd_open_medicine_generic">%1$s, ನಿಮ್ಮ ಔಷಧ ತೆಗೆದುಕೊಳ್ಳುವ ಸಮಯವಾಯಿತು. ನೀವು ತೆಗೆದುಕೊಂಡಿದ್ದೀರಾ?</string>
-    <string name="gd_open_morning">ಶುಭೋದಯ %1$s! ನೀವು ಚೆನ್ನಾಗಿ ನಿದ್ರಿಸಿದ್ದೀರಿ ಎಂದು ಭಾವಿಸುತ್ತೇನೆ.</string>
-    <string name="gd_open_plan">ಇಂದು ನಿಮಗೆ: %1$s.</string>
+    <string name="gd_open_morning">ಶುಭೋದಯ %1$s. ನೀವು ಚೆನ್ನಾಗಿ ನಿದ್ರಿಸಿದ್ದೀರಿ ಎಂದು ಭಾವಿಸುತ್ತೇನೆ.</string>
+    <string name="gd_open_plan">ಇಂದು ನಿಮಗೆ: %1$s</string>
     <plurals name="gd_open_msgs">
         <item quantity="one">ನಿಮ್ಮ ಕುಟುಂಬದಿಂದ %1$d ಹೊಸ ಸಂದೇಶ ಇದೆ. ಕೇಳಿಸಲೇ?</item>
         <item quantity="other">ನಿಮ್ಮ ಕುಟುಂಬದಿಂದ %1$d ಹೊಸ ಸಂದೇಶಗಳಿವೆ. ಕೇಳಿಸಲೇ?</item>
@@ -17,6 +17,6 @@
     <string name="gd_open_heat">%1$s, ಇಂದು ತುಂಬಾ ಬಿಸಿಲು ಇದೆ. ದಯವಿಟ್ಟು ಸ್ವಲ್ಪ ನೀರು ಕುಡಿಯಿರಿ. ಇತ್ತೀಚೆಗೆ ನೀರು ಕುಡಿದಿದ್ದೀರಾ?</string>
     <string name="gd_wakeword_title">\"ಹೇ ಸಿಂಹ\" ಎಂದು ಹೇಳಿ ಮಾತು ಆರಂಭಿಸಿ</string>
     <string name="gd_wakeword_hint">ಸಿಂಹ ಪರದೆಯ ಮೇಲೆ ತೆರೆದಿರುವಾಗ \"ಹೇ ಸಿಂಹ\" ಪದಗಳಿಗಾಗಿ ಕೇಳುತ್ತದೆ. ಆ ಸಮಯದಲ್ಲಿ ಮೈಕ್ರೊಫೋನ್ ಆನ್ ಆಗಿರುತ್ತದೆ. ಆರಂಭದಲ್ಲಿ ಆಫ್ ಆಗಿರುತ್ತದೆ.</string>
-    <string name="gd_wakeword_needs_mic">\"ಹೇ ಸಿಂಹ\" ಗಾಗಿ ಮೈಕ್ರೊಫೋನ್ ಅನುಮತಿಸಿ.</string>
+    <string name="gd_wakeword_needs_mic">\"ಹೇ ಸಿಂಹ\" ಗಾಗಿ ಮೈಕ್ರೊಫೋನ್ ಅನುಮತಿಸಿ</string>
     <string name="gd_open_unwell">%1$s, ನಾನು ನಿಮ್ಮೊಂದಿಗಿದ್ದೇನೆ. ಏನಾಗಿದೆ ಹೇಳಿ. ನಿಮಗೆ ಹೇಗನಿಸುತ್ತಿದೆ?</string>
 </resources>

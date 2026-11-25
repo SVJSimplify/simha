@@ -1,0 +1,621 @@
+{
+  ".claude/settings.json": {
+    "mtime": 1795434395.204483,
+    "seen": 1795434407.8290644,
+    "ast_hash": "006012ec5a3dce23a1175d927b6408ad",
+    "semantic_hash": "006012ec5a3dce23a1175d927b6408ad",
+    "ast_empty": true
+  },
+  ".github/workflows/android.yml": {
+    "mtime": 1795453307.126021,
+    "seen": 1795453867.45983,
+    "ast_hash": "2080354272cf429dd2b1d8dadff3a5bb",
+    "semantic_hash": ""
+  },
+  "app/build.gradle.kts": {
+    "mtime": 1795453307.1250215,
+    "seen": 1795453867.4598386,
+    "ast_hash": "d523a3c2070f0690d9ed1230c9f9870a",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/Actions.kt": {
+    "mtime": 1795457307.9651144,
+    "seen": 1795457599.8664522,
+    "ast_hash": "6495ada00408a97984415e2a6b62da14",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/MainActivity.kt": {
+    "mtime": 1795490171.3871467,
+    "seen": 1795490654.5868907,
+    "ast_hash": "43aadba4d19c1e8b7015a906e35d34d9",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/MainViewModel.kt": {
+    "mtime": 1795490153.984438,
+    "seen": 1795490654.5868976,
+    "ast_hash": "30b38b8292bb7d722708436d757c6476",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/SimhaApp.kt": {
+    "mtime": 1795486161.75129,
+    "seen": 1795486538.2461727,
+    "ast_hash": "b13e762f61b16902c78cab1489b02444",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/data/Db.kt": {
+    "mtime": 1795486139.715992,
+    "seen": 1795486538.2461782,
+    "ast_hash": "c8c99bee8f97f0df6514b3c4ed534185",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/data/Models.kt": {
+    "mtime": 1795486161.7442975,
+    "seen": 1795486538.246189,
+    "ast_hash": "26998595791a38b9ba2132ee76913246",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/data/Prefs.kt": {
+    "mtime": 1795439029.0328896,
+    "seen": 1795440046.6268878,
+    "ast_hash": "9b07a9e9ee07c16fbdaa582486059ba2",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/data/Remote.kt": {
+    "mtime": 1795486161.7462888,
+    "seen": 1795486538.2462003,
+    "ast_hash": "24b23338ad04e9e28c0a738e7f264094",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/data/Repo.kt": {
+    "mtime": 1795486161.7472894,
+    "seen": 1795486538.246205,
+    "ast_hash": "d21ee36c50c9d0962c694c0dd8ac1759",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/llm/Agent.kt": {
+    "mtime": 1795490492.7578876,
+    "seen": 1795490654.587029,
+    "ast_hash": "f79d8a60b436ed3b0c55f79d029e408d",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/llm/LlmClient.kt": {
+    "mtime": 1795438882.2938774,
+    "seen": 1795440046.6269026,
+    "ast_hash": "7499405a4eebf4f9884ff63024d6fa06",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/llm/LlmParse.kt": {
+    "mtime": 1795366477.2699912,
+    "seen": 1795434407.8360364,
+    "ast_hash": "3cad05ae5cda31bafa7b2c375647615e",
+    "semantic_hash": "3cad05ae5cda31bafa7b2c375647615e"
+  },
+  "app/src/main/java/com/simha/app/llm/SimhaTools.kt": {
+    "mtime": 1795490567.3552635,
+    "seen": 1795490654.5871077,
+    "ast_hash": "a686507587b08359bce802cf05ec1a7c",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/logic/Plans.kt": {
+    "mtime": 1795366457.1055799,
+    "seen": 1795434407.836946,
+    "ast_hash": "ae4d11ff2c17bfae2a15b9b5db9b10ad",
+    "semantic_hash": "ae4d11ff2c17bfae2a15b9b5db9b10ad"
+  },
+  "app/src/main/java/com/simha/app/logic/RulesEngine.kt": {
+    "mtime": 1795366448.289247,
+    "seen": 1795434407.8374093,
+    "ast_hash": "3335b8a9434838686dc1c2d24868a9f8",
+    "semantic_hash": "3335b8a9434838686dc1c2d24868a9f8"
+  },
+  "app/src/main/java/com/simha/app/monitor/ActivityService.kt": {
+    "mtime": 1795453930.27818,
+    "seen": 1795454234.415199,
+    "ast_hash": "1a3dc6cc764b475826a451b6c2143d38",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/monitor/Monitor.kt": {
+    "mtime": 1795453930.1777716,
+    "seen": 1795454234.4152036,
+    "ast_hash": "850c2ef4964874a1dd37df584c2d5cd6",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/monitor/Notifier.kt": {
+    "mtime": 1795490206.2733212,
+    "seen": 1795490654.5871842,
+    "ast_hash": "729debda7e54f8aa46e1d6bd8fd61296",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/monitor/UsageReader.kt": {
+    "mtime": 1795366647.2103279,
+    "seen": 1795434407.839978,
+    "ast_hash": "16ef4633c738f2ebacdb2778ab86ec7b",
+    "semantic_hash": "16ef4633c738f2ebacdb2778ab86ec7b"
+  },
+  "app/src/main/java/com/simha/app/monitor/Work.kt": {
+    "mtime": 1795486336.5617058,
+    "seen": 1795486538.2463403,
+    "ast_hash": "bd60e62f09eb7031059f6a196f68be6a",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/ui/App.kt": {
+    "mtime": 1795490219.128377,
+    "seen": 1795490654.5872116,
+    "ast_hash": "6605ea5b5886eba4be569d3f65707a52",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/ui/Caregiver.kt": {
+    "mtime": 1795486864.9432347,
+    "seen": 1795490654.5872173,
+    "ast_hash": "987b02a8df08038c79dbd5b8693af7ab",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/ui/Components.kt": {
+    "mtime": 1795457364.569397,
+    "seen": 1795457599.866538,
+    "ast_hash": "aff4c33a867b20fbb5c13bbc9c85298d",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/ui/Home.kt": {
+    "mtime": 1795457497.6030998,
+    "seen": 1795457599.8665423,
+    "ast_hash": "ec9d241ac59b9c3801d899112f183a2a",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/ui/Onboarding.kt": {
+    "mtime": 1795457488.6405578,
+    "seen": 1795457599.8665445,
+    "ast_hash": "faddcc4c3c89a5c04bc9393ef71ee242",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/ui/Screens.kt": {
+    "mtime": 1795453564.8237972,
+    "seen": 1795453867.460081,
+    "ast_hash": "aa70bf6e484d1b13d244424c46578375",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/ui/Settings.kt": {
+    "mtime": 1795457565.935773,
+    "seen": 1795457599.8665488,
+    "ast_hash": "62456351c1cef27042b3f5451c32e67d",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/ui/talk/TalkScreen.kt": {
+    "mtime": 1795454137.8575149,
+    "seen": 1795454234.4152603,
+    "ast_hash": "40ccd1fa065b8c6c4ffddbc4f6a6c3e0",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/ui/talk/TalkViewModel.kt": {
+    "mtime": 1795490581.1586218,
+    "seen": 1795490654.587347,
+    "ast_hash": "f418c12cc13e687b80f41202a7dc9f05",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/ui/theme/Color.kt": {
+    "mtime": 1795438895.9217172,
+    "seen": 1795440046.6269531,
+    "ast_hash": "f4a4982339ce339c834e07f23d871587",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/ui/theme/Theme.kt": {
+    "mtime": 1795457794.45193,
+    "seen": 1795485625.692576,
+    "ast_hash": "8bbf49b889fa9fd6f182d732b510a597",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/voice/Voice.kt": {
+    "mtime": 1795457419.6185143,
+    "seen": 1795457599.8666048,
+    "ast_hash": "bf44ca46a543a6d188482c49738e71f9",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/voice/VoiceAgent.kt": {
+    "mtime": 1795438918.021911,
+    "seen": 1795440046.626966,
+    "ast_hash": "650b4196ac0e2d2dda206ecaae6a2bc3",
+    "semantic_hash": ""
+  },
+  "app/src/test/java/com/simha/app/LlmToolsTest.kt": {
+    "mtime": 1795490647.216876,
+    "seen": 1795490654.5874982,
+    "ast_hash": "4c09ac5b56982c1c834c103bacd44a4d",
+    "semantic_hash": ""
+  },
+  "app/src/test/java/com/simha/app/PlansTest.kt": {
+    "mtime": 1795367873.294914,
+    "seen": 1795434407.8490553,
+    "ast_hash": "2f773267ddd3a1aad241b6199d3be742",
+    "semantic_hash": "2f773267ddd3a1aad241b6199d3be742"
+  },
+  "app/src/test/java/com/simha/app/RulesEngineTest.kt": {
+    "mtime": 1795367863.702984,
+    "seen": 1795434407.8496704,
+    "ast_hash": "cf5c3312c6fe7dd78121d3a9c39154a8",
+    "semantic_hash": "cf5c3312c6fe7dd78121d3a9c39154a8"
+  },
+  "build.gradle.kts": {
+    "mtime": 1795366272.7464983,
+    "seen": 1795434407.8502822,
+    "ast_hash": "b938f07e9cf543d1c5c5eae802b4a5a4",
+    "semantic_hash": "b938f07e9cf543d1c5c5eae802b4a5a4"
+  },
+  "settings.gradle.kts": {
+    "mtime": 1795366272.6909378,
+    "seen": 1795434407.8508039,
+    "ast_hash": "051601df224270c9e3d98c9b3530db93",
+    "semantic_hash": "051601df224270c9e3d98c9b3530db93"
+  },
+  "app/src/main/java/com/simha/app/llm/HealthMemory.kt": {
+    "mtime": 1795439451.38327,
+    "seen": 1795440046.6268992,
+    "ast_hash": "abedfa8e47d95412bba03892f547237f",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/ui/talk/AiSettings.kt": {
+    "mtime": 1795439169.732341,
+    "seen": 1795440046.6269443,
+    "ast_hash": "0839b37b17adae0f228b1c7ba77f1e40",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/voice/Escalation.kt": {
+    "mtime": 1795439300.724641,
+    "seen": 1795440046.6269574,
+    "ast_hash": "b7855890643d79f9fa776a535f5edae3",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/voice/Sarvam.kt": {
+    "mtime": 1795438901.471697,
+    "seen": 1795440046.6269596,
+    "ast_hash": "b4a63814680a9f8dad716e88398a555e",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/voice/SarvamClient.kt": {
+    "mtime": 1795438917.9439085,
+    "seen": 1795440046.626962,
+    "ast_hash": "0ef75dfc2041da61b7826207f0ff659b",
+    "semantic_hash": ""
+  },
+  "app/src/test/java/com/simha/app/SarvamHealthTest.kt": {
+    "mtime": 1795490647.2178779,
+    "seen": 1795490654.5875378,
+    "ast_hash": "b4ca7a8f37b39891074f0a16b30cb606",
+    "semantic_hash": ""
+  },
+  ".claude/CLAUDE.md": {
+    "mtime": 1795434395.4141235,
+    "seen": 1795440046.6269827,
+    "ast_hash": "9b31786b637be3c13978bec4c2330752",
+    "semantic_hash": ""
+  },
+  "CLAUDE.md": {
+    "mtime": 1795437793.714571,
+    "seen": 1795440046.6269853,
+    "ast_hash": "38d60ea7105fb27631e150e2708d5818",
+    "semantic_hash": ""
+  },
+  "design/prototype.html": {
+    "mtime": 1795438098.20184,
+    "seen": 1795440046.6269875,
+    "ast_hash": "52b351c04859f68c6b177c71b6181eb7",
+    "semantic_hash": ""
+  },
+  "docs/01_END_GOAL.md": {
+    "mtime": 1795365788.611444,
+    "seen": 1795440046.6269898,
+    "ast_hash": "b74065e4de6cc40bac2f7d33aac4e922",
+    "semantic_hash": ""
+  },
+  "docs/02_TECHNICAL_SPEC.md": {
+    "mtime": 1795365788.6294463,
+    "seen": 1795440046.626992,
+    "ast_hash": "fefc1251a7d282a7819c5a5adc6f4bad",
+    "semantic_hash": ""
+  },
+  "docs/03_ONBOARDING.md": {
+    "mtime": 1795365788.6414433,
+    "seen": 1795440046.626994,
+    "ast_hash": "db6e28d40c241dab1602e7fc3ad1811d",
+    "semantic_hash": ""
+  },
+  "docs/04_UI_DESIGN.md": {
+    "mtime": 1795365788.6524503,
+    "seen": 1795440046.6269963,
+    "ast_hash": "ba0af19e52f36a4749ccf47b92bf032b",
+    "semantic_hash": ""
+  },
+  "docs/DESIGN_SPEC.md": {
+    "mtime": 1795365788.6024356,
+    "seen": 1795440046.626998,
+    "ast_hash": "165e099d8cfd17bfd8a263c15aae6cdf",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/data/GuardianRepo.kt": {
+    "mtime": 1795486232.6479747,
+    "seen": 1795486538.2461834,
+    "ast_hash": "a80b5ca78391b7fe48c2a9fb9e2a58b8",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/logic/Schedule.kt": {
+    "mtime": 1795452947.3367035,
+    "seen": 1795452986.9640703,
+    "ast_hash": "4a25b9de80390061084b91a2acfd2ec0",
+    "semantic_hash": ""
+  },
+  "app/src/test/java/com/simha/app/ScheduleTest.kt": {
+    "mtime": 1795452951.817726,
+    "seen": 1795452986.9641347,
+    "ast_hash": "7ea1fb65bdda026e4c514137d06f7dd6",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/data/Weather.kt": {
+    "mtime": 1795453622.1955042,
+    "seen": 1795453867.4599097,
+    "ast_hash": "2d3ba9479729913a3cb9d236e3ff33c9",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/llm/DiaryMerge.kt": {
+    "mtime": 1795486270.9009106,
+    "seen": 1795486538.2462218,
+    "ast_hash": "c1c5aa48547545bcf8fa3dcca8a57075",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/llm/DoseSlots.kt": {
+    "mtime": 1795453537.591172,
+    "seen": 1795453867.4599257,
+    "ast_hash": "1b9cecd64b998309db1840cc568fb8fc",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/llm/Guardian.kt": {
+    "mtime": 1795490492.7568743,
+    "seen": 1795490654.5870686,
+    "ast_hash": "9812583cc37c9a3ae135d8e7ed0a2c7a",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/llm/Scam.kt": {
+    "mtime": 1795453523.115982,
+    "seen": 1795453867.459957,
+    "ast_hash": "86a98ae9ef32f0217e2b9c500787458b",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/logic/FirstAid.kt": {
+    "mtime": 1795454229.0826743,
+    "seen": 1795454234.4151857,
+    "ast_hash": "3894c5ab1a3360e788649df4f8c06b9a",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/logic/Routine.kt": {
+    "mtime": 1795453596.8490016,
+    "seen": 1795453867.45998,
+    "ast_hash": "6f94ec4e3331fe6c3965a6249c14ec1e",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/monitor/FallDetector.kt": {
+    "mtime": 1795453930.2791822,
+    "seen": 1795454234.4152012,
+    "ast_hash": "965ba58c11daf524fdb325a9328d2f71",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/monitor/SafeArea.kt": {
+    "mtime": 1795453930.2406712,
+    "seen": 1795454234.4152083,
+    "ast_hash": "43c85937ceadfca5e77b55cab438dc1c",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/ui/home/CaregiverStats.kt": {
+    "mtime": 1795486474.0000267,
+    "seen": 1795486538.246388,
+    "ast_hash": "74e67e7c4fff42cf70e11699446dcfb8",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/ui/home/MsgRecorder.kt": {
+    "mtime": 1795453714.4758043,
+    "seen": 1795453867.460097,
+    "ast_hash": "def56d30316c2e20b80dec4f0cceccd1",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/ui/home/Oem.kt": {
+    "mtime": 1795453585.7535894,
+    "seen": 1795453867.4601028,
+    "ast_hash": "34592cc5898920f83978764dac5aae00",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/ui/home/SimhaOrb.kt": {
+    "mtime": 1795490121.5951953,
+    "seen": 1795490654.5872867,
+    "ast_hash": "03102b934a53d965e5c98ac5b7e8dd69",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/ui/home/UiPrefs.kt": {
+    "mtime": 1795453322.1799648,
+    "seen": 1795453867.460114,
+    "ast_hash": "cc84d1f113b7229b919e31bfb3891d45",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/ui/meds/MedSchedule.kt": {
+    "mtime": 1795453338.3650432,
+    "seen": 1795453867.460119,
+    "ast_hash": "73230fa1361d519f6a1048affb7f8891",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/ui/meds/MedicalId.kt": {
+    "mtime": 1795485583.8948164,
+    "seen": 1795485625.692532,
+    "ast_hash": "00776363842fdaf95027739b4e80c781",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/ui/meds/MedicinesScreen.kt": {
+    "mtime": 1795453408.324015,
+    "seen": 1795453867.4601293,
+    "ast_hash": "4603a26c07550e9f9df35200eafbdd3f",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/update/UpdateBanner.kt": {
+    "mtime": 1795490296.2597294,
+    "seen": 1795490654.5873659,
+    "ast_hash": "d123fd8af96c93833b7f06e75464e1b2",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/update/UpdateInstallReceiver.kt": {
+    "mtime": 1795490319.1243572,
+    "seen": 1795490654.5873723,
+    "ast_hash": "5105616b8604fda81c11d3bd2b1446c0",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/update/UpdateState.kt": {
+    "mtime": 1795490238.5013573,
+    "seen": 1795490654.587378,
+    "ast_hash": "c9ede57449e5fb4f201238bd840183c6",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/update/UpdateWorker.kt": {
+    "mtime": 1795490399.2576766,
+    "seen": 1795490654.5873837,
+    "ast_hash": "358d2a62a6f0bf535f1996e72c55a908",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/update/Updater.kt": {
+    "mtime": 1795490249.4766686,
+    "seen": 1795490654.5873897,
+    "ast_hash": "b3292b5f800a8868c677c6f6d504e1b0",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/voice/WakeWord.kt": {
+    "mtime": 1795453947.361974,
+    "seen": 1795454234.4152973,
+    "ast_hash": "c63d19a5ca540211a9508f27936cce9d",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/wake/AlarmReceiver.kt": {
+    "mtime": 1795453708.6255653,
+    "seen": 1795453867.460241,
+    "ast_hash": "29a5de30dd128437a128aae5bfb7489a",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/wake/Wake.kt": {
+    "mtime": 1795490210.1453528,
+    "seen": 1795490654.5874503,
+    "ast_hash": "bc554e2a507b51848afd1197e66fefba",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/wake/WakeActivity.kt": {
+    "mtime": 1795490183.1445575,
+    "seen": 1795490654.5874565,
+    "ast_hash": "c8a81f6df319652a2e8ef5b86e7d63f8",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/wake/WakeMath.kt": {
+    "mtime": 1795453930.1023135,
+    "seen": 1795454234.4153073,
+    "ast_hash": "0ee54bb872828f98c21c9a50aa4f8ffd",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/wake/WakeStore.kt": {
+    "mtime": 1795453639.4420128,
+    "seen": 1795453867.4602637,
+    "ast_hash": "d33ef718a30e986bfb28b139730d09d8",
+    "semantic_hash": ""
+  },
+  "app/src/test/java/com/simha/app/CaregiverStatsTest.kt": {
+    "mtime": 1795486462.0178242,
+    "seen": 1795486538.2465568,
+    "ast_hash": "979ba1ab042a21198d5f7386e4c7e8b5",
+    "semantic_hash": ""
+  },
+  "app/src/test/java/com/simha/app/FallMachineTest.kt": {
+    "mtime": 1795453816.8389812,
+    "seen": 1795453867.4602807,
+    "ast_hash": "9f7d8872e806d537a4922a2b29ef8e8c",
+    "semantic_hash": ""
+  },
+  "app/src/test/java/com/simha/app/MedScheduleTest.kt": {
+    "mtime": 1795453355.4719229,
+    "seen": 1795453867.4602928,
+    "ast_hash": "69fffcd4dc599baac8a117c3c8c8b0e0",
+    "semantic_hash": ""
+  },
+  "app/src/test/java/com/simha/app/RoutineTest.kt": {
+    "mtime": 1795453855.6183045,
+    "seen": 1795453867.4603055,
+    "ast_hash": "d2877b2bf37ca8572a348a6e5c29f82e",
+    "semantic_hash": ""
+  },
+  "app/src/test/java/com/simha/app/WakeMathTest.kt": {
+    "mtime": 1795453827.569062,
+    "seen": 1795453867.4603338,
+    "ast_hash": "a3088c03d7ce7fd8fdb4274cda074102",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/ui/talk/ConversationPanel.kt": {
+    "mtime": 1795490202.3657243,
+    "seen": 1795490654.5873342,
+    "ast_hash": "7485cf98e67f8e9fadbabbdeb244fa3a",
+    "semantic_hash": ""
+  },
+  "app/src/test/java/com/simha/app/GuardianTest.kt": {
+    "mtime": 1795486614.1755393,
+    "seen": 1795486664.7298834,
+    "ast_hash": "94189170b3b579b7bcd005e1357ea371",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/llm/Filler.kt": {
+    "mtime": 1795457370.5370684,
+    "seen": 1795457599.8664882,
+    "ast_hash": "7949bd9077c9cf663fd41136c13f2588",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/ui/Health.kt": {
+    "mtime": 1795457531.290558,
+    "seen": 1795457599.8665402,
+    "ast_hash": "482c95ce7b3c3b3aa2cd0f1b00bba051",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/voice/Levels.kt": {
+    "mtime": 1795457419.4966168,
+    "seen": 1795457599.8665981,
+    "ast_hash": "8414ff5620b0f63dd5dee9fc38f4acc0",
+    "semantic_hash": ""
+  },
+  "app/src/test/java/com/simha/app/OpeningFillerTest.kt": {
+    "mtime": 1795490647.2188756,
+    "seen": 1795490654.5875113,
+    "ast_hash": "dcf43a4be8168c12e512f0471eaa20da",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/ui/home/orb/OrbGlView.kt": {
+    "mtime": 1795490153.2071025,
+    "seen": 1795490654.5872998,
+    "ast_hash": "0177c613c56e48751d0a4446d3e68fff",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/logic/Facts.kt": {
+    "mtime": 1795486104.7839758,
+    "seen": 1795486538.2462711,
+    "ast_hash": "3a150158c8049875e12f353cc4909776",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/logic/Signal.kt": {
+    "mtime": 1795486084.015299,
+    "seen": 1795486538.246304,
+    "ast_hash": "4031970bbcbce46159d203e8d7d2b38c",
+    "semantic_hash": ""
+  },
+  "app/src/test/java/com/simha/app/SignalTest.kt": {
+    "mtime": 1795486447.951173,
+    "seen": 1795486538.2466822,
+    "ast_hash": "bc466ac9f9bf0e9886dd01db41206b13",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/LocaleCtx.kt": {
+    "mtime": 1795490125.3538895,
+    "seen": 1795490654.586881,
+    "ast_hash": "8932f724c159d7b7e2e4aa66857cad57",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/simha/app/llm/ContactMatch.kt": {
+    "mtime": 1795490543.4253445,
+    "seen": 1795490654.5870364,
+    "ast_hash": "c350812292f3c927461b963269687ae6",
+    "semantic_hash": ""
+  }
+}

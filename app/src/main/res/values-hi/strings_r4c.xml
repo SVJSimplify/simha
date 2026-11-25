@@ -10,4 +10,6 @@
     <string name="r4c_s_checkins">जाँच</string>
     <string name="r4c_s_privacy">निजता</string>
     <string name="r4c_s_about">जानकारी</string>
+    <string name="h_with_you">सिंहा आपके साथ है</string>
+    <string name="h_with_you_ago">सिंहा आपके साथ है · आख़िरी बातचीत %1$s</string>
 </resources>

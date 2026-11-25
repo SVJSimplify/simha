@@ -12,7 +12,7 @@
         <item>%1$s గారు, ఇప్పుడు ఎలా ఉన్నారు?</item>
     </string-array>
     <string-array name="r4b_o_morning">
-        <item>శుభోదయం, %1$s! బాగా నిద్రపోయారని ఆశిస్తున్నాను.</item>
+        <item>శుభోదయం, %1$s. బాగా నిద్రపోయారని ఆశిస్తున్నాను.</item>
         <item>శుభోదయం %1$s. ఈ రోజు మీతో ఉండటం చాలా సంతోషంగా ఉంది.</item>
         <item>మీకు చాలా శుభోదయం, %1$s.</item>
     </string-array>
@@ -28,6 +28,6 @@
     </string-array>
     <string name="r4b_o_intro">నమస్కారం %1$s గారు, నేను సింహని. ప్రతిరోజూ మీతోనే ఉంటాను. మీ గురించి కొంచెం తెలుసుకోవచ్చా? మీ కుటుంబంలో ఎవరెవరు ఉన్నారు?</string>
     <string name="r4b_o_ask_med">మీరు ప్రతిరోజూ ఏవైనా మందులు వేసుకుంటారా?</string>
-    <string name="r4b_gm">శుభోదయం, %1$s!</string>
+    <string name="r4b_gm">శుభోదయం, %1$s</string>
     <string name="r4b_hook_pain">నిన్న మీరు %1$s గురించి చెప్పారు. ఈ రోజు ఎలా ఉంది?</string>
 </resources>

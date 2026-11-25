@@ -230,7 +230,7 @@ private fun Progress(step: Int) {
 private fun ChoiceCard(title: String, desc: String, onClick: () -> Unit) {
     val l = LocalLayout.current
     Surface(
-        shape = RoundedCornerShape(22.dp),
+        shape = RoundedCornerShape(24.dp),
         color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
         modifier = Modifier
@@ -640,7 +640,7 @@ private fun PermRow(r: PRow, ok: Boolean, onClick: () -> Unit) {
         Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             Icon(painterResource(r.icon), null, Modifier.size(28.dp), tint = c.primary)
             Spacer(Modifier.width(12.dp))
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(stringResource(r.name), style = MaterialTheme.typography.titleMedium)
                 Caption(stringResource(r.short))
             }

@@ -251,7 +251,7 @@ private fun ButtonCore(
     ) {
         if (icon != null) {
             Icon(painterResource(icon), null, Modifier.size(28.dp), tint = fg)
-            Spacer(Modifier.width(10.dp))
+            Spacer(Modifier.width(12.dp))
         }
         Text(text, style = MaterialTheme.typography.labelLarge, color = fg, textAlign = TextAlign.Center)
     }
@@ -358,7 +358,7 @@ fun LabeledField(
     singleLine: Boolean = true,
 ) {
     val c = LocalSimha.current
-    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
             if (required) "$label *" else label,
             style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
@@ -438,15 +438,15 @@ fun Chip(text: String, selected: Boolean, onClick: () -> Unit, modifier: Modifie
             .pressClick(onClick, role = Role.RadioButton)
             .semantics { this.selected = selected }
             .clip(shape)
-            .background(if (selected) c.primary else c.surface)
+            .background(if (selected) c.fill else c.surface)
             .border(1.dp, if (selected) c.primary else c.border, shape)
             .padding(horizontal = 12.dp, vertical = 12.dp),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             text,
-            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
-            color = if (selected) c.onPrimary else c.text,
+            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium),
+            color = c.text,
             textAlign = TextAlign.Center,
         )
     }
@@ -476,8 +476,8 @@ fun OptionRow(text: String, selected: Boolean, onClick: () -> Unit, hint: String
             .pressClick(onClick, role = Role.RadioButton)
             .semantics { this.selected = selected }
             .clip(shape)
-            .background(c.surface)
-            .border(if (selected) 2.dp else 1.dp, if (selected) c.primary else c.border, shape)
+            .background(if (selected) c.fill else c.surface)
+            .border(1.dp, if (selected) c.primary else c.border, shape)
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),

@@ -12,7 +12,7 @@
     <string name="wake_n_tap">Tap to talk to Simha</string>
     <string name="wake_note_inexact">Wake-ups may come a little late because exact alarms are not allowed. Allow alarms and reminders for Simha in system settings.</string>
     <string name="wake_sms_safearea">Simha alert: %1$s is outside the safe area. Please check on them.</string>
-    <string name="wake_tap_say">Tap the screen to answer me.</string>
+    <string name="wake_tap_say">Tap the screen to answer me</string>
     <string name="perm_overlay">Let Simha appear on screen</string>
     <string name="perm_overlay_short">So Simha can open and talk to you even when another app is showing.</string>
     <string name="perm_overlay_why">Android needs your permission to let Simha appear on top of other apps.</string>

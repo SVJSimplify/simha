@@ -12,7 +12,7 @@
         <item>%1$s, how are you doing right now?</item>
     </string-array>
     <string-array name="r4b_o_morning">
-        <item>Good morning, %1$s! I hope you slept well.</item>
+        <item>Good morning, %1$s. I hope you slept well.</item>
         <item>Good morning, %1$s. It is lovely to be with you today.</item>
         <item>A very good morning to you, %1$s.</item>
     </string-array>
@@ -28,6 +28,6 @@
     </string-array>
     <string name="r4b_o_intro">Hello %1$s, I am Simha. I will be here with you every day. May I get to know you a little? Who is in your family?</string>
     <string name="r4b_o_ask_med">Do you take any medicines every day?</string>
-    <string name="r4b_gm">Good morning, %1$s!</string>
+    <string name="r4b_gm">Good morning, %1$s</string>
     <string name="r4b_hook_pain">Yesterday you told me about %1$s. How is it today?</string>
 </resources>

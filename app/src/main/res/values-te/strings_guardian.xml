@@ -3,8 +3,8 @@
     <string name="gd_open_checkin">నమస్కారం %1$s, మీరు ఇప్పుడు ఎలా ఉన్నారు?</string>
     <string name="gd_open_medicine">%1$s, మీ %2$s వేసుకునే సమయం అయింది. మీరు వేసుకున్నారా?</string>
     <string name="gd_open_medicine_generic">%1$s, మీ మందు వేసుకునే సమయం అయింది. మీరు వేసుకున్నారా?</string>
-    <string name="gd_open_morning">శుభోదయం %1$s! మీరు బాగా నిద్రపోయారని ఆశిస్తున్నాను.</string>
-    <string name="gd_open_plan">ఈ రోజు మీకు: %1$s.</string>
+    <string name="gd_open_morning">శుభోదయం %1$s. మీరు బాగా నిద్రపోయారని ఆశిస్తున్నాను.</string>
+    <string name="gd_open_plan">ఈ రోజు మీకు: %1$s</string>
     <plurals name="gd_open_msgs">
         <item quantity="one">మీ కుటుంబం నుండి %1$d కొత్త సందేశం ఉంది. వినిపించమంటారా?</item>
         <item quantity="other">మీ కుటుంబం నుండి %1$d కొత్త సందేశాలు ఉన్నాయి. వినిపించమంటారా?</item>
@@ -17,6 +17,6 @@
     <string name="gd_open_heat">%1$s, ఈ రోజు చాలా వేడిగా ఉంది. దయచేసి కొంచెం నీళ్లు తాగండి. ఇటీవల నీళ్లు తాగారా?</string>
     <string name="gd_wakeword_title">\"హే సింహా\" అని చెప్పి మాట్లాడటం మొదలుపెట్టండి</string>
     <string name="gd_wakeword_hint">సింహా స్క్రీన్‌పై తెరిచి ఉన్నప్పుడు \"హే సింహా\" కోసం వింటుంది. ఆ సమయంలో మైక్రోఫోన్ ఆన్‌లో ఉంటుంది. మొదట ఆఫ్‌లో ఉంటుంది.</string>
-    <string name="gd_wakeword_needs_mic">\"హే సింహా\" కోసం మైక్రోఫోన్‌ను అనుమతించండి.</string>
+    <string name="gd_wakeword_needs_mic">\"హే సింహా\" కోసం మైక్రోఫోన్‌ను అనుమతించండి</string>
     <string name="gd_open_unwell">%1$s, నేను మీతోనే ఉన్నాను. ఏమైందో చెప్పండి. మీకు ఎలా అనిపిస్తోంది?</string>
 </resources>

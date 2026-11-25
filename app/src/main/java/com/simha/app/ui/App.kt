@@ -14,6 +14,7 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -118,7 +119,7 @@ private fun BottomBar(route: String?, onSelect: (String) -> Unit) {
         contentAlignment = Alignment.Center,
     ) {
         Row(
-            Modifier.widthIn(max = 640.dp).fillMaxWidth().padding(horizontal = 8.dp, vertical = 6.dp),
+            Modifier.widthIn(max = 640.dp).fillMaxWidth().padding(horizontal = 8.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             items.forEach { (r, icon, label) ->
@@ -133,11 +134,12 @@ private fun BottomBar(route: String?, onSelect: (String) -> Unit) {
                         .semantics { selected = on }
                         .clip(RoundedCornerShape(SimhaRadius))
                         .background(pill)
+                        .border(1.dp, if (on) c.border else Color.Transparent, RoundedCornerShape(SimhaRadius))
                         .padding(vertical = 8.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
                 ) {
-                    Icon(painterResource(icon), null, Modifier.size(30.dp), tint = tint)
+                    Icon(painterResource(icon), null, Modifier.size(32.dp), tint = tint)
                     Text(stringResource(label), style = MaterialTheme.typography.bodySmall, color = tint, textAlign = TextAlign.Center)
                 }
             }

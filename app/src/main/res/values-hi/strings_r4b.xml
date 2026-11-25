@@ -12,7 +12,7 @@
         <item>%1$s जी, अभी आप कैसे हैं?</item>
     </string-array>
     <string-array name="r4b_o_morning">
-        <item>सुप्रभात, %1$s! उम्मीद है आप अच्छी तरह सोए।</item>
+        <item>सुप्रभात, %1$s. उम्मीद है आप अच्छी तरह सोए।</item>
         <item>सुप्रभात %1$s। आज आपके साथ होना अच्छा लग रहा है।</item>
         <item>आपको बहुत शुभ प्रभात, %1$s।</item>
     </string-array>
@@ -28,6 +28,6 @@
     </string-array>
     <string name="r4b_o_intro">नमस्ते %1$s जी, मैं सिम्हा हूँ, हर दिन आपके साथ। क्या हम थोड़ा परिचय कर लें? आपके परिवार में कौन-कौन है?</string>
     <string name="r4b_o_ask_med">क्या आप रोज़ कोई दवाई लेते हैं?</string>
-    <string name="r4b_gm">सुप्रभात, %1$s!</string>
+    <string name="r4b_gm">सुप्रभात, %1$s</string>
     <string name="r4b_hook_pain">कल आपने %1$s के बारे में बताया था। आज कैसा है?</string>
 </resources>

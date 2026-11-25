@@ -1,14 +1,23 @@
 package com.simha.app.ui
 
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -27,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
@@ -71,32 +81,38 @@ fun RoleScreen(onSelf: () -> Unit, onCaregiver: () -> Unit) {
     }
 }
 
+private val Gold = Color(0xFFE39A3D)
+
 @Composable
-private fun ActionTile(icon: Int, text: String, onClick: () -> Unit, modifier: Modifier, tint: Color) {
+private fun ListRow(icon: Int?, label: String, meta: String?, onClick: () -> Unit) {
+    val l = LocalLayout.current
     val c = LocalSimha.current
-    val shape = RoundedCornerShape(SimhaRadius)
-    Column(
-        modifier
-            .heightIn(min = 96.dp)
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .heightIn(min = l.primaryH)
             .pressClick(onClick)
-            .clip(shape)
-            .background(c.surface)
-            .border(1.dp, c.border, shape)
-            .padding(horizontal = 8.dp, vertical = 16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Icon(painterResource(icon), null, Modifier.size(32.dp), tint = tint)
-        Text(text, style = MaterialTheme.typography.labelLarge, color = c.text, textAlign = TextAlign.Center)
+        if (icon != null) Icon(painterResource(icon), null, Modifier.size(24.dp), tint = c.primary) else Spacer(Modifier.size(24.dp))
+        Text(label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+        if (meta != null) {
+            Text(
+                meta,
+                style = MaterialTheme.typography.bodyLarge.copy(fontFeatureSettings = "tnum"),
+                color = c.text2,
+                textAlign = TextAlign.End,
+                modifier = Modifier.weight(1.2f),
+            )
+        }
     }
 }
 
 @Composable
-private fun TodayRow(label: String, value: String, modifier: Modifier = Modifier) {
-    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        Caption(label)
-        Body(value)
-    }
+private fun Hairline() {
+    Box(Modifier.fillMaxWidth().height(1.dp).background(LocalSimha.current.border))
 }
 
 @Composable
@@ -176,7 +192,6 @@ fun HomeScreen(
     val hasMeds = meds.any { it.active }
     val due = remember(meds, doses, now / 60_000L) { todayDoses(meds, doses, now, zone) }
     val nd = nextDose(due, now)
-    val todayState = vm.today
 
     val callFamily: () -> Unit = {
         val f = contacts.firstOrNull { it.role == "family" } ?: contacts.firstOrNull { it.role in Repo.FAMILY_ROLES }
@@ -191,33 +206,44 @@ fun HomeScreen(
             failed = vm.sl.repo.placeCall(phone, d?.approved == true, "user_button") == CallResult.Failed
         }
     }
-    val lastCheckin = stringResource(R.string.r3_last_checkin, agoText(TimeUtil.ago(now, s.lastCheckinOk.takeIf { it > 0 })))
-    val moodLine = todayState.mood?.let { stringResource(R.string.r3_mood, it) }
+    val ago = agoText(TimeUtil.ago(now, s.lastCheckinOk.takeIf { it > 0 }))
+    val signature = if (s.lastCheckinOk > 0) stringResource(R.string.h_with_you_ago, ago) else stringResource(R.string.h_with_you)
     val wakeMissing = remember(tick) { WakeReady.missing(ctx) }
+    val still = animMs() == 0
+    val dot by rememberInfiniteTransition(label = "dot").animateFloat(
+        1f,
+        0.45f,
+        infiniteRepeatable(tween(30_000, easing = EmphasizedEasing), RepeatMode.Reverse),
+        label = "dotA",
+    )
 
     TabFrame(
         top = { UpdateBanner() },
         bottom = { EmergencyButton(stringResource(R.string.m_get_help), onHelp) },
     ) {
         AnimatedEntrance(0) {
-            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(greet, style = MaterialTheme.typography.headlineSmall)
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Caption(date)
+                Text(greet, style = MaterialTheme.typography.titleLarge)
             }
         }
         AnimatedEntrance(1, Modifier.fillMaxWidth()) {
             Column(
-                Modifier.fillMaxWidth(),
+                Modifier.fillMaxWidth().padding(vertical = 16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 SimhaOrb(
                     if (level > 0.05f) OrbState.Speaking else OrbState.Idle,
                     onTalk,
-                    Modifier.size(200.dp),
+                    Modifier.size(240.dp),
                     level,
                 )
                 Body(stringResource(R.string.r4c_tap_talk), color = c.text2)
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Box(Modifier.size(8.dp).graphicsLayer { alpha = if (still) 1f else dot }.background(Gold, CircleShape))
+                    Caption(signature)
+                }
             }
         }
         var i = 2
@@ -234,35 +260,28 @@ fun HomeScreen(
                 Card(Modifier.pressClick(onFixWake)) { Body(stringResource(R.string.wr_home), color = c.emergency) }
             }
         }
-        AnimatedEntrance(i++) {
-            Card {
-                TodayRow(stringResource(R.string.r3_doing), if (moodLine == null) lastCheckin else lastCheckin + "\n" + moodLine)
-                if (s.running) {
-                    TodayRow(
-                        stringResource(R.string.r3_next_checkin_label),
-                        showMillis(maxOf(now, s.lastActivity + s.inactivity * 60_000L)),
-                    )
-                }
-            }
-        }
-        AnimatedEntrance(i++) {
-            if (hasMeds) {
-                Card(Modifier.pressClick(onMeds)) {
-                    TodayRow(
+        AnimatedEntrance(i++, Modifier.fillMaxWidth()) {
+            val shape = RoundedCornerShape(SimhaRadius)
+            Column(Modifier.fillMaxWidth().clip(shape).background(c.surface).border(1.dp, c.border, shape)) {
+                if (hasMeds) {
+                    ListRow(
+                        R.drawable.ic_heart,
                         stringResource(R.string.r3_next_med),
                         if (nd == null) stringResource(R.string.r3_no_med)
-                        else nd.medicine.name + (if (nd.medicine.dose.isBlank()) "" else " " + nd.medicine.dose) + "  " + showMillis(nd.at),
+                        else nd.medicine.name + (if (nd.medicine.dose.isBlank()) "" else " " + nd.medicine.dose) + " · " + showMillis(nd.at),
+                        onMeds,
                     )
-                    if (nd != null) SecondaryButton(stringResource(R.string.r3_mark_taken), { vm.logDose(nd.medicine.id, nd.at, "taken") })
+                    if (nd != null) {
+                        Hairline()
+                        ListRow(null, stringResource(R.string.r3_mark_taken), null) { vm.logDose(nd.medicine.id, nd.at, "taken") }
+                    }
+                } else {
+                    ListRow(R.drawable.ic_heart, stringResource(R.string.r4c_add_meds), null, onMeds)
                 }
-            } else {
-                NavRow(stringResource(R.string.r4c_add_meds), onMeds)
-            }
-        }
-        AnimatedEntrance(i++, Modifier.fillMaxWidth()) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                ActionTile(R.drawable.ic_users, stringResource(R.string.m_call_family), callFamily, Modifier.weight(1f), c.primary)
-                ActionTile(R.drawable.ic_phone, stringResource(R.string.m_call_doctor), callDoctor, Modifier.weight(1f), c.primary)
+                Hairline()
+                ListRow(R.drawable.ic_users, stringResource(R.string.m_call_family), null, callFamily)
+                Hairline()
+                ListRow(R.drawable.ic_phone, stringResource(R.string.m_call_doctor), null, callDoctor)
             }
         }
         if (failed) Body(stringResource(R.string.call_failed), color = c.emergency)

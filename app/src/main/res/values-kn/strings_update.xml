@@ -8,11 +8,11 @@
     <string name="upd_channel">ಆ್ಯಪ್ ಅಪ್‌ಡೇಟ್‌ಗಳು</string>
     <string name="upd_notif_title">ಸಿಂಹದ ಹೊಸ ಅಪ್‌ಡೇಟ್ ಸಿದ್ಧವಾಗಿದೆ</string>
     <string name="upd_err_rate">ಅಪ್‌ಡೇಟ್ ಪರಿಶೀಲನೆಗಳು ಹೆಚ್ಚಾಗಿವೆ. ದಯವಿಟ್ಟು ನಂತರ ಪ್ರಯತ್ನಿಸಿ.</string>
-    <string name="upd_err_http">ಅಪ್‌ಡೇಟ್ ಸರ್ವರ್ ದೋಷ (%1$d).</string>
-    <string name="upd_err_parse">ಅಪ್‌ಡೇಟ್ ಮಾಹಿತಿಯನ್ನು ಓದಲಾಗಲಿಲ್ಲ.</string>
+    <string name="upd_err_http">ಅಪ್‌ಡೇಟ್ ಸರ್ವರ್ ದೋಷ (%1$d)</string>
+    <string name="upd_err_parse">ಅಪ್‌ಡೇಟ್ ಮಾಹಿತಿಯನ್ನು ಓದಲಾಗಲಿಲ್ಲ</string>
     <string name="upd_err_net">ಸಂಪರ್ಕವಿಲ್ಲ: %1$s</string>
     <string name="upd_err_perm">ತೆರೆದ ಪರದೆಯಲ್ಲಿ ಸಿಂಹಕ್ಕೆ ಅಪ್‌ಡೇಟ್‌ಗಳನ್ನು ಇನ್‌ಸ್ಟಾಲ್ ಮಾಡಲು ಅನುಮತಿಸಿ, ನಂತರ ಮತ್ತೆ ಈಗ ಅಪ್‌ಡೇಟ್ ಮಾಡಿ ಒತ್ತಿ.</string>
-    <string name="upd_err_empty">ಡೌನ್‌ಲೋಡ್ ಮಾಡಿದ ಅಪ್‌ಡೇಟ್ ಫೈಲ್ ಖಾಲಿಯಾಗಿದೆ.</string>
+    <string name="upd_err_empty">ಡೌನ್‌ಲೋಡ್ ಮಾಡಿದ ಅಪ್‌ಡೇಟ್ ಫೈಲ್ ಖಾಲಿಯಾಗಿದೆ</string>
     <string name="upd_err_install">ಅಪ್‌ಡೇಟ್ ವಿಫಲವಾಗಿದೆ: %1$s</string>
     <string name="upd_current">ನೀವು ಬಿಲ್ಡ್ %1$d ನಲ್ಲಿದ್ದೀರಿ</string>
 </resources>

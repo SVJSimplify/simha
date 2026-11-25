@@ -10,4 +10,6 @@
     <string name="r4c_s_checkins">செக்-இன்கள்</string>
     <string name="r4c_s_privacy">தனியுரிமை</string>
     <string name="r4c_s_about">பற்றி</string>
+    <string name="h_with_you">சிம்ஹா உங்களுடன் இருக்கிறது</string>
+    <string name="h_with_you_ago">சிம்ஹா உங்களுடன் இருக்கிறது · கடைசியாக பேசியது %1$s</string>
 </resources>

@@ -8,11 +8,11 @@
     <string name="upd_channel">ஆப் புதுப்பிப்புகள்</string>
     <string name="upd_notif_title">சிம்ஹாவின் புதிய புதுப்பிப்பு தயாராக உள்ளது</string>
     <string name="upd_err_rate">புதுப்பிப்பு சோதனைகள் அதிகமாகிவிட்டன. பின்னர் முயற்சிக்கவும்.</string>
-    <string name="upd_err_http">புதுப்பிப்பு சர்வர் பிழை (%1$d).</string>
-    <string name="upd_err_parse">புதுப்பிப்புத் தகவலைப் படிக்க முடியவில்லை.</string>
+    <string name="upd_err_http">புதுப்பிப்பு சர்வர் பிழை (%1$d)</string>
+    <string name="upd_err_parse">புதுப்பிப்புத் தகவலைப் படிக்க முடியவில்லை</string>
     <string name="upd_err_net">இணைப்பு இல்லை: %1$s</string>
     <string name="upd_err_perm">திறந்த திரையில் சிம்ஹா புதுப்பிப்புகளை நிறுவ அனுமதித்து, மீண்டும் இப்போதே புதுப்பிக்கவும் என்பதை அழுத்தவும்.</string>
-    <string name="upd_err_empty">பதிவிறக்கிய புதுப்பிப்பு கோப்பு காலியாக உள்ளது.</string>
+    <string name="upd_err_empty">பதிவிறக்கிய புதுப்பிப்பு கோப்பு காலியாக உள்ளது</string>
     <string name="upd_err_install">புதுப்பிப்பு தோல்வியடைந்தது: %1$s</string>
     <string name="upd_current">நீங்கள் பில்ட் %1$d இல் உள்ளீர்கள்</string>
 </resources>
