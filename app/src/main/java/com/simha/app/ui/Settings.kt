@@ -69,6 +69,7 @@ fun SettingsScreen(onPage: (String) -> Unit) {
         "checkins" to R.string.r4c_s_checkins,
         "ai" to R.string.m_set_ai,
         "privacy" to R.string.r4c_s_privacy,
+        "permissions" to R.string.hub_title,
         "about" to R.string.r4c_s_about,
     )
     TabFrame {
@@ -95,6 +96,7 @@ fun SettingsPage(
             "checkins" -> R.string.r4c_s_checkins
             "ai" -> R.string.m_set_ai
             "privacy" -> R.string.r4c_s_privacy
+            "permissions" -> R.string.hub_title
             else -> R.string.r4c_s_about
         }
     )
@@ -105,6 +107,7 @@ fun SettingsPage(
             "checkins" -> CheckinsPage(vm, s)
             "ai" -> AiSettingsSection()
             "privacy" -> PrivacyPage(vm, s, onAudit)
+            "permissions" -> PermissionsHub()
             else -> AboutPage(vm, s)
         }
     }

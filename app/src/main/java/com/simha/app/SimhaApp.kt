@@ -18,12 +18,13 @@ import com.simha.app.voice.Recorder
 import com.simha.app.voice.Voice
 
 class ServiceLocator(app: Application) {
-    val db: SimhaDb = Room.databaseBuilder(app, SimhaDb::class.java, "simha.db").addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4).build()
+    val db: SimhaDb = Room.databaseBuilder(app, SimhaDb::class.java, "simha.db").addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, com.simha.app.data.MIGRATION_4_5).build()
     val prefs = Prefs(app)
     val remote = Remote()
     val repo = Repo(app, db.dao(), prefs, remote)
     val guardian = GuardianRepo(db.guardianDao(), repo, remote).also { g -> repo.signalHook = { g.onEvent(it) } }
     val graph = com.simha.app.care.MemoryGraph(db.graphDao())
+    val agenda = db.agendaDao()
     val voice = Voice(app)
     val recorder = Recorder(app, voice, repo)
     val llmStore = LlmStore(app)

@@ -230,6 +230,48 @@ object Wake {
         (oldMed - codes).forEach { cancelCode(ctx, am, it.toInt()) }
         if (chk == null) cancelCode(ctx, am, WakeMath.CODE_CHECKIN)
         WakeStore.put(ctx, "sig" to sig, "med_codes" to codes, "exact" to exact)
+        scheduleAgenda(ctx, am, sl, now)
+    }
+
+    private suspend fun scheduleAgenda(ctx: Context, am: AlarmManager, sl: com.simha.app.ServiceLocator, now: Long) {
+        val zone = ZoneId.systemDefault()
+        val nowZ = java.time.Instant.ofEpochMilli(now).atZone(zone)
+        val items = sl.agenda.active().mapNotNull { a ->
+            if (a.nextAt > now - 60_000L) a else {
+                val n = com.simha.app.agenda.Recur.next(a.rule, a.time, a.date, a.createdAt, nowZ)
+                if (n == null) {
+                    sl.agenda.put(a.copy(active = false))
+                    null
+                } else a.copy(nextAt = n.toInstant().toEpochMilli()).also { sl.agenda.put(it) }
+            }
+        }
+        val codes = items.map { com.simha.app.agenda.AgendaStore.code(it.id) }
+        items.forEach { a ->
+            setAt(ctx, am, com.simha.app.agenda.AgendaStore.code(a.id), a.nextAt) {
+                putExtra(X_KIND, "agenda")
+                putExtra(X_TAG, a.id)
+                putExtra(X_AT, a.nextAt)
+            }
+        }
+        val old = com.simha.app.agenda.AgendaStore.codes(ctx).mapNotNull { it.toIntOrNull() }.toSet()
+        (old - codes.toSet()).forEach { cancelCode(ctx, am, it) }
+        com.simha.app.agenda.AgendaStore.setCodes(ctx, codes.map { it.toString() }.toSet())
+    }
+
+    private suspend fun onAgenda(ctx: Context, sl: com.simha.app.ServiceLocator, id: String) {
+        val a = sl.agenda.get(id) ?: return
+        if (!a.active) return
+        val lc = com.simha.app.LocaleCtx.wrapped(ctx)
+        val lang = sl.prefs.snap().lang
+        val time = runCatching {
+            java.time.LocalTime.parse(a.time).format(java.time.format.DateTimeFormatter.ofLocalizedTime(java.time.format.FormatStyle.SHORT).withLocale(java.util.Locale.forLanguageTag(lang)))
+        }.getOrDefault(a.time)
+        val say = if (a.kind == "alarm") lc.getString(R.string.ix_fire_alarm, time) else lc.getString(R.string.ix_fire_rem, a.what)
+        com.simha.app.agenda.AgendaStore.fired(ctx, if (a.kind == "alarm") say else a.what)
+        val after = java.time.Instant.ofEpochMilli(maxOf(System.currentTimeMillis(), a.nextAt) + 60_000L).atZone(ZoneId.systemDefault())
+        val n = com.simha.app.agenda.Recur.next(a.rule, a.time, a.date, a.createdAt, after)
+        sl.agenda.put(if (n == null) a.copy(active = false) else a.copy(nextAt = n.toInstant().toEpochMilli()))
+        fire(ctx, WakeRequest(WakeReason.Evening, SAY + say))
     }
 
     suspend fun onAlarm(ctx: Context, kind: String, tag: String, at: Long, req: String?) {
@@ -239,6 +281,7 @@ object Wake {
             when (kind) {
                 "retry" -> WakeRequest.parse(req)?.let { onRetry(ctx, it) }
                 "followup" -> fire(ctx, WakeRequest(WakeReason.Evening, SAY + tag))
+                "agenda" -> onAgenda(ctx, sl, tag)
                 SlotKind.Checkin.name -> Monitor.tick(ctx)
                 SlotKind.Morning.name -> fire(ctx, WakeRequest(WakeReason.Morning, morningExtra(ctx)))
                 SlotKind.Evening.name -> fire(ctx, WakeRequest(WakeReason.Evening))

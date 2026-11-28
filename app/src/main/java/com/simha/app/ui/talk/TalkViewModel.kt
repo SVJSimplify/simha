@@ -4,6 +4,7 @@ import android.app.Application
 import android.graphics.Bitmap
 import android.util.Base64
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -89,6 +90,7 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
     var checkedIn by mutableStateOf(false)
     var recording by mutableStateOf(false)
     var checkinMode = false
+    var undoVisibleUntil by mutableLongStateOf(0L)
     val events = MutableSharedFlow<TalkEvent>(extraBufferCapacity = 4)
     val cameraRequest = MutableStateFlow<CompletableDeferred<Bitmap?>?>(null)
 
@@ -105,6 +107,9 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
     private val care = com.simha.app.care.CareEngine(app, sl)
     private var lastUser = ""
     private var reviewed = 0
+    private val runner = com.simha.app.intent.Runner(app, sl)
+    private var emergencyDone = false
+    private val stopWords = listOf("stop", "ruko", "रुको", "बस", "नहीं", "ఆపు", "వద్దు", "ನಿಲ್ಲಿಸು", "ಬೇಡ", "நிறுத்து", "வேண்டாம்")
 
     private val closesOnFine: Boolean get() = reason == WakeReason.Checkin || reason == WakeReason.Fall
 
@@ -124,6 +129,9 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
         reviewNow()
         stop()
         care.reset()
+        runner.clear()
+        emergencyDone = false
+        undoVisibleUntil = 0L
         reviewed = 0
         history.clear()
         lines.clear()
@@ -185,6 +193,18 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
             val msg = ctx.forLang(snap.lang).getString(R.string.ci_thanks)
             lines += ChatLine(false, msg)
             sl.voice.speak(msg, snap.lang)
+        }
+    }
+
+    fun undo() {
+        undoVisibleUntil = 0L
+        viewModelScope.launch {
+            val lang = sl.prefs.snap().lang
+            val lc = getApplication<Application>().forLang(lang)
+            val u = com.simha.app.phone.Journal.undo()
+            val m = lc.getString(if (u != null) R.string.ix_undone else R.string.ix_nothing_undo)
+            lines += ChatLine(false, m)
+            sl.voice.speak(m, lang)
         }
     }
 
@@ -313,8 +333,8 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     private suspend fun conversation(initial: String?, lang: String, lc: android.content.Context) {
-        if (!configured && !checkinMode && initial == null) {
-            if (reason != null) finishUp()
+        if (!configured && !checkinMode && initial == null && reason != null) {
+            finishUp()
             return
         }
         var next = initial
@@ -391,9 +411,46 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    private suspend fun sayLine(m: String, lang: String) {
+        lines += ChatLine(false, m)
+        mode = TalkMode.Speaking
+        live = m
+        try {
+            sl.voice.say(m, lang)
+        } finally {
+            live = ""
+        }
+    }
+
+    private suspend fun heardStop(lang: String, seconds: Int): Boolean {
+        val end = System.currentTimeMillis() + seconds * 1000L
+        while (currentCoroutineContext().isActive) {
+            val left = end - System.currentTimeMillis()
+            if (left <= 0 || !canListen()) return false
+            mode = TalkMode.Listening
+            val r = withTimeoutOrNull(left) { sl.voice.listen(lang) { partial = it } }
+            partial = ""
+            sl.voice.cancelListening()
+            val t = r?.getOrNull()?.lowercase()?.trim() ?: continue
+            if (FirstAid.match(t) != null || com.simha.app.intent.Parser.parse(t, java.time.ZonedDateTime.now()) is com.simha.app.intent.Cmd.Help) return false
+            val words = t.trim('.', '!', '?', '।', ',').split(' ').filter { it.isNotBlank() }
+            return words.size <= 4 && (com.simha.app.care.Slots.isCancel(t) || Reply.isStop(t) || words.any { it in stopWords })
+        }
+        return false
+    }
+
+    private suspend fun runEmergency(lang: String) {
+        if (emergencyDone) return
+        emergencyDone = true
+        com.simha.app.care.Emergency.start(
+            getApplication<Application>(), sl, lang,
+            say = { sayLine(it, lang) },
+            listenStop = { heardStop(lang, it) },
+        )
+    }
+
     private suspend fun handle(text: String, lang: String, lc: android.content.Context): Boolean {
-        if (!configured) {
-            if (!checkinMode) return false
+        if (!configured && checkinMode) {
             when (Reply.classify(text)) {
                 Answer.Fine -> {
                     sl.repo.checkinOk()
@@ -409,13 +466,7 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
                     events.emit(TalkEvent.OpenEmergency)
                     return false
                 }
-                Answer.Unknown -> {
-                    val m = lc.getString(R.string.ci_not_understood)
-                    lines += ChatLine(false, m)
-                    mode = TalkMode.Speaking
-                    sl.voice.say(m, lang)
-                    return true
-                }
+                Answer.Unknown -> Unit
             }
         }
         if (closesOnFine && !checkedIn && Reply.classify(text) == Answer.Fine && FirstAid.match(text) == null) {
@@ -427,20 +478,50 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
         val sit = FirstAid.match(text)
         if (sit != null && FirstAid.dangerous(sit, text)) {
             sl.repo.logEvent("help", jo("source" to "danger_gate", "situation" to sit.name))
+            runEmergency(lang)
             events.emit(TalkEvent.OpenEmergency)
+        }
+        val out = try {
+            runner.handle(text, lc, lang)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            null
+        }
+        if (out != null) {
+            history += Msg.user(text)
+            history += Msg.assistant(out.say)
+            if (out.undo) undoVisibleUntil = System.currentTimeMillis() + 10_000
+            sayLine(out.say, lang)
+            val c = out.countdown
+            if (c != null) {
+                if (heardStop(lang, c.seconds)) sayLine(c.stoppedSay, lang)
+                else {
+                    val res = try {
+                        c.run()
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        ""
+                    }
+                    if (res.isNotBlank()) sayLine(res, lang)
+                }
+            }
+            if (out.emergency) {
+                runEmergency(lang)
+                events.emit(TalkEvent.OpenEmergency)
+            }
+            return true
         }
         val filled = runCatching { care.fillPending(text, lc) }.getOrNull()
         if (filled != null) {
             history += Msg.user(text)
             history += Msg.assistant(filled)
-            lines += ChatLine(false, filled)
-            mode = TalkMode.Speaking
-            live = filled
-            try {
-                sl.voice.say(filled, lang)
-            } finally {
-                live = ""
-            }
+            sayLine(filled, lang)
+            return true
+        }
+        if (!configured) {
+            sayLine(lc.getString(if (checkinMode) R.string.ci_not_understood else R.string.talk_offline), lang)
             return true
         }
         history += Msg.user(text)

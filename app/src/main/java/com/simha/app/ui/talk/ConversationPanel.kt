@@ -52,6 +52,7 @@ import com.simha.app.voice.VoiceIssue
 import com.simha.app.voice.WakeWord
 import com.simha.app.ui.theme.LocalSimha
 import com.simha.app.wake.WakeReason
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
@@ -115,12 +116,21 @@ fun ConversationPanel(
             }
         }
     }
+    var showUndo by remember { mutableStateOf(false) }
+    LaunchedEffect(vm.undoVisibleUntil) {
+        val d = vm.undoVisibleUntil - System.currentTimeMillis()
+        if (d > 0) {
+            showUndo = true
+            delay(d)
+        }
+        showUndo = false
+    }
     LaunchedEffect(Unit) { vm.cameraRequest.collect { if (it != null) photoLauncher.launch(null) } }
     LaunchedEffect(Unit) {
         if (Actions.has(ctx, Manifest.permission.RECORD_AUDIO)) vm.begin(reason, extra, unwell) else initLauncher.launch(Manifest.permission.RECORD_AUDIO)
     }
 
-    val canTalk = vm.configured || reason == WakeReason.Checkin
+    val canTalk = true
     val orb = when (vm.mode) {
         TalkMode.Idle -> OrbState.Idle
         TalkMode.Listening -> OrbState.Listening
@@ -145,7 +155,6 @@ fun ConversationPanel(
                 color = MaterialTheme.colorScheme.error,
             )
         }
-        if (!canTalk && reason != null) Body(stringResource(R.string.talk_not_set))
         SimhaOrb(orb, { if (canTalk && !vm.recording) mic() }, Modifier.size(220.dp), level)
         com.simha.app.ui.Waveform(level, vm.mode == TalkMode.Listening || vm.mode == TalkMode.Speaking)
         if (vm.mode == TalkMode.Thinking) com.simha.app.ui.ThinkingText(stringResource(R.string.talk_thinking))
@@ -162,6 +171,7 @@ fun ConversationPanel(
         val sc = LocalSimha.current
         if (vm.partial.isNotEmpty()) key("u") { FadeWords(vm.partial, sc.text2) }
         else if (vm.live.isNotEmpty()) key("s") { FadeWords(vm.live, sc.text) }
+        if (showUndo) BigButton(stringResource(R.string.ix_undo), { vm.undo() }, kind = Kind.Secondary)
         if (vm.recording) {
             Card {
                 Body(stringResource(R.string.talk_recording))

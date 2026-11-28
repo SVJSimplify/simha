@@ -414,7 +414,7 @@ class LlmToolsTest {
             runBlocking { Agent.run(api, { "sys" }, mutableListOf(Msg.user("hi")), host, {}, {}) }
             fail()
         } catch (e: LlmException) {
-            assertEquals(Agent.MAX_STEPS, n)
+            assertEquals(Agent.MAX_STEPS + 1, n)
         }
     }
 

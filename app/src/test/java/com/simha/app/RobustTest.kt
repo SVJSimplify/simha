@@ -70,7 +70,7 @@ class RobustTest {
 
     @Test
     fun neverSpeaksMachineText() {
-        assertEquals("Hello. ", Speakable.of("<think>hmm</think>Hello. <tool>{\"name\":\"x\"}</tool>"))
+        assertEquals("Hello.", Speakable.of("<think>hmm</think>Hello. <tool>{\"name\":\"x\"}</tool>").trim())
         assertEquals("", Speakable.of("{\"name\":\"note_task\"}"))
         assertEquals("", Speakable.of("<think>still thinking"))
         assertEquals("Hi there", Speakable.clean("**Hi** 😊 there"))

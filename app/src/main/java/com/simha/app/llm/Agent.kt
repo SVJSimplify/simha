@@ -64,6 +64,7 @@ object Agent {
             val text = Speakable.clean(spoken)
             if (calls.isEmpty()) {
                 val t = text.ifBlank { codeReply() ?: "" }
+                if (t.isBlank() && last) throw LlmException("No answer")
                 if (text.isBlank() && t.isNotBlank()) say(t)
                 history += Msg.assistant(t)
                 return t

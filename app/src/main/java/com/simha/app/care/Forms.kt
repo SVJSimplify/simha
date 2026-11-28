@@ -105,7 +105,10 @@ object Clock {
             )
         }
         var s = sb.toString().replace("a.m.", "am").replace("p.m.", "pm").replace("a.m", "am").replace("p.m", "pm")
-        words.forEach { (w, n) -> s = s.replace(Regex(NL + Regex.escape(w) + NR), n.toString()) }
+        words.forEach { (w, n) ->
+            val tail = if (w.all { it.code < 0x80 }) NR else "(?=\\s*(बजे|baje))"
+            s = s.replace(Regex(NL + Regex.escape(w) + tail), n.toString())
+        }
         return s
     }
 

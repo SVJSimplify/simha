@@ -195,17 +195,25 @@ val MIGRATION_3_4 = object : Migration(3, 4) {
     }
 }
 
+val MIGRATION_4_5 = object : Migration(4, 5) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("CREATE TABLE IF NOT EXISTS `agenda` (`id` TEXT NOT NULL, `kind` TEXT NOT NULL, `what` TEXT NOT NULL, `time` TEXT NOT NULL, `rule` TEXT NOT NULL, `date` TEXT NOT NULL, `nextAt` INTEGER NOT NULL, `active` INTEGER NOT NULL, `createdAt` INTEGER NOT NULL, PRIMARY KEY(`id`))")
+    }
+}
+
 @Database(
     entities = [
         ContactEntity::class, ProfileEntity::class, OutboxEntity::class,
         MedicineEntity::class, DailySignalEntity::class, WeeklySignalEntity::class, FactEntity::class,
         com.simha.app.care.GNode::class, com.simha.app.care.GEdge::class,
+        com.simha.app.agenda.AgendaItem::class,
     ],
-    version = 4,
+    version = 5,
     exportSchema = false,
 )
 abstract class SimhaDb : RoomDatabase() {
     abstract fun dao(): SimhaDao
     abstract fun guardianDao(): GuardianDao
     abstract fun graphDao(): com.simha.app.care.GraphDao
+    abstract fun agendaDao(): com.simha.app.agenda.AgendaDao
 }

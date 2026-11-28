@@ -57,7 +57,7 @@ class OpeningFillerTest {
     fun promptBranchesOnKnownData() {
         val bare = Guardian.systemPrompt(GuardianContext("Ravi", "en", MedicalProfile()))
         assertTrue(bare.contains("Never ask whether they took their medicine"))
-        assertTrue(bare.contains("add_medicine"))
+        assertTrue(bare.contains("note_task with type medicine"))
         assertTrue(bare.contains("asked:conditions"))
         val full = Guardian.systemPrompt(
             GuardianContext(

@@ -332,8 +332,22 @@ class Voice(private val app: Context) {
                 return r
             }
         }
-        return listenAndroid(lang, onPartial)
+        val first = listenAndroid(lang, onPartial, null)
+        var text = first.getOrElse { return first }
+        repeat(3) {
+            val wait = if (Patience.incomplete(text)) 4500L else 2200L
+            val base = text
+            val more = listenAndroid(lang, { p -> onPartial("$base $p") }, wait).getOrNull()?.trim()
+            if (more.isNullOrEmpty()) return Result.success(text)
+            text = Patience.join(text, more)
+        }
+        return Result.success(text)
     }
+
+    private fun online(): Boolean = runCatching {
+        val cm = app.getSystemService(android.net.ConnectivityManager::class.java)
+        cm.getNetworkCapabilities(cm.activeNetwork)?.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
+    }.getOrDefault(true)
 
     private suspend fun listenSarvam(lang: String, key: String): Result<String> = withContext(Dispatchers.IO) {
         val rate = 16000
@@ -392,7 +406,7 @@ class Voice(private val app: Context) {
         )
     }
 
-    private suspend fun listenAndroid(lang: String, onPartial: (String) -> Unit): Result<String> = withContext(Dispatchers.Main.immediate) {
+    private suspend fun listenAndroid(lang: String, onPartial: (String) -> Unit, startWithinMs: Long?): Result<String> = withContext(Dispatchers.Main.immediate) {
         suspendCancellableCoroutine { cont ->
             if (!SpeechRecognizer.isRecognitionAvailable(app)) {
                 cont.resume(Result.failure(VoiceFail(VoiceKind.Unavailable)))
@@ -401,9 +415,24 @@ class Voice(private val app: Context) {
             val r = SpeechRecognizer.createSpeechRecognizer(app)
             rec = r
             var heard = ""
+            var began = false
+            val giveUp = Runnable {
+                if (!began && cont.isActive) {
+                    levelFlow.value = 0f
+                    runCatching { r.cancel() }
+                    r.destroy()
+                    if (rec === r) rec = null
+                    cont.resume(Result.failure(VoiceFail(VoiceKind.NoSpeech)))
+                }
+            }
             r.setRecognitionListener(object : RecognitionListener {
-                override fun onReadyForSpeech(params: Bundle?) {}
-                override fun onBeginningOfSpeech() {}
+                override fun onReadyForSpeech(params: Bundle?) {
+                    if (startWithinMs != null) main.postDelayed(giveUp, startWithinMs)
+                }
+                override fun onBeginningOfSpeech() {
+                    began = true
+                    main.removeCallbacks(giveUp)
+                }
                 override fun onRmsChanged(rmsdB: Float) {
                     levelFlow.value = Levels.fromDb(rmsdB)
                 }
@@ -414,6 +443,7 @@ class Voice(private val app: Context) {
                 override fun onEvent(eventType: Int, params: Bundle?) {}
 
                 override fun onError(error: Int) {
+                    main.removeCallbacks(giveUp)
                     levelFlow.value = 0f
                     r.destroy()
                     val kind = if (error == SpeechRecognizer.ERROR_NO_MATCH || error == SpeechRecognizer.ERROR_SPEECH_TIMEOUT) VoiceKind.NoSpeech else VoiceKind.Failed
@@ -421,6 +451,7 @@ class Voice(private val app: Context) {
                 }
 
                 override fun onResults(results: Bundle?) {
+                    main.removeCallbacks(giveUp)
                     levelFlow.value = 0f
                     r.destroy()
                     val t = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull()?.takeIf { it.isNotBlank() } ?: heard
@@ -443,8 +474,9 @@ class Voice(private val app: Context) {
                 .putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 2500L)
                 .putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 2000L)
                 .putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS, 2000L)
+                .putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, !online())
             r.startListening(i)
-            cont.invokeOnCancellation { main.post { r.destroy() } }
+            cont.invokeOnCancellation { main.post { main.removeCallbacks(giveUp); r.destroy() } }
         }
     }
 }
@@ -494,4 +526,21 @@ class Recorder(private val app: Context, private val voice: Voice, private val r
         m.release()
         return repo.uploadRecording(f)
     }
+}
+
+object Patience {
+    private val tails = setOf(
+        "and", "the", "a", "to", "at", "my", "for", "of", "with", "but", "so", "uh", "um", "er", "like", "i", "is", "in", "on", "then",
+        "और", "को", "का", "की", "के", "में", "से", "तो", "फिर", "मतलब", "वो", "कि", "aur", "ko", "ka", "ki", "toh", "phir",
+        "మరియు", "కి", "లో", "అంటే", "ಮತ್ತು", "ಗೆ", "ಅಂದರೆ", "மற்றும்", "அப்புறம்", "அதாவது",
+    )
+
+    fun incomplete(t: String): Boolean {
+        val w = t.trim().trimEnd('.', ',', '…').lowercase().split(Regex("\\s+")).filter { it.isNotEmpty() }
+        if (w.size < 3) return true
+        if (t.trim().endsWith(",") || t.trim().endsWith("...") || t.trim().endsWith("…")) return true
+        return w.last() in tails
+    }
+
+    fun join(a: String, b: String): String = (a.trim().trimEnd('.') + " " + b.trim()).trim()
 }
