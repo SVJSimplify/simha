@@ -110,6 +110,11 @@ object Parser {
         return words.any { w -> if (w.contains(' ')) hit(t, w) else w in toks }
     }
 
+    private fun cancelHit(t: String): Boolean {
+        val toks = t.split(' ').map { it.trim(',', '.', '?', '!', '।') }
+        return Lex.cancel.any { w -> if (w.all { it.code < 0x80 }) hit(t, w) else if (w.contains(' ')) t.contains(w) else toks.any { it.startsWith(w) } }
+    }
+
     private fun strip(t: String, words: List<String>): String {
         var s = t
         words.sortedByDescending { it.length }.forEach { w ->
@@ -201,9 +206,10 @@ object Parser {
         }
 
         if (has(t, Lex.alarm)) {
-            if (has(t, Lex.cancel)) return Cmd.AlarmCancel(times(t, now, true).firstOrNull())
+            if (cancelHit(t)) return Cmd.AlarmCancel(times(t, now).firstOrNull())
             val w = whenOf(t, now)
-            val ts = times(w.rest, now, true, w.date)
+            val wake = has(t, listOf("wake", "jaga", "utha", "जगा", "उठा", "లేపు", "ಎಬ್ಬಿಸು", "எழுப்பு"))
+            val ts = times(w.rest, now, wake, w.date)
             if (ts.isEmpty() && has(t, Lex.list)) return Cmd.AlarmList
             return Cmd.Alarm(ts, w.rule, w.date)
         }
@@ -224,7 +230,7 @@ object Parser {
             if (has(t, Lex.took)) return Cmd.MedTaken
         }
 
-        if ((has(t, Lex.whatsapp) && (has(t, Lex.call) || has(t, Lex.video) || words <= 3)) || (has(t, Lex.video) && has(t, Lex.call))) return Cmd.WhatsApp(who(t), has(t, Lex.video))
+        if ((has(t, Lex.whatsapp) && !has(t, Lex.open) && (has(t, Lex.call) || has(t, Lex.video) || words <= 3)) || (has(t, Lex.video) && has(t, Lex.call))) return Cmd.WhatsApp(who(t), has(t, Lex.video))
         if (has(t, Lex.call) && !has(t, Lex.remind + Lex.alarm)) return Cmd.Call(who(t))
         if (has(t, Lex.music) && words <= 2) return Cmd.Music(tidy(strip(t, Lex.music)))
         if (has(t, Lex.open)) {
