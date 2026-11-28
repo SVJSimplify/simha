@@ -28,44 +28,65 @@ object Agent {
         onSlow: () -> Unit = {},
         tools: List<String>? = null,
         codeReply: () -> String? = { null },
+        codeAsks: () -> Boolean = { false },
     ): String {
         val active = tools?.toMutableSet()
-        repeat(MAX_STEPS) {
-            var buf = ""
+        var spokeAny = false
+        val say: (String) -> Unit = { s ->
+            val c = Speakable.clean(s)
+            if (c.length >= 2) {
+                spokeAny = true
+                onSentence(c)
+            }
+        }
+        for (step in 0..MAX_STEPS) {
+            val last = step == MAX_STEPS
             val sb = StringBuilder()
+            var used = 0
+            var buf = ""
             val msgs = JsonArray(listOf(Msg.system(system())) + History.trim(history))
-            val defs = active?.let { SimhaTools.definitionsFor(it) } ?: SimhaTools.definitions
+            val defs = if (last) JsonArray(emptyList()) else active?.let { SimhaTools.definitionsFor(it) } ?: SimhaTools.definitions
             val r = api.chat(msgs, defs) { d ->
                 sb.append(d)
-                val (done, rest) = SentenceSplitter.split(buf + d)
-                buf = rest
-                done.forEach(onSentence)
+                val sp = Speakable.of(sb.toString())
+                if (sp.length > used) {
+                    val (done, rest) = SentenceSplitter.split(buf + sp.substring(used))
+                    used = sp.length
+                    buf = rest
+                    done.forEach(say)
+                }
             }
-            if (buf.isNotBlank()) onSentence(buf.trim())
-            if (r.toolCalls.isEmpty()) {
-                val t = (r.content ?: sb.toString()).trim()
+            val raw = r.content ?: sb.toString()
+            val calls = if (last) emptyList() else r.toolCalls.ifEmpty { TextTools.parse(raw, SimhaTools.allNames) }
+            val spoken = Speakable.of(raw)
+            if (spoken.length > used) buf += spoken.substring(used)
+            if (buf.isNotBlank()) say(buf.trim())
+            val text = Speakable.clean(spoken)
+            if (calls.isEmpty()) {
+                val t = text.ifBlank { codeReply() ?: "" }
+                if (text.isBlank() && t.isNotBlank()) say(t)
                 history += Msg.assistant(t)
                 return t
             }
-            history += Msg.assistantCalls(r.content, r.toolCalls)
+            history += Msg.assistantCalls(text.ifBlank { null }, calls)
             onToolStart()
-            r.toolCalls.forEach { c ->
+            calls.forEach { c ->
                 val out = timed(slowMs, onSlow) { SimhaTools.dispatch(c.name, c.arguments, host) }
                 history += Msg.tool(c.id, out)
                 if (c.name == "find_tool" && active != null) {
                     runCatching { Json.parseToJsonElement(out).jsonObject["loaded"]?.jsonArray?.forEach { active += it.jsonPrimitive.content } }
                 }
             }
-            if (r.toolCalls.all { it.name == "note_task" }) {
+            if (calls.all { it.name == "note_task" }) {
                 val t = codeReply()
                 if (t != null) {
-                    if (r.content.isNullOrBlank()) onSentence(t)
+                    if (codeAsks() || !spokeAny) say(t)
                     history += Msg.assistant(t)
                     return t
                 }
             }
         }
-        throw LlmException("Too many tool steps without an answer")
+        throw LlmException("No answer")
     }
 
     private suspend fun <T> timed(ms: Long, onSlow: () -> Unit, f: suspend () -> T): T = coroutineScope {

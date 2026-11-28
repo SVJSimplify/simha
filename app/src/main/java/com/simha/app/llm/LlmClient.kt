@@ -125,6 +125,7 @@ class LlmClient(
             put("tools", tools)
             put("tool_choice", "auto")
         }
+        put("max_tokens", 500)
         if (stream) put("stream", true)
     }.toString()
 
@@ -179,6 +180,32 @@ class LlmClient(
     }
 
     suspend fun chat(c: LlmConfig, messages: JsonArray, tools: JsonArray?, onDelta: (String) -> Unit): ParsedReply {
+        val key = c.baseUrl.trim() + "|" + c.model.trim()
+        repeat(3) {
+            val cap = caps[key] ?: Caps()
+            val useTools = tools != null && tools.isNotEmpty() && !cap.noTools
+            var msgs = messages
+            if (tools != null && tools.isNotEmpty() && cap.noTools) msgs = Compat.noTools(msgs, tools)
+            if (cap.noSystem) msgs = Compat.noSystem(msgs)
+            if (cap.noTools || cap.noSystem) msgs = Compat.alternate(msgs)
+            try {
+                return once(c, msgs, if (useTools) tools else null, onDelta)
+            } catch (e: LlmException) {
+                val m = (e.message ?: "").lowercase()
+                if (!m.startsWith("http 4")) throw e
+                val toolErr = useTools && ("tool" in m || "function" in m)
+                val sysErr = !cap.noSystem && ("system" in m || "developer instruction" in m || "instruction is not enabled" in m || "role" in m)
+                when {
+                    toolErr -> caps[key] = cap.copy(noTools = true)
+                    sysErr -> caps[key] = cap.copy(noSystem = true)
+                    else -> throw e
+                }
+            }
+        }
+        throw LlmException("The AI service refused the request")
+    }
+
+    private suspend fun once(c: LlmConfig, messages: JsonArray, tools: JsonArray?, onDelta: (String) -> Unit): ParsedReply {
         var emitted = false
         try {
             return stream(c, messages, tools) {
@@ -187,11 +214,19 @@ class LlmClient(
             }
         } catch (e: CancellationException) {
             throw e
+        } catch (e: LlmException) {
+            if (emitted || (e.message ?: "").startsWith("HTTP 4")) throw e
         } catch (e: Exception) {
             if (emitted) throw e
         }
         val r = complete(c, messages, tools)
         r.content?.let { if (it.isNotEmpty()) onDelta(it) }
         return r
+    }
+
+    data class Caps(val noTools: Boolean = false, val noSystem: Boolean = false)
+
+    companion object {
+        val caps = java.util.concurrent.ConcurrentHashMap<String, Caps>()
     }
 }

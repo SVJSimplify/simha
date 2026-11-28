@@ -29,10 +29,13 @@ class CareEngine(private val app: Context, private val sl: ServiceLocator) {
     private val flags = mutableSetOf<Flag>()
     var urgent = false
         private set
+    var asked = false
+        private set
 
     fun newTurn() {
         said.clear()
         urgent = false
+        asked = false
     }
 
     fun reset() {
@@ -57,15 +60,36 @@ class CareEngine(private val app: Context, private val sl: ServiceLocator) {
         val now = LocalTime.now()
         val slots = mutableMapOf<String, String>()
         listOf("name", "dose", "what", "since", "severity", "kind", "amount", "repeat").forEach { k -> args.s(k)?.let { slots[k] = it.take(120) } }
-        args.s("time")?.let { raw -> Clock.resolve(raw, now)?.let { slots["time"] = it } }
+        args.s("time")?.let { raw -> Clock.resolveAll(raw, now).takeIf { it.isNotEmpty() }?.let { slots["time"] = it.joinToString(",") } }
         slots["kind"]?.let { slots["kind"] = it.lowercase() }
         forms.offer(type, slots)
+        return process(lc)
+    }
+
+    fun hasPending(): Boolean = forms.pending() != null
+
+    suspend fun fillPending(text: String, lc: Context): String? {
+        val (type, slot) = forms.pending() ?: return null
+        if (Slots.isCancel(text)) {
+            forms.clear()
+            newTurn()
+            return lc.getString(R.string.cf_cancelled).also { said += it }
+        }
+        if (Slots.otherIntent(text, type)) return null
+        val v = Slots.value(slot, text, LocalTime.now()) ?: return null
+        newTurn()
+        forms.offer(type, mapOf(slot to v))
+        process(lc)
+        return reply()
+    }
+
+    private suspend fun process(lc: Context): String {
         val done = mutableListOf<String>()
         var ask: String? = null
         for (step in forms.drain()) {
             when (step) {
                 is Step.Done -> done += execute(step.form, lc)
-                is Step.Ask -> ask = question(step.form.type, step.slot, lc).also { said += it }
+                is Step.Ask -> ask = question(step.form.type, step.slot, lc).also { said += it; asked = true }
             }
         }
         return buildJsonObject {
@@ -109,20 +133,21 @@ class CareEngine(private val app: Context, private val sl: ServiceLocator) {
         return when (f.type) {
             TaskType.Medicine -> {
                 val name = s["name"]!!.trim()
-                val time = s["time"]!!
+                val newTimes = s["time"]!!.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+                val time = newTimes.joinToString(", ") { show(it, lang) }
                 val g = sl.guardian
                 val old = g.medicines().first().firstOrNull { it.name.equals(name, true) }
-                val times = ((old?.times ?: emptyList()) + time).distinct().sorted()
+                val times = ((old?.times ?: emptyList()) + newTimes).distinct().sorted()
                 g.saveMedicine(Medicine(old?.id ?: UUID.randomUUID().toString(), old?.name ?: name, s["dose"] ?: old?.dose ?: "", times, old?.stock, true))
                 Wake.scheduleAll(app)
                 sl.graph.upsert(NodeType.Medicine, name, 2)
-                said += lc.getString(R.string.cf_done_med, name, show(time, lang))
+                said += lc.getString(R.string.cf_done_med, name, time)
                 allergyClash(name)?.let { said += lc.getString(R.string.cf_allergy, name, it) }
                 "Medicine $name saved at $time with a reminder."
             }
             TaskType.Reminder -> {
                 val what = s["what"]!!
-                val time = s["time"]!!
+                val time = s["time"]!!.split(",").first().trim()
                 val now = LocalDateTime.now()
                 var at = now.toLocalDate().atTime(LocalTime.parse(time))
                 if (!at.isAfter(now)) at = at.plusDays(1)
@@ -199,6 +224,35 @@ class CareEngine(private val app: Context, private val sl: ServiceLocator) {
         if (flags.isNotEmpty()) out += "Watch today: " + flags.joinToString(", ") { it.name }
         if (forms.forms.isNotEmpty()) out += "Unfinished tasks: " + openFormLines().joinToString("; ")
         return out
+    }
+}
+
+object Slots {
+    private val cancel = listOf("cancel", "never mind", "nevermind", "forget it", "leave it", "stop that", "रहने दो", "छोड़ो", "रद्द", "వద్దు", "వదిలేయ్", "ಬೇಡ", "ಬಿಡಿ", "வேண்டாம்", "விடு")
+
+    fun isCancel(t: String): Boolean {
+        val l = t.lowercase().trim()
+        return cancel.any { l == it || l.startsWith("$it ") || l.endsWith(" $it") || (l.length <= 24 && l.contains(it)) }
+    }
+
+    fun otherIntent(t: String, type: TaskType): Boolean {
+        val mine = ToolIndex.toolsFor(type).toSet()
+        val extra = ToolIndex.select(t, emptySet()) - ToolIndex.core.toSet() - mine
+        return extra.isNotEmpty() || t.trim().endsWith("?")
+    }
+
+    private fun short(t: String, max: Int): String? {
+        val c = t.trim().trimEnd('.', '!', '?', '।', ',').trim()
+        if (c.isEmpty()) return null
+        return c.takeIf { it.split(' ').count { w -> w.isNotBlank() } <= max }
+    }
+
+    fun value(slot: String, text: String, now: java.time.LocalTime): String? = when (slot) {
+        "time" -> Clock.resolveAll(text, now).takeIf { it.isNotEmpty() }?.joinToString(",")
+        "name" -> short(text, 5)
+        "kind" -> null
+        "amount" -> short(text, 8)
+        else -> short(text, 12)
     }
 }
 

@@ -58,5 +58,7 @@ object ToolIndex {
             .flatMap { it.tools }.distinct()
     }
 
+    fun toolsFor(t: TaskType): List<String> = entries.filter { t in it.forms }.flatMap { it.tools }
+
     val all: List<String> get() = (core + entries.flatMap { it.tools }).distinct()
 }

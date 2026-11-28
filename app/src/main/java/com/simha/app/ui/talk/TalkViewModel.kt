@@ -429,6 +429,20 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
             sl.repo.logEvent("help", jo("source" to "danger_gate", "situation" to sit.name))
             events.emit(TalkEvent.OpenEmergency)
         }
+        val filled = runCatching { care.fillPending(text, lc) }.getOrNull()
+        if (filled != null) {
+            history += Msg.user(text)
+            history += Msg.assistant(filled)
+            lines += ChatLine(false, filled)
+            mode = TalkMode.Speaking
+            live = filled
+            try {
+                sl.voice.say(filled, lang)
+            } finally {
+                live = ""
+            }
+            return true
+        }
         history += Msg.user(text)
         return respond(lang, lc)
     }
@@ -500,6 +514,7 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
                 },
                 tools = toolSet,
                 codeReply = { care.reply() },
+                codeAsks = { care.asked },
             )
             if (care.urgent) events.emit(TalkEvent.OpenEmergency)
             if (reply.isNotBlank()) lines += ChatLine(false, reply)
@@ -511,7 +526,15 @@ class TalkViewModel(app: Application) : AndroidViewModel(app) {
         } catch (e: LlmException) {
             live = ""
             error = UiMsg(R.string.talk_error, e.message)
-            return false
+            val online = runCatching {
+                val cm = getApplication<Application>().getSystemService(android.net.ConnectivityManager::class.java)
+                cm.getNetworkCapabilities(cm.activeNetwork)?.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_VALIDATED) == true
+            }.getOrDefault(true)
+            val m = lc.getString(if (online) R.string.talk_err_spoken else R.string.talk_offline)
+            lines += ChatLine(false, m)
+            mode = TalkMode.Speaking
+            sl.voice.say(m, lang)
+            return true
         }
     }
 

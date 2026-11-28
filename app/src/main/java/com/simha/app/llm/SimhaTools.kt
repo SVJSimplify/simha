@@ -92,7 +92,7 @@ object SimhaTools {
                             p("type", "One of medicine, reminder, symptom, intake")
                             p("name", "Medicine name, only if said")
                             p("dose", "Medicine dose, only if said")
-                            p("time", "Time as the person said it, for example 5, 5 pm, 17:00, 8.30")
+                            p("time", "Time in 24 hour HH:MM if you can tell, for example 17:00. Several times separated by commas. Otherwise exactly as the person said it")
                             p("what", "For a reminder: what to do. For a symptom: what they feel")
                             p("since", "For a symptom: since when")
                             p("severity", "For a symptom: how bad, in their words")
@@ -201,6 +201,8 @@ object SimhaTools {
     )
 
     private val byName: Map<String, JsonObject> by lazy { definitions.associateBy { it.jsonObject["function"]!!.jsonObject["name"]!!.jsonPrimitive.content }.mapValues { it.value.jsonObject } }
+
+    val allNames: Set<String> by lazy { byName.keys }
 
     fun definitionsFor(names: Collection<String>): JsonArray = JsonArray(names.distinct().mapNotNull { byName[it] })
 

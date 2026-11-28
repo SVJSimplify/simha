@@ -23,4 +23,7 @@
     <string name="cf_knows_hint">Simha remembers these things from your talks. They stay only on this phone. Remove anything that is wrong.</string>
     <string name="cf_knows_empty">Nothing yet. Simha learns as you talk.</string>
     <string name="cf_knows_forget">Forget this</string>
+    <string name="cf_cancelled">Okay, I have cancelled that.</string>
+    <string name="talk_err_spoken">Sorry, I could not reach my brain just now. Your alarms, reminders, calls and help still work. Please try again in a moment.</string>
+    <string name="talk_offline">I need the internet for a chat like this. I can still set alarms and reminders, call your family, or help in an emergency.</string>
 </resources>
