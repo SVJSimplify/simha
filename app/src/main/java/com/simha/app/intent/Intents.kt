@@ -234,7 +234,7 @@ object Parser {
         if (has(t, Lex.call) && !has(t, Lex.remind + Lex.alarm)) return Cmd.Call(who(t))
         if (has(t, Lex.music) && words <= 2) return Cmd.Music(tidy(strip(t, Lex.music)))
         if (has(t, Lex.open)) {
-            val name = tidy(strip(t, Lex.open + listOf("app", "the", "please", "karo", "chey", "ऐप", "एप", "करो", "యాప్", "చేయి", "చెయ్", "ಆಪ್", "ಮಾಡು", "ஆப்", "பண்ணு")))
+            val name = tidy(strip(t, Lex.open + listOf("app", "the", "please", "karo", "chey", "करो", "యాప్", "చేయి", "చెయ్", "ಆಪ್", "ಮಾಡು", "ஆப்", "பண்ணு")))
             if (name.isNotBlank() && name.split(' ').size <= 3) return Cmd.OpenApp(name)
         }
         return null
