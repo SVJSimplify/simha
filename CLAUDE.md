@@ -25,7 +25,7 @@ Android voice companion for seniors living alone (India first): it watches over 
 - Reminders and follow-ups speak through Wake (alarm volume over the lock screen), not just notifications. Follow-ups use `WakeReason.Evening` with a `Wake.SAY` extra so they never escalate.
 - Every alert, call, permission and recording is audited (local).
 - Once a language is chosen, every screen, notification, spoken line and LLM reply is in it. No hardcoded strings; every string in en, hi, te, kn, ta.
-- Theme: Rose clay (`ui/theme`), Nunito; flat 2D Sunrise-gold orb (`ui/home/SimhaOrb.kt`). Body ≥ 20sp, targets ≥ 56dp (64dp at fontScale > 1.3), 4dp spacing grid, no exclamation marks.
+- Theme: Dusk (indigo on warm paper, gold accent; `ui/theme`), Baloo per script (Baloo 2 en/hi, Tammudu te, Tamma kn, Thambi ta via `simhaFont(lang)`); Lottie orb (`res/raw/simha_orb.json`, `ui/home/SimhaOrb.kt`); motion pieces in `ui/Motion.kt` (StepBar, SlideToConfirm, TickMark, BlurInText, Waveform, ThinkingText); sliding-pill tab bar. Body ≥ 20sp, targets ≥ 56dp (64dp at fontScale > 1.3), 4dp spacing grid, no exclamation marks.
 - Navigation: 3 tabs (Home, Health, Settings); Settings = Me, People, Check-ins, AI and voice, Privacy, About.
 - Contacts: "Add family/neighbour/doctor" = label + phone typed in; "Choose from contacts" = pick, then label.
 

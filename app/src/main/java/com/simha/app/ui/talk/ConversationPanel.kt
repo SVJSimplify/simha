@@ -147,7 +147,9 @@ fun ConversationPanel(
         }
         if (!canTalk && reason != null) Body(stringResource(R.string.talk_not_set))
         SimhaOrb(orb, { if (canTalk && !vm.recording) mic() }, Modifier.size(220.dp), level)
-        Caption(
+        com.simha.app.ui.Waveform(level, vm.mode == TalkMode.Listening || vm.mode == TalkMode.Speaking)
+        if (vm.mode == TalkMode.Thinking) com.simha.app.ui.ThinkingText(stringResource(R.string.talk_thinking))
+        else Caption(
             stringResource(
                 when (vm.mode) {
                     TalkMode.Listening -> R.string.talk_listening

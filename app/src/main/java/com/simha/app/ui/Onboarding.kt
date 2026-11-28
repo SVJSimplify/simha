@@ -44,7 +44,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -223,7 +222,7 @@ fun OnboardingScreen(vm: MainViewModel, s: Snap, onDone: () -> Unit) {
 @Composable
 private fun Progress(step: Int) {
     Caption(stringResource(R.string.ob_step, step + 1, OB_STEPS))
-    LinearProgressIndicator(progress = { (step + 1f) / OB_STEPS }, modifier = Modifier.fillMaxWidth())
+    StepBar(step, OB_STEPS)
 }
 
 @Composable

@@ -1,5 +1,16 @@
 package com.simha.app.ui
 
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.offset
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
@@ -94,7 +105,7 @@ fun SimhaRoot(vm: MainViewModel, wsc: WindowWidthSizeClass) {
         }
     }
     CompositionLocalProvider(LocalContext provides lctx, LocalConfiguration provides lcfg) {
-        SimhaTheme(dark = s.night || isSystemInDarkTheme()) {
+        SimhaTheme(dark = s.night || isSystemInDarkTheme(), lang = s.lang) {
             ProvideLayout(wsc, s.lang) {
                 AppNav(vm, s)
             }
@@ -118,29 +129,44 @@ private fun BottomBar(route: String?, onSelect: (String) -> Unit) {
             .windowInsetsPadding(WindowInsets.navigationBars),
         contentAlignment = Alignment.Center,
     ) {
-        Row(
-            Modifier.widthIn(max = 640.dp).fillMaxWidth().padding(horizontal = 8.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            items.forEach { (r, icon, label) ->
-                val on = route == r
-                val pill by animateColorAsState(if (on) c.fill else c.surface, tween(NavMs), label = "pill")
-                val tint by animateColorAsState(if (on) c.primary else c.text2, tween(NavMs), label = "tint")
-                Column(
-                    Modifier
-                        .weight(1f)
-                        .heightIn(min = 72.dp)
-                        .pressClick({ onSelect(r) }, role = Role.Tab)
-                        .semantics { selected = on }
-                        .clip(RoundedCornerShape(SimhaRadius))
-                        .background(pill)
-                        .border(1.dp, if (on) c.border else Color.Transparent, RoundedCornerShape(SimhaRadius))
-                        .padding(vertical = 8.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
-                ) {
-                    Icon(painterResource(icon), null, Modifier.size(32.dp), tint = tint)
-                    Text(stringResource(label), style = MaterialTheme.typography.bodySmall, color = tint, textAlign = TextAlign.Center)
+        BoxWithConstraints(Modifier.widthIn(max = 640.dp).fillMaxWidth().padding(horizontal = 8.dp, vertical = 8.dp)) {
+            val idx = items.indexOfFirst { it.first == route }
+            val gap = 8.dp
+            val w = (maxWidth - gap * 2) / 3
+            val still = animMs() == 0
+            val x by animateDpAsState(
+                (w + gap) * idx.coerceAtLeast(0),
+                if (still) snap() else spring(dampingRatio = 0.85f, stiffness = Spring.StiffnessMediumLow),
+                label = "pillX",
+            )
+            val shown by animateFloatAsState(if (idx >= 0) 1f else 0f, tween(NavMs), label = "pillA")
+            Box(
+                Modifier
+                    .offset(x = x)
+                    .width(w)
+                    .height(72.dp)
+                    .graphicsLayer { alpha = shown }
+                    .clip(RoundedCornerShape(SimhaRadius))
+                    .background(c.fill),
+            )
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(gap)) {
+                items.forEach { (r, icon, label) ->
+                    val on = route == r
+                    val tint by animateColorAsState(if (on) c.primary else c.text2, tween(NavMs), label = "tint")
+                    val lift by animateFloatAsState(if (on) 1.08f else 1f, if (still) snap() else spring(dampingRatio = 0.7f, stiffness = Spring.StiffnessMedium), label = "lift")
+                    Column(
+                        Modifier
+                            .weight(1f)
+                            .height(72.dp)
+                            .clip(RoundedCornerShape(SimhaRadius))
+                            .pressClick({ onSelect(r) }, role = Role.Tab)
+                            .semantics { selected = on },
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center,
+                    ) {
+                        Icon(painterResource(icon), null, Modifier.size(32.dp).graphicsLayer { scaleX = lift; scaleY = lift }, tint = tint)
+                        Text(stringResource(label), style = MaterialTheme.typography.bodySmall, color = tint, textAlign = TextAlign.Center, fontWeight = if (on) FontWeight.SemiBold else FontWeight.Normal)
+                    }
                 }
             }
         }

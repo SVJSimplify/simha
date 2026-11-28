@@ -224,7 +224,7 @@ fun HomeScreen(
         AnimatedEntrance(0) {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Caption(date)
-                Text(greet, style = MaterialTheme.typography.titleLarge)
+                BlurInText(greet, MaterialTheme.typography.titleLarge)
             }
         }
         AnimatedEntrance(1, Modifier.fillMaxWidth()) {
@@ -273,15 +273,17 @@ fun HomeScreen(
                     )
                     if (nd != null) {
                         Hairline()
-                        ListRow(null, stringResource(R.string.r3_mark_taken), null) { vm.logDose(nd.medicine.id, nd.at, "taken") }
+                        TakenRow(stringResource(R.string.r3_mark_taken), { vm.logDose(nd.medicine.id, nd.at, "taken") })
                     }
                 } else {
                     ListRow(R.drawable.ic_heart, stringResource(R.string.r4c_add_meds), null, onMeds)
                 }
-                Hairline()
-                ListRow(R.drawable.ic_users, stringResource(R.string.m_call_family), null, callFamily)
-                Hairline()
-                ListRow(R.drawable.ic_phone, stringResource(R.string.m_call_doctor), null, callDoctor)
+            }
+        }
+        AnimatedEntrance(i++, Modifier.fillMaxWidth()) {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                SlideToConfirm(stringResource(R.string.m_call_family), R.drawable.ic_users, callFamily)
+                SlideToConfirm(stringResource(R.string.m_call_doctor), R.drawable.ic_phone, callDoctor)
             }
         }
         if (failed) Body(stringResource(R.string.call_failed), color = c.emergency)

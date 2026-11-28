@@ -10,6 +10,7 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.ExperimentalTextApi
@@ -27,13 +28,21 @@ val SimhaRadius = 24.dp
 val LocalSimha = staticCompositionLocalOf { LightSimha }
 
 @OptIn(ExperimentalTextApi::class)
-private fun nunito(w: Int) = Font(
-    R.font.nunito,
-    FontWeight(w),
-    variationSettings = FontVariation.Settings(FontVariation.weight(w)),
+private fun baloo(res: Int) = FontFamily(
+    listOf(400, 500, 600).map { w -> Font(res, FontWeight(w), variationSettings = FontVariation.Settings(FontVariation.weight(w))) },
 )
 
-val NunitoFamily = FontFamily(nunito(400), nunito(500), nunito(600))
+private val Baloo = baloo(R.font.baloo2)
+private val BalooTe = baloo(R.font.baloo_tammudu2)
+private val BalooKn = baloo(R.font.baloo_tamma2)
+private val BalooTa = baloo(R.font.baloo_thambi2)
+
+fun simhaFont(lang: String): FontFamily = when (lang.take(2)) {
+    "te" -> BalooTe
+    "kn" -> BalooKn
+    "ta" -> BalooTa
+    else -> Baloo
+}
 
 private fun scheme(c: SimhaColors, dark: Boolean) = if (dark) {
     darkColorScheme(
@@ -83,27 +92,28 @@ private fun scheme(c: SimhaColors, dark: Boolean) = if (dark) {
     )
 }
 
-private val SimhaTypography = Typography(
-    titleLarge = TextStyle(fontFamily = NunitoFamily, fontFeatureSettings = "tnum", fontSize = 28.sp, fontWeight = FontWeight.Medium, lineHeight = 36.sp),
-    titleMedium = TextStyle(fontFamily = NunitoFamily, fontFeatureSettings = "tnum", fontSize = 22.sp, fontWeight = FontWeight.Medium, lineHeight = 30.sp),
-    bodyLarge = TextStyle(fontFamily = NunitoFamily, fontFeatureSettings = "tnum", fontSize = 20.sp, fontWeight = FontWeight.Normal, lineHeight = 28.sp),
-    bodyMedium = TextStyle(fontFamily = NunitoFamily, fontFeatureSettings = "tnum", fontSize = 20.sp, fontWeight = FontWeight.Normal, lineHeight = 28.sp),
-    labelLarge = TextStyle(fontFamily = NunitoFamily, fontFeatureSettings = "tnum", fontSize = 22.sp, fontWeight = FontWeight.Medium, lineHeight = 28.sp),
-    bodySmall = TextStyle(fontFamily = NunitoFamily, fontFeatureSettings = "tnum", fontSize = 16.sp, fontWeight = FontWeight.Normal, lineHeight = 22.sp),
-    labelSmall = TextStyle(fontFamily = NunitoFamily, fontFeatureSettings = "tnum", fontSize = 16.sp, fontWeight = FontWeight.Normal, lineHeight = 22.sp),
+private fun typography(f: FontFamily) = Typography(
+    titleLarge = TextStyle(fontFamily = f, fontFeatureSettings = "tnum", fontSize = 28.sp, fontWeight = FontWeight.Medium, lineHeight = 36.sp),
+    titleMedium = TextStyle(fontFamily = f, fontFeatureSettings = "tnum", fontSize = 22.sp, fontWeight = FontWeight.Medium, lineHeight = 30.sp),
+    bodyLarge = TextStyle(fontFamily = f, fontFeatureSettings = "tnum", fontSize = 20.sp, fontWeight = FontWeight.Normal, lineHeight = 28.sp),
+    bodyMedium = TextStyle(fontFamily = f, fontFeatureSettings = "tnum", fontSize = 20.sp, fontWeight = FontWeight.Normal, lineHeight = 28.sp),
+    labelLarge = TextStyle(fontFamily = f, fontFeatureSettings = "tnum", fontSize = 22.sp, fontWeight = FontWeight.Medium, lineHeight = 28.sp),
+    bodySmall = TextStyle(fontFamily = f, fontFeatureSettings = "tnum", fontSize = 16.sp, fontWeight = FontWeight.Normal, lineHeight = 22.sp),
+    labelSmall = TextStyle(fontFamily = f, fontFeatureSettings = "tnum", fontSize = 16.sp, fontWeight = FontWeight.Normal, lineHeight = 22.sp),
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SimhaTheme(dark: Boolean, content: @Composable () -> Unit) {
+fun SimhaTheme(dark: Boolean, lang: String = "en", content: @Composable () -> Unit) {
     val c = if (dark) DarkSimha else LightSimha
+    val type = remember(lang) { typography(simhaFont(lang)) }
     CompositionLocalProvider(
         LocalSimha provides c,
         LocalRippleConfiguration provides RippleConfiguration(color = c.primary, rippleAlpha = RippleAlpha(0.1f, 0.1f, 0.1f, 0.1f)),
     ) {
         MaterialTheme(
             colorScheme = scheme(c, dark),
-            typography = SimhaTypography,
+            typography = type,
             content = content,
         )
     }

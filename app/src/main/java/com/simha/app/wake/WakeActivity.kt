@@ -46,7 +46,7 @@ class WakeActivity : AppCompatActivity() {
         volumeControlStream = AudioManager.STREAM_ALARM
         load(intent)
         setContent {
-            SimhaTheme(dark = isSystemInDarkTheme()) {
+            SimhaTheme(dark = isSystemInDarkTheme(), lang = com.simha.app.LocaleCtx.saved(this)) {
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                     val r = req
                     if (r != null) {

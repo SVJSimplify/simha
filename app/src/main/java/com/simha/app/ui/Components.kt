@@ -126,7 +126,7 @@ const val NavMs = 250
 fun Modifier.pressScale(src: InteractionSource, enabled: Boolean = true): Modifier = composed {
     val pressed by src.collectIsPressedAsState()
     val haptic = LocalHapticFeedback.current
-    val spec: AnimationSpec<Float> = if (animMs() == 0) snap() else spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessMedium)
+    val spec: AnimationSpec<Float> = if (animMs() == 0) snap() else spring(dampingRatio = 0.8f, stiffness = Spring.StiffnessMediumLow)
     val sc by animateFloatAsState(if (pressed && enabled) 0.96f else 1f, spec, label = "press")
     LaunchedEffect(pressed) { if (pressed && enabled) haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove) }
     graphicsLayer {
