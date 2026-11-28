@@ -104,7 +104,7 @@ object Clock {
                 }
             )
         }
-        var s = sb.toString().replace("a.m.", "am").replace("p.m.", "pm").replace("a.m", "am").replace("p.m", "pm")
+        var s = sb.toString().replace("\u2019", "'").replace(Regex("(\\d{1,2})\\s+thirty"), "$1:30").replace(Regex("(\\d{1,2})\\s+fifteen"), "$1:15").replace(Regex("(\\d{1,2})\\s+forty[- ]?five"), "$1:45").replace("a.m.", "am").replace("p.m.", "pm").replace("a.m", "am").replace("p.m", "pm")
         words.forEach { (w, n) ->
             val tail = if (w.all { it.code < 0x80 }) NR else "(?=\\s*(बजे|baje))"
             s = s.replace(Regex(NL + Regex.escape(w) + tail), n.toString())
@@ -114,12 +114,12 @@ object Clock {
 
     fun resolve(raw: String, now: LocalTime): String? = resolveAll(raw, now).firstOrNull()
 
-    fun resolveAll(raw: String, now: LocalTime): List<String> {
+    fun resolveAll(raw: String, now: LocalTime, alarm: Boolean = false): List<String> {
         val s = normalize(raw)
         relative(s, now)?.let { return listOf(it) }
         val parts = s.split(Regex("\\s*(,|;|&|/|\\band\\b|और|మరియు|ಮತ್ತು|மற்றும்)\\s*")).filter { it.isNotBlank() }
         val out = mutableListOf<String>()
-        parts.forEach { p -> one(p, now)?.let { t -> out += if (t in out) flip(t) else t } }
+        parts.forEach { p -> one(p, now, alarm)?.let { t -> out += if (t in out) flip(t) else t } }
         return out.distinct()
     }
 
@@ -138,12 +138,12 @@ object Clock {
 
     private fun fmt(t: LocalTime) = "%02d:%02d".format(t.hour, t.minute)
 
-    private fun one(p: String, now: LocalTime): String? {
-        if (p.contains("noon")) return "12:00"
+    private fun one(p: String, now: LocalTime, alarm: Boolean): String? {
+        if (Regex("(?<![a-z])noon").containsMatchIn(p)) return "12:00"
         if (p.contains("midnight")) return "00:00"
         val m = num.find(p) ?: return when {
-            p.contains("डेढ़") -> ambiguous(1, 30, p, now)
-            p.contains("ढाई") -> ambiguous(2, 30, p, now)
+            p.contains("डेढ़") -> ambiguous(1, 30, p, now, alarm)
+            p.contains("ढाई") -> ambiguous(2, 30, p, now, alarm)
             else -> null
         }
         var h = m.groupValues[1].toInt()
@@ -157,10 +157,10 @@ object Clock {
                 h = if (h == 1) 12 else h - 1
             }
         }
-        return ambiguous(h, mi, p, now)
+        return ambiguous(h, mi, p, now, alarm)
     }
 
-    private fun ambiguous(h0: Int, mi: Int, p: String, now: LocalTime): String? {
+    private fun ambiguous(h0: Int, mi: Int, p: String, now: LocalTime, alarm: Boolean = false): String? {
         var h = h0
         val am = Regex("\\bam\\b").containsMatchIn(p) || amWords.any { p.contains(it) }
         val pm = Regex("\\bpm\\b").containsMatchIn(p) || pmWords.any { p.contains(it) }
@@ -180,6 +180,7 @@ object Clock {
                 if (h !in 1..12) return null
                 if (h == 12) h = 0
             }
+            alarm && h in 4..11 -> Unit
             h in 1..12 -> {
                 val a = LocalTime.of(h % 12, mi)
                 val b = LocalTime.of(h % 12 + 12, mi)
