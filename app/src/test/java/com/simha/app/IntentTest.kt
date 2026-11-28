@@ -16,7 +16,10 @@ class IntentTest {
     private val today = "2026-11-28"
 
     private fun p(s: String): Cmd? = Parser.parse(s, now)
-    private fun eq(c: List<Pair<String, Cmd?>>) = c.forEach { (k, v) -> assertEquals(k, v, p(k)) }
+    private fun eq(c: List<Pair<String, Cmd?>>) {
+        val bad = c.mapNotNull { (k, v) -> val a = p(k); if (a != v) "[$k] expected=$v actual=$a" else null }
+        if (bad.isNotEmpty()) throw AssertionError("MISMATCH " + bad.size + "\n" + bad.joinToString("\n"))
+    }
     private fun al(t: String, r: String = "once", d: String = "") = Cmd.Alarm(listOf(t), r, d)
     private fun al(t: List<String>, r: String = "once", d: String = "") = Cmd.Alarm(t, r, d)
     private fun rem(s: String, t: List<String>, r: String = "once", d: String = "") {
