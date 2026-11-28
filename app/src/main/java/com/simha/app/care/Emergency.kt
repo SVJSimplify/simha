@@ -25,7 +25,9 @@ object Emergency {
             val am = ctx.getSystemService(AudioManager::class.java)
             intArrayOf(AudioManager.STREAM_ALARM, AudioManager.STREAM_MUSIC).forEach { am.setStreamVolume(it, am.getStreamMaxVolume(it), 0) }
         }
-        val family = runCatching { sl.repo.contactsNow().filter { it.role in Repo.FAMILY_ROLES } }.getOrDefault(emptyList())
+        val all = runCatching { sl.repo.contactsNow() }.getOrDefault(emptyList())
+        val family = all.filter { it.role in Repo.FAMILY_ROLES }.ifEmpty { all.filter { it.approved && it.role != "doctor" } }
+        val me = runCatching { sl.prefs.snap().name }.getOrDefault("").ifBlank { "Simha user" }
         runCatching { sl.repo.audit("emergency_flow_start", jo("family" to family.size)) }
         if (family.isEmpty()) {
             runCatching { say(lc.getString(R.string.em_no_family)) }
@@ -41,9 +43,9 @@ object Emergency {
             return
         }
         val numbers = family.map { it.phone }.filter { it.isNotBlank() }.distinct()
-        val sent = runCatching { sendSms(ctx, lc, numbers, first.name) }.getOrDefault(false)
+        val sent = runCatching { sendSms(ctx, lc, numbers, me) }.getOrDefault(false)
         runCatching { sl.repo.audit("emergency_flow_sms", jo("sent" to sent, "count" to numbers.size)) }
-        if (sent) runCatching { say(lc.getString(R.string.em_sms_sent, first.name)) }
+        if (sent) runCatching { say(lc.getString(R.string.em_sms_sent)) }
         runCatching { say(lc.getString(R.string.em_calling, first.name)) }
         val r = runCatching { sl.repo.placeCall(first.phone, first.approved, "emergency_flow") }.getOrNull()
         runCatching { sl.repo.audit("emergency_flow_call", jo("result" to (r?.name ?: "error"))) }
